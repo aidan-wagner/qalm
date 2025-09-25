@@ -26,7 +26,7 @@ def process_results():
     original_lengths = []
 
     for circuit in circuit_list:
-        original_lengths.append(str(QuantumCircuit.from_qasm_file(f"circuit/nam_circs/{circuit}.qasm").size()))
+        original_lengths.append(str(QuantumCircuit.from_qasm_file(f"qalm/circuit/nam_circs/{circuit}.qasm").size()))
 
         for res in parse_qalm(circuit):
             total_results["qalm_" + res[0] + "_results"].append(res[1])
@@ -85,17 +85,16 @@ def parse_queso(circuit_name):
         result_dict = json.load(f)
     return result_dict["best_circuit_size"]
 
-def parse_qiskit(circuit_name):
-    result_file = f"fresh_results/qalm_bench/nam/qiskit/results_{circuit_name}/results_none_none.json"
-    with open(result_file, "r") as f:
-        result_dict = json.load(f)
-    return result_dict["optimized_total"]
-
 def parse_voqc(circuit_name):
     result_file = f"fresh_results/qalm_bench/nam/voqc/results_{circuit_name}/results_none_none.json"
     with open(result_file, "r") as f:
         result_dict = json.load(f)
     return result_dict["optimized_total"]
+
+def parse_qiskit(circuit_name):
+    result_file = f"fresh_results/qalm_bench/nam/qiskit/{circuit_name}.qasm.qiskit"
+    c = QuantumCircuit.from_qasm_file(result_file)
+    return c.size()
 
 def parse_repeated_roqc(circuit_name):
     result_file = f"fresh_results/qalm_bench/nam/repeated_roqc/{circuit_name}.qasm.roqc"

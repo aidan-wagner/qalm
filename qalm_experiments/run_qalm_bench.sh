@@ -31,9 +31,6 @@ for i in $(seq 1 $num_guoq_trials); do
 done
 mv results_* fresh_results/qalm_bench/nam/guoq
 
-run_qiskit $BENCHMARK_DIR/$benchmark $timeout "nam"
-mv results_* fresh_results/qalm_bench/nam/qiskit
-
 run_queso $BENCHMARK_DIR/$benchmark $timeout "-g!NAM!-opt!TOTAL!--rules-dir!/home/queso_rules/!-search!BEAM!-temp!0!-q!8000!-resynth!NONE"
 mv results_* fresh_results/qalm_bench/nam/queso
 
