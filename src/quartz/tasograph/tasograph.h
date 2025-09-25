@@ -274,6 +274,16 @@ class Graph {
            const std::string &store_all_steps_file_prefix = std::string(),
            bool continue_storing_all_steps = false,
            const size_t roqc_interval = 0);
+
+  std::shared_ptr<Graph>
+  optimize_qalm(const std::vector<GraphXfer *> &xfers, double cost_upper_bound,
+           const std::string &circuit_name, const std::string &log_file_name,
+           bool print_message,
+           std::function<float(Graph *)> cost_function = nullptr,
+           double timeout = 3600 /*1 hour*/,
+           const std::string &store_all_steps_file_prefix = std::string(),
+           bool continue_storing_all_steps = false,
+           const size_t roqc_interval = 0);
   void constant_and_rotation_elimination();
   void rotation_merging(GateType target_rotation);
   [[nodiscard]] std::string to_qasm(bool print_result = false,
