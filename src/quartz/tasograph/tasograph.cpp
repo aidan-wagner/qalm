@@ -2174,7 +2174,7 @@ Graph::optimize(const std::vector<GraphXfer *> &xfers, double cost_upper_bound,
   return best_graph;
 }
 
-void attempt_qalm(std::priority_queue<std::shared_ptr<Graph>, std::vector<std::shared_ptr<Graph>>, GraphCompare>)
+void attempt_qalm(std::priority_queue<std::shared_ptr<Graph>, std::vector<std::shared_ptr<Graph>>, GraphCompare>);
 
 std::shared_ptr<Graph>
 Graph::optimize_qalm(const std::vector<GraphXfer *> &xfers, double cost_upper_bound,
