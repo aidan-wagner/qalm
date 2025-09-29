@@ -2174,6 +2174,8 @@ Graph::optimize(const std::vector<GraphXfer *> &xfers, double cost_upper_bound,
   return best_graph;
 }
 
+void attempt_qalm(std::priority_queue<std::shared_ptr<Graph>, std::vector<std::shared_ptr<Graph>>, GraphCompare>)
+
 std::shared_ptr<Graph>
 Graph::optimize_qalm(const std::vector<GraphXfer *> &xfers, double cost_upper_bound,
                 const std::string &circuit_name,
@@ -2334,6 +2336,7 @@ Graph::optimize_qalm(const std::vector<GraphXfer *> &xfers, double cost_upper_bo
       hashmap.insert(new_hash);
 
       found_circuits.push_back(new_graph);
+      candidates.push(new_graph);
 
       if (!store_all_steps_file_prefix.empty()) {
         // record history
@@ -2411,6 +2414,7 @@ Graph::optimize_qalm(const std::vector<GraphXfer *> &xfers, double cost_upper_bo
           }
 
           found_circuits[circuit_index] = new_graph;
+          candidates.push(new_graph);
           found_new_circuit = true;
 
           if (!store_all_steps_file_prefix.empty()) {
