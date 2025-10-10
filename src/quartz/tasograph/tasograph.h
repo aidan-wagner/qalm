@@ -283,7 +283,10 @@ class Graph {
            double timeout = 3600 /*1 hour*/,
            const std::string &store_all_steps_file_prefix = std::string(),
            bool continue_storing_all_steps = false,
-           const size_t roqc_interval = 0);
+           const size_t exploration_pool_size = 10,
+           size_t exploration_steps = 10,
+           const float repeat_tolerance = 1.5,
+           const bool exploration_increase = false);
   void constant_and_rotation_elimination();
   void rotation_merging(GateType target_rotation);
   [[nodiscard]] std::string to_qasm(bool print_result = false,

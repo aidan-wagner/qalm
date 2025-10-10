@@ -1966,8 +1966,8 @@ Graph::optimize(const std::vector<GraphXfer *> &xfers, double cost_upper_bound,
                 bool continue_storing_all_steps,
                 const size_t roqc_interval) {
   if (cost_function == nullptr) {
-    //cost_function = [](Graph *graph) { return graph->total_cost(); };
-    cost_function = [](Graph *graph) {return graph->hadamard_reduction_cost(); };
+    cost_function = [](Graph *graph) { return graph->total_cost(); };
+    // cost_function = [](Graph *graph) {return graph->hadamard_reduction_cost(); };
   }
   auto start = std::chrono::steady_clock::now();
   std::priority_queue<std::shared_ptr<Graph>,
@@ -2056,6 +2056,7 @@ Graph::optimize(const std::vector<GraphXfer *> &xfers, double cost_upper_bound,
   while (!candidates.empty()) {
     auto graph = candidates.top();
     candidates.pop();
+    std::cout << "size of current circuit" << cost_function(graph.get()) << std::endl;
     std::vector<Op> all_nodes;
     graph->topology_order_ops(all_nodes);
     for (auto xfer : xfers) {
@@ -2181,11 +2182,15 @@ Graph::optimize_qalm(const std::vector<GraphXfer *> &xfers, double cost_upper_bo
                 std::function<float(Graph *)> cost_function, double timeout,
                 const std::string &store_all_steps_file_prefix,
                 bool continue_storing_all_steps,
-                const size_t roqc_interval) {
+                const size_t exploration_pool_size,
+                size_t exploration_steps,
+                const float repeat_tolerance,
+                const bool exploration_increase) {
   if (cost_function == nullptr) {
     cost_function = [](Graph *graph) { return graph->total_cost(); };
     // cost_function = [](Graph *graph) {return graph->hadamard_reduction_cost(); };
   }
+
   auto start = std::chrono::steady_clock::now();
   std::priority_queue<std::shared_ptr<Graph>,
                       std::vector<std::shared_ptr<Graph>>, GraphCompare>
@@ -2193,6 +2198,8 @@ Graph::optimize_qalm(const std::vector<GraphXfer *> &xfers, double cost_upper_bo
   std::set<size_t> hashmap;
   std::shared_ptr<Graph> best_graph(new Graph(*this));
   auto best_cost = cost_function(this);
+
+  auto rand_engine = std::default_random_engine {};
 
   candidates.push(best_graph);
   hashmap.insert(hash());
@@ -2273,40 +2280,46 @@ Graph::optimize_qalm(const std::vector<GraphXfer *> &xfers, double cost_upper_bo
   };
 
   // ######## Start of the main optimization loop ##########
+  
+  std::cout << "exploration_increase set to: " << exploration_increase << std::endl;
 
   bool hit_timeout = false;
+  size_t rounds_since_reduction = 0;
 
   // std::cout << "Starting optimization loop" << std::endl;
   while (!candidates.empty()) {
+    if (rounds_since_reduction >= 50 && exploration_increase) {
+      exploration_steps *= 2;
+      rounds_since_reduction = 0;
+    }
     auto graph = candidates.top();
     candidates.pop();
     std::vector<Op> all_nodes;
     graph->topology_order_ops(all_nodes);
 
     // Generate pool of (xfer, node) pairs to randomly draw from
-    std::vector<std::pair<GraphXfer*, Op>> xfer_applications;
-    for (auto xfer : xfers) {
-      for (auto const &node: all_nodes) {
-        std::pair<GraphXfer*, Op> xfer_pair = std::make_pair(xfer, node);
-        xfer_applications.push_back(xfer_pair);
-      }
-    }
+    // std::vector<std::pair<GraphXfer*, Op>> xfer_applications;
+    // for (auto xfer : xfers) {
+    //   for (auto const &node: all_nodes) {
+    //     std::pair<GraphXfer*, Op> xfer_pair = std::make_pair(xfer, node);
+    //     xfer_applications.push_back(xfer_pair);
+    //   }
+    // }
 
-    shuffle(xfer_applications.begin(), xfer_applications.end(), std::default_random_engine {});
+    // shuffle(xfer_applications.begin(), xfer_applications.end(), rand_engine);
 
     // Apply transformations randomly until you have a certain number of new circuits
     std::vector<std::shared_ptr<Graph>> found_circuits;
     // std::cout << "Generating intial pool" << std::endl;
 
-    int current_xfer = 0;
-    while (found_circuits.size() < 10) {
-      if (current_xfer > xfer_applications.size() / 5) {
+    int xfer_count = 0;
+    while (found_circuits.size() < exploration_pool_size) {
+      if (xfer_count > xfers.size() * all_nodes.size() * repeat_tolerance) {
         break;
       }
-      std::pair<GraphXfer*, Op> xfer_to_apply = xfer_applications[current_xfer];
-      current_xfer++;
-      auto xfer = xfer_to_apply.first;
-      auto node = xfer_to_apply.second;
+      xfer_count++;
+      auto xfer = xfers[rand() % xfers.size()];
+      auto node = all_nodes[rand() % all_nodes.size()];
       invoke_cnt++;
       auto new_graph =
           graph->apply_xfer(xfer, node, context->has_parameterized_gate());
@@ -2316,7 +2329,7 @@ Graph::optimize_qalm(const std::vector<GraphXfer *> &xfers, double cost_upper_bo
                   .count() /
               1000.0 >
           timeout) {
-        std::cout << "Timeout. Program terminated. Best cost is " << best_cost
+        std::cout << "Timeout in generation. Program terminated. Best cost is " << best_cost
                   << std::endl;
         hit_timeout = true;
         break;
@@ -2344,6 +2357,10 @@ Graph::optimize_qalm(const std::vector<GraphXfer *> &xfers, double cost_upper_bo
       if (new_cost < best_cost) {
         best_cost = new_cost;
         best_graph = new_graph;
+        rounds_since_reduction = 0;
+      }
+      else {
+        rounds_since_reduction++;
       }
 
       if (hit_timeout) {
@@ -2357,35 +2374,24 @@ Graph::optimize_qalm(const std::vector<GraphXfer *> &xfers, double cost_upper_bo
     // std::cout << "Allowing circuit pool to develop" << std::endl;
     for (int i = 0; i < 10; i++) {
       for (int circuit_index = 0; circuit_index < found_circuits.size(); circuit_index++) {
-
+        // std::cout << "Evolution on circuit " << circuit_index << std::endl;
         auto graph = found_circuits[circuit_index];
 
         // Regenerate possible transformations
-        xfer_applications.clear();
         all_nodes.clear();
         graph->topology_order_ops(all_nodes);
-
-        for (auto xfer : xfers) {
-          for (auto const &node: all_nodes) {
-            std::pair<GraphXfer*, Op> xfer_pair = std::make_pair(xfer, node);
-            xfer_applications.push_back(xfer_pair);
-          }
-        }
-        std::shuffle(xfer_applications.begin(), xfer_applications.end(), std::default_random_engine {});
 
         // Try random transformations until one succees
 
         bool found_new_circuit = false;
-        std::unordered_set<int> attempted_xfers;
-        int current_xfer = 0;
+        int xfer_count = 0;
         while (!found_new_circuit) {
-          if (current_xfer > xfer_applications.size() / 5) {
+          if (xfer_count > xfers.size() * all_nodes.size() * repeat_tolerance) {
             break;
           }
-          std::pair<GraphXfer*, Op> xfer_to_apply = xfer_applications[current_xfer];
-          current_xfer++;
-          auto xfer = xfer_to_apply.first;
-          auto node = xfer_to_apply.second;
+          xfer_count++;
+          auto xfer = xfers[rand() % xfers.size()];
+          auto node = all_nodes[rand() % all_nodes.size()];
           invoke_cnt++;
           auto new_graph =
               graph->apply_xfer(xfer, node, context->has_parameterized_gate());
@@ -2395,7 +2401,7 @@ Graph::optimize_qalm(const std::vector<GraphXfer *> &xfers, double cost_upper_bo
                       .count() /
                   1000.0 >
               timeout) {
-            std::cout << "Timeout. Program terminated. Best cost is " << best_cost
+            std::cout << "Timeout in evolution. Program terminated. Best cost is " << best_cost
                       << std::endl;
             hit_timeout = true;
             break;
@@ -2425,10 +2431,14 @@ Graph::optimize_qalm(const std::vector<GraphXfer *> &xfers, double cost_upper_bo
             best_graph = new_graph;
           }
 
-          if (hit_timeout) {
-            break;
-          }
         }
+        if (hit_timeout) {
+          break;
+        }
+      }
+
+      if (hit_timeout) {
+        break;
       }
     }
 
@@ -2439,8 +2449,6 @@ Graph::optimize_qalm(const std::vector<GraphXfer *> &xfers, double cost_upper_bo
     }
 
     // Run roqc on all current circuits
-    
-    std::cout << "Running ROQC on circuit pool" << std::endl;
     
     for (int circuit_index = 0; circuit_index < found_circuits.size(); circuit_index++) {
       // std::cout << "Running ROQC on circuit " << circuit_index << std::endl;
@@ -2464,6 +2472,16 @@ Graph::optimize_qalm(const std::vector<GraphXfer *> &xfers, double cost_upper_bo
       // std::cout << "adding new candidate" << std::endl;
 
       candidates.push(curr_graph);
+      if (new_cost < best_cost) {
+        best_cost = new_cost;
+        best_graph = curr_graph;
+      }
+
+      if (candidates.size() > kMaxNumCandidates) {
+        shrink_candidates();
+      }
+
+
     }
 
     auto end = std::chrono::steady_clock::now();
