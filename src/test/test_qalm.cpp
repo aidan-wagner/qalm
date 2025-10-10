@@ -80,6 +80,16 @@ int main(int argc, char **argv) {
           if (xfer != nullptr) {
             xfers.push_back(xfer);
           }
+        } else {
+          auto xfer =
+              GraphXfer::create_GraphXfer(ctx, ecc[i], ecc[representative_id], true);
+          if (xfer != nullptr) {
+            xfers.push_back(xfer);
+          }
+          xfer = GraphXfer::create_GraphXfer(ctx, ecc[representative_id], ecc[i], true);
+          if (xfer != nullptr) {
+            xfers.push_back(xfer);
+          }
         }
       }
     }
