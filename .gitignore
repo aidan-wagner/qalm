@@ -80,4 +80,5 @@ final_circuits/*
 pickled_results/*
 result_figures/*
 res_*
+circuit_step*
 
