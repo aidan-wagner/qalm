@@ -55,11 +55,15 @@ int main(int argc, char **argv) {
     }
   }
 
+  std::vector<GraphXfer *> xfers;
+
   if (strictly_reducing_rules) {
+
+    auto cost_function = [](Graph *graph) { return graph->total_cost(); };
+
 
     // Get xfers that strictly reduce the cost from the ECC set
     auto eccs = eqs.get_all_equivalence_sets();
-    std::vector<GraphXfer *> xfers;
     for (const auto &ecc : eccs) {
       const int ecc_size = (int)ecc.size();
       std::vector<Graph> graphs;
@@ -67,7 +71,7 @@ int main(int argc, char **argv) {
       graphs.reserve(ecc_size);
       graph_cost.reserve(ecc_size);
       for (auto &circuit : ecc) {
-        graphs.emplace_back(ctx, circuit);
+        graphs.emplace_back(&ctx, circuit);
         graph_cost.emplace_back(cost_function(&graphs.back()));
       }
       int representative_id =
@@ -75,33 +79,31 @@ int main(int argc, char **argv) {
                 graph_cost.begin());
       for (int i = 0; i < ecc_size; i++) {
         if (graph_cost[i] != graph_cost[representative_id]) {
-          auto xfer = GraphXfer::create_GraphXfer(ctx, ecc[i],
+          auto xfer = GraphXfer::create_GraphXfer(&ctx, ecc[i],
                                                   ecc[representative_id], true);
           if (xfer != nullptr) {
             xfers.push_back(xfer);
           }
         } else {
           auto xfer =
-              GraphXfer::create_GraphXfer(ctx, ecc[i], ecc[representative_id], true);
+              GraphXfer::create_GraphXfer(&ctx, ecc[i], ecc[representative_id], true);
           if (xfer != nullptr) {
             xfers.push_back(xfer);
           }
-          xfer = GraphXfer::create_GraphXfer(ctx, ecc[representative_id], ecc[i], true);
+          xfer = GraphXfer::create_GraphXfer(&ctx, ecc[representative_id], ecc[i], true);
           if (xfer != nullptr) {
             xfers.push_back(xfer);
           }
         }
       }
     }
-    if (print_message) {
-      std::cout << "greedy_optimize(): Number of xfers that reduce cost: "
-                << xfers.size() << std::endl;
-    }
+    std::cout << "greedy_optimize(): Number of xfers that reduce cost: "
+              << xfers.size() << std::endl;
   }
   else {
 
   // Get xfer from the equivalent set
-    std::vector<GraphXfer *> xfers =
+    xfers =
         GraphXfer::get_all_xfers_from_ecc(&ctx, eqset_fn);
     std::cout << "number of xfers: " << xfers.size() << std::endl;
   }
@@ -111,7 +113,7 @@ int main(int argc, char **argv) {
   assert(graph);
 
   auto graph_optimized = graph->optimize_qalm(xfers, graph->gate_count() * 1.05,
-                                          circuit_name, "", true, nullptr, timeout, kQuartzRootPath.string() + "/benchmark-logs/" + circuit_name + "_timeout_" + std::to_string(timeout) + "_exp_pool_" + std::to_string(exploration_pool_size) + "_exp_steps_" + std::to_string(exploration_steps) + "_exp_increase_" + std::to_string(exploration_increase) + "_", false + "_strictly_incr_" + std::to_stirng(strictly_reducing_rules), exploration_pool_size, exploration_steps, repeat_tolerance, exploration_increase);
+                                          circuit_name, "", true, nullptr, timeout, kQuartzRootPath.string() + "/benchmark-logs/" + circuit_name + "_timeout_" + std::to_string(timeout) + "_exp_pool_" + std::to_string(exploration_pool_size) + "_exp_steps_" + std::to_string(exploration_steps) + "_exp_increase_" + std::to_string(exploration_increase) + "_" + "_no_increase_" + std::to_string(strictly_reducing_rules), exploration_pool_size, exploration_steps, repeat_tolerance, exploration_increase);
   std::cout << "Optimized graph:" << std::endl;
   std::cout << graph_optimized->to_qasm();
   return 0;
