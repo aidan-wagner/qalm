@@ -187,10 +187,11 @@ def run_quartz(filename, circuit_name, timeout, roqc_interval):
 
     return final_results
 
-def run_qalm(filename, circuit_name, timeout, exploration_pool_size, exploration_steps, repeat_tolerance, exploration_increase, strictly_increasing):
+def run_qalm(filename, circuit_name, timeout, exploration_pool_size, exploration_steps, repeat_tolerance, exploration_increase, no_increase):
     # Interval doesn't matter for test_qalm
-    result = subprocess.run(["./build_non_conda/test_qalm", f"{filename}", f"{circuit_name}", f"{timeout}", f"{exploration_pool_size}", f"{exploration_steps}", f"{repeat_tolerance}", f"{exploration_increase}"], capture_output = True, text=True)
+    result = subprocess.run(["./build_non_conda/test_qalm", f"{filename}", f"{circuit_name}", f"{timeout}", f"{exploration_pool_size}", f"{exploration_steps}", f"{repeat_tolerance}", f"{exploration_increase}", f"{no_increase}"], capture_output = True, text=True)
     result_lines = result.stdout.splitlines()
+    print(result.stdout)
     costs = []
     times = []
     circuit_found = False
