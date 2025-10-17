@@ -3,19 +3,44 @@ import matplotlib.pyplot as plt
 import multiprocessing
 import pickle
 import numpy as np
+from enum import Enum
 
 import equiv_verification
 
+class OptimizationType(Enum):
+    roqc_interval = 1
+    qalm = 2
+
 def tester(arguments):
+    opt_type = arguments[0]
+    if opt_type == OptimizationType.roqc_interval:
+        return roqc_interval_tester(arguments[1])
+    elif opt_type == OptimizationType.qalm:
+        return qalm_tester(arguments[1])
+    else:
+        print("whoops")
+
+def roqc_interval_tester(arguments):
     filename = arguments[0]
     circuit_name = arguments[1]
     timeout = arguments[2]
     roqc_interval = arguments[3]
-    return (roqc_interval, run_quartz(filename, circuit_name, timeout, roqc_interval))
+    return run_quartz(filename, circuit_name, timeout, roqc_interval)
+
+def qalm_tester(arguments):
+    filename = arguments[0]
+    circuit_name = arguments[1]
+    timeout = arguments[2]
+    exploration_pool = arguments[3]
+    exploration_steps = arguments[4]
+    repeat_tolerance = arguments[5]
+    exploration_increase = arguments[6]
+    no_increase = arguments[7]
+    return run_qalm(filename, circuit_name, timeout, exploration_pool, exploration_steps, repeat_tolerance, exploration_increase, no_increase)
 
 def run_experiments():
 
-    timeout = 60 * 5
+    timeout = 60 * 3
     validate = False
     # roqc_intervals = [0, 1, 5, 50, 100]
     roqc_intervals = [0, 1, 5]
@@ -25,7 +50,7 @@ def run_experiments():
                     # ("circuit/nam_circs/barenco_tof_4.qasm", "barenco_tof_4"),
                     # ("circuit/nam_circs/barenco_tof_5.qasm", "barenco_tof_5"),
                     ("circuit/nam_circs/barenco_tof_10.qasm", "barenco_tof_10"),
-                    # ("circuit/nam_circs/csla_mux_3.qasm", "csla_mux_3"),
+                    ("circuit/nam_circs/csla_mux_3.qasm", "csla_mux_3"),
                     # ("circuit/nam_circs/csum_mux_9.qasm", "csum_mux_9"),
                     # ("circuit/nam_circs/gf2^4_mult.qasm", "gf2^4_mult"),
                     # ("circuit/nam_circs/gf2^5_mult.qasm", "gf2^5_mult"),
@@ -48,24 +73,61 @@ def run_experiments():
                     # ("circuit/nam_circs/vbe_adder_3.qasm", "vbe_adder_3"),
                     ];
 
-    full_results = []
+    # full_results = []
 
     for circuit in circuit_list:
         print(f"Running experiments for {circuit[1]}")
 
-        results = {}
-        arguments = [(circuit[0], circuit[1], timeout, roqc_interval) for roqc_interval in roqc_intervals]
+        experiments = [
+            # Roqc interval:
+            (OptimizationType.roqc_interval, (0,)),
+            (OptimizationType.roqc_interval, (1,)),
+            (OptimizationType.roqc_interval, (5,)),
+            (OptimizationType.roqc_interval, (10,)),
+            (OptimizationType.roqc_interval, (50,)),
+            # Qalm (exploration_pool, exploration_steps, repeat_tolerance, exploration_increase, no_increase):
+            (OptimizationType.qalm, (10, 10, 1.5, 0, 0)),
+            (OptimizationType.qalm, (10, 20, 1.5, 0, 0)),
+            (OptimizationType.qalm, (20, 10, 1.5, 0, 0)),
+            (OptimizationType.qalm, (20, 20, 1,5, 0, 0)),
+            (OptimizationType.qalm, (10, 50, 1.5, 0, 0)),
+            (OptimizationType.qalm, (50, 10, 1.5, 0, 0)),
+            (OptimizationType.qalm, (50, 50, 1.5, 0, 0)),
+            (OptimizationType.qalm, (20, 20, 1.5, 1, 0)),
+            (OptimizationType.qalm, (20, 20, 1.5, 0, 1)),
+            (OptimizationType.qalm, (50, 50, 1.5, 1, 0)),
+            (OptimizationType.qalm, (50, 50, 1.5, 0, 1))
+
+        ]
+
+        graph_labels = [
+            "Quartz",
+            "Roqc interval = 1",
+            "Roqc interval = 5",
+            "Roqc interval = 10",
+            "Roqc interval = 50",
+            "Pool10, Steps10, Rep_tol1.5",
+            "Pool10, Steps20, Rep_tol1.5",
+            "Pool20, Steps10, Rep_tol1.5",
+            "Pool20, Steps20, Rep_tol1.5",
+            "Pool10, Steps50, Rep_tol1.5",
+            "Pool50, Steps10, Rep_tol1.5",
+            "Pool50, Steps50, Rep_tol1.5",
+            "Pool20, Steps20, Rep_tol1.5, exp_incr",
+            "Pool20, Steps20, Rep_tol1.5, decr_only",
+            "Pool50, Steps50, Rep_tol1.5, exp_incr",
+            "Pool50, Steps50, Rep_tol1.5, decr_only",
+        ]
+
+        arguments = [(experiment[0], (circuit[0], circuit[1], timeout) + experiment[1]) for experiment in experiments]
+
 
         try:
             with open(f"pickled_results/{circuit[1]}_{timeout}_results.pkl", "rb") as f:
                 results = pickle.load(f)
         except:
             with multiprocessing.Pool(8) as pool:
-                initial_results = pool.map(tester, arguments)
-
-
-                for result in initial_results:
-                    results[result[0]] = result[1]
+                results = pool.map(tester, arguments)
 
         if validate:
             filenames = [f"{circuit[1]}_interval_{roqc_interval}_result.qasm" for roqc_interval in roqc_intervals]
@@ -76,14 +138,6 @@ def run_experiments():
 
         voqc_result = run_voqc(circuit[0])
 
-        qalm_results_10_10 = run_qalm(circuit[0], circuit[1], timeout, 10, 10, 1.5, 0, 0)
-
-        qalm_results_10_10_decr = run_qalm(circuit[0], circuit[1], timeout, 10, 10, 1.5, 0, 1)
-
-        qalm_results_50_50 = run_qalm(circuit[0], circuit[1], timeout, 50, 50, 1.5, 0, 0)
-
-        qalm_results_10_10_exp_increase = run_qalm(circuit[0], circuit[1], timeout, 10, 10, 1.5, 0, 0)
-
         original_gate_count = voqc_result[1][0]
 
 
@@ -92,37 +146,33 @@ def run_experiments():
         #    pickle.dump(results, f)
 
 
-        plt.plot(results[0][0], results[0][1], label = "Quartz - No ROQC")
-        plt.plot(results[1][0], results[1][1], label = "Quartz - ROQC Interval = 1")
-        plt.plot(results[5][0], results[5][1], label = "Quartz - ROQC Interval = 5")
-        # plt.plot(results[50][0], results[50][1], label = "Quartz - ROQC Interval = 50")
-        # plt.plot(results[100][0], results[100][1], label = "Quartz - ROQC Interval = 100")
-        plt.plot(voqc_result[0], voqc_result[1], label = "VOQC - Single Run") 
-        plt.plot(qalm_results_10_10[0], qalm_results_10_10[1], label = "QALM 10 10")
-        plt.plot(qalm_results_10_10_decr[0], qalm_results_10_10_decr[1], label = "QALM 10 10 - strictly decrease")
-        plt.plot(qalm_results_50_50[0], qalm_results_50_50[1], label = "QALM 50 50")
-        plt.plot(qalm_results_10_10_exp_increase[0], qalm_results_10_10_exp_increase[1], label = "QALM 10 10 - increase explore")
+        for i in range(len(results)):
+            plt.plot(results[i][0], results[i][1], label = graph_labels[i])
+
+        plt.plot(voqc_result[0], voqc_result[1], label = "Voqc")
+
 
         plt.xlabel("Time (s)")
         plt.ylabel("Gate Count")
 
-        plt.title(f"Optimization with different ROQC intervals - {circuit[1]} - ECC set (5,3)")
+        plt.title(f"Optimization Experiments - {circuit[1]} - ECC set (5,3)")
 
-        plt.legend()
+        plt.legend(bbox_to_anchor=(1, 0.5), loc="center left")
+        plt.tight_layout()
         #plt.show()
-        plt.savefig(f"comparison_results/result_figure_{circuit[1]}_{timeout}_seconds.png")
+        plt.savefig(f"comparison_results/result_figure_{circuit[1]}_{timeout}_seconds.png", dpi=500)
         plt.clf()
 
 
-        final_gate_counts = [original_gate_count,
-                             results[0][1][-1],
-                             results[1][1][-1],
-                             results[5][1][-1],
-                             # results[50][1][-1],
-                             # results[100][1][-1],
-                             voqc_result[1][-1]]
+        # final_gate_counts = [original_gate_count,
+        #                      results[0][1][-1],
+        #                      results[1][1][-1],
+        #                      results[5][1][-1],
+        #                      # results[50][1][-1],
+        #                      # results[100][1][-1],
+        #                      voqc_result[1][-1]]
 
-        full_results.append(final_gate_counts)
+        # full_results.append(final_gate_counts)
 
         
         # with open(f"fresh_results/qualm_bench/nam/qualm/results_{circuit[1]}.txt", 'w') as f:
@@ -134,13 +184,13 @@ def run_experiments():
         #     f.write(f"voqc {original_gate_count}/{final_gate_counts[6]}\n")
 
 
-    bar_width = 0.1
-    x_axis = np.arange(len(circuit_list))
-    x_axis_2 = [x + bar_width for x in x_axis]
-    x_axis_3 = [x + bar_width for x in x_axis_2]
-    x_axis_4 = [x + bar_width for x in x_axis_3]
-    x_axis_5 = [x + bar_width for x in x_axis_4]
-    x_axis_6 = [x + bar_width for x in x_axis_5]
+    # bar_width = 0.1
+    # x_axis = np.arange(len(circuit_list))
+    # x_axis_2 = [x + bar_width for x in x_axis]
+    # x_axis_3 = [x + bar_width for x in x_axis_2]
+    # x_axis_4 = [x + bar_width for x in x_axis_3]
+    # x_axis_5 = [x + bar_width for x in x_axis_4]
+    # x_axis_6 = [x + bar_width for x in x_axis_5]
 
     
 
@@ -191,7 +241,6 @@ def run_qalm(filename, circuit_name, timeout, exploration_pool_size, exploration
     # Interval doesn't matter for test_qalm
     result = subprocess.run(["./build_non_conda/test_qalm", f"{filename}", f"{circuit_name}", f"{timeout}", f"{exploration_pool_size}", f"{exploration_steps}", f"{repeat_tolerance}", f"{exploration_increase}", f"{no_increase}"], capture_output = True, text=True)
     result_lines = result.stdout.splitlines()
-    print(result.stdout)
     costs = []
     times = []
     circuit_found = False
