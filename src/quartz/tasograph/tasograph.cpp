@@ -2175,6 +2175,57 @@ Graph::optimize(const std::vector<GraphXfer *> &xfers, double cost_upper_bound,
   return best_graph;
 }
 
+// TODO: these are just quick versions for now, should be added to files like
+//  circuitgate.h later
+
+bool is_similar(CircuitGate *a, CircuitGate *b) {
+  // Only compare gate type and qubit indices
+  return a->gate == b->gate && a->get_qubit_indices() == b->get_qubit_indices();
+}
+
+bool is_similar(CircuitSeq *a, CircuitSeq *b, int threshold) {
+  // Check if two circuit sequences have edit distance strictly lower than
+  // threshold.
+  if (std::abs(a->get_num_gates() - b->get_num_gates()) >= threshold) {
+    return false;
+  }
+  std::vector<int> distance[2];
+  distance[0].assign(threshold * 2 + 1, threshold);
+  distance[1].assign(threshold * 2 + 1, threshold);
+  // distance[i & 1][threshold + j]: distance between a[0..i] and b[0..i+j]
+  distance[1][threshold] = 0;  // a[0..-1] and b[0..-1]
+  for (int i = 0; i < a->get_num_gates(); i++) {
+    distance[i & 1].assign(threshold * 2 + 1, threshold);
+    for (int j = 1; j < threshold * 2; j++) {
+      if (i + j - threshold >= 0 && i + j - threshold < b->get_num_gates() &&
+          is_similar(a->gates[i].get(), b->gates[i + j - threshold].get())) {
+        distance[i & 1][j] = distance[~i & 1][j];
+      } else {
+        distance[i & 1][j] =
+            std::min(std::min(distance[~i & 1][j], distance[~i & 1][j - 1]),
+                     distance[i & 1][j - 1]) +
+            1;
+      }
+    }
+    if (i % threshold == 0) {
+      // check for early reject
+      bool ok = false;
+      for (int j = 1; j < threshold * 2; j++) {
+        if (distance[i & 1][j] < threshold) {
+          ok = true;
+          break;
+        }
+      }
+      if (!ok) {
+        return false;
+      }
+    }
+  }
+  return distance[~(a->get_num_gates()) & 1]
+                 [b->get_num_gates() - a->get_num_gates() + threshold] <
+         threshold;
+}
+
 std::shared_ptr<Graph>
 Graph::optimize_qalm(const std::vector<GraphXfer *> &xfers, double cost_upper_bound,
                 const std::string &circuit_name,
@@ -2232,8 +2283,10 @@ Graph::optimize_qalm(const std::vector<GraphXfer *> &xfers, double cost_upper_bo
   }
 
   // TODO: make these numbers configurable
-  constexpr int kMaxNumCandidates = 2000;
-  constexpr int kShrinkToNumCandidates = 1000;
+  constexpr int kMaxNumCandidates = 100;
+  constexpr int kShrinkToNumCandidates = 10;
+  constexpr bool kOnlyKeepDistantCircuits = true;
+  constexpr bool kDebugCost = false;
 
   // I think this just a function that reduces the number of candidates
 
@@ -2246,13 +2299,38 @@ Graph::optimize_qalm(const std::vector<GraphXfer *> &xfers, double cost_upper_bo
     std::priority_queue<std::shared_ptr<Graph>,
                         std::vector<std::shared_ptr<Graph>>, GraphCompare>
         new_candidates((GraphCompare(cost_function)));
+    std::vector<std::unique_ptr<CircuitSeq>> new_candidates_vec;
     std::map<float, int> cost_count;
     while (!candidates.empty()) {
       auto candidate = candidates.top();
-      // Count maps cost to number of candidates with that cost
-      cost_count[cost_function(candidate.get())]++;
-      if (new_candidates.size() < kShrinkToNumCandidates) {
+      if (kDebugCost) {
+        // Count maps cost to number of candidates with that cost
+        cost_count[cost_function(candidate.get())]++;
+      }
+      bool keep_candidate = new_candidates.size() < kShrinkToNumCandidates;
+      if (!keep_candidate && !kDebugCost) {
+        break;
+      }
+      std::unique_ptr<CircuitSeq> candidate_seq;
+      if (keep_candidate && kOnlyKeepDistantCircuits) {
+        candidate_seq = candidate->to_circuit_sequence();
+        for (auto &existing_circuit : new_candidates_vec) {
+          if (is_similar(candidate_seq.get(), existing_circuit.get(),
+                         std::min(100, candidate->gate_count() / 2))) {
+            keep_candidate = false;
+            // std::cout << "Dropped at " << (&existing_circuit -
+            // new_candidates_vec.data()) << std::endl;
+            break;
+          }
+        }
+        // std::cout << "Keep " << new_candidates_vec.size() << std::endl;
+      }
+      if (keep_candidate) {
         new_candidates.push(candidate);
+        if (kOnlyKeepDistantCircuits) {
+          // also keep track in the vector
+          new_candidates_vec.push_back(std::move(candidate_seq));
+        }
       } else {
         if (!store_all_steps_file_prefix.empty()) {
           // no need to record history of removed graphs
@@ -2272,15 +2350,17 @@ Graph::optimize_qalm(const std::vector<GraphXfer *> &xfers, double cost_upper_bo
               shrink_end - shrink_start)
                   .count() /
               1000.0);
-      for (auto &it : cost_count) {
-        fprintf(fout, "%d circuits have cost %.2f\n", it.second, it.first);
+      if (kDebugCost) {
+        for (auto &it : cost_count) {
+          fprintf(fout, "%d circuits have cost %.2f\n", it.second, it.first);
+        }
       }
       fflush(fout);
     }
   };
 
   // ######## Start of the main optimization loop ##########
-  
+
   std::cout << "exploration_increase set to: " << exploration_increase << std::endl;
 
   bool hit_timeout = false;
@@ -2449,7 +2529,7 @@ Graph::optimize_qalm(const std::vector<GraphXfer *> &xfers, double cost_upper_bo
     }
 
     // Run roqc on all current circuits
-    
+
     for (int circuit_index = 0; circuit_index < found_circuits.size(); circuit_index++) {
       // std::cout << "Running ROQC on circuit " << circuit_index << std::endl;
       auto curr_graph = found_circuits[circuit_index];
