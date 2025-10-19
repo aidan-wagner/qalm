@@ -2236,7 +2236,8 @@ Graph::optimize_qalm(const std::vector<GraphXfer *> &xfers, double cost_upper_bo
                 const size_t exploration_pool_size,
                 size_t exploration_steps,
                 const float repeat_tolerance,
-                const bool exploration_increase) {
+                const bool exploration_increase,
+                const bool only_keep_distant_circuits) {
   if (cost_function == nullptr) {
     cost_function = [](Graph *graph) { return graph->total_cost(); };
     // cost_function = [](Graph *graph) {return graph->hadamard_reduction_cost(); };
@@ -2283,10 +2284,16 @@ Graph::optimize_qalm(const std::vector<GraphXfer *> &xfers, double cost_upper_bo
   }
 
   // TODO: make these numbers configurable
-  constexpr int kMaxNumCandidates = 100;
-  constexpr int kShrinkToNumCandidates = 10;
-  constexpr bool kOnlyKeepDistantCircuits = true;
+  int kMaxNumCandidates = 2000;
+  int kShrinkToNumCandidates = 1000;
   constexpr bool kDebugCost = false;
+
+  if (only_keep_distant_circuits) {
+    std::cout << "only keep distant" << std::endl;
+    kMaxNumCandidates = 100;
+    kShrinkToNumCandidates = 10;
+  }
+
 
   // I think this just a function that reduces the number of candidates
 
@@ -2312,7 +2319,7 @@ Graph::optimize_qalm(const std::vector<GraphXfer *> &xfers, double cost_upper_bo
         break;
       }
       std::unique_ptr<CircuitSeq> candidate_seq;
-      if (keep_candidate && kOnlyKeepDistantCircuits) {
+      if (keep_candidate && only_keep_distant_circuits) {
         candidate_seq = candidate->to_circuit_sequence();
         for (auto &existing_circuit : new_candidates_vec) {
           if (is_similar(candidate_seq.get(), existing_circuit.get(),
@@ -2327,7 +2334,7 @@ Graph::optimize_qalm(const std::vector<GraphXfer *> &xfers, double cost_upper_bo
       }
       if (keep_candidate) {
         new_candidates.push(candidate);
-        if (kOnlyKeepDistantCircuits) {
+        if (only_keep_distant_circuits) {
           // also keep track in the vector
           new_candidates_vec.push_back(std::move(candidate_seq));
         }

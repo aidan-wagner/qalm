@@ -36,11 +36,12 @@ def qalm_tester(arguments):
     repeat_tolerance = arguments[5]
     exploration_increase = arguments[6]
     no_increase = arguments[7]
-    return run_qalm(filename, circuit_name, timeout, exploration_pool, exploration_steps, repeat_tolerance, exploration_increase, no_increase)
+    only_keep_distant_circuits = arguments[8]
+    return run_qalm(filename, circuit_name, timeout, exploration_pool, exploration_steps, repeat_tolerance, exploration_increase, no_increase, only_keep_distant_circuits)
 
 def run_experiments():
 
-    timeout = 60 * 3
+    timeout = 60 * 60
     validate = False
     # roqc_intervals = [0, 1, 5, 50, 100]
     roqc_intervals = [0, 1, 5]
@@ -85,19 +86,17 @@ def run_experiments():
             (OptimizationType.roqc_interval, (5,)),
             (OptimizationType.roqc_interval, (10,)),
             (OptimizationType.roqc_interval, (50,)),
-            # Qalm (exploration_pool, exploration_steps, repeat_tolerance, exploration_increase, no_increase):
-            (OptimizationType.qalm, (10, 10, 1.5, 0, 0)),
-            (OptimizationType.qalm, (10, 20, 1.5, 0, 0)),
-            (OptimizationType.qalm, (20, 10, 1.5, 0, 0)),
-            (OptimizationType.qalm, (20, 20, 1,5, 0, 0)),
-            (OptimizationType.qalm, (10, 50, 1.5, 0, 0)),
-            (OptimizationType.qalm, (50, 10, 1.5, 0, 0)),
-            (OptimizationType.qalm, (50, 50, 1.5, 0, 0)),
-            (OptimizationType.qalm, (20, 20, 1.5, 1, 0)),
-            (OptimizationType.qalm, (20, 20, 1.5, 0, 1)),
-            (OptimizationType.qalm, (50, 50, 1.5, 1, 0)),
-            (OptimizationType.qalm, (50, 50, 1.5, 0, 1))
-
+            # Qalm (exploration_pool, exploration_steps, repeat_tolerance, exploration_increase, no_increase, keep_ony_distant_circuits):
+            (OptimizationType.qalm, (10, 10, 1.5, 0, 0, 0)),
+            (OptimizationType.qalm, (10, 20, 1.5, 0, 0, 0)),
+            (OptimizationType.qalm, (20, 10, 1.5, 0, 0, 0)),
+            (OptimizationType.qalm, (20, 20, 1,5, 0, 0, 0)),
+            (OptimizationType.qalm, (10, 50, 1.5, 0, 0, 0)),
+            (OptimizationType.qalm, (50, 10, 1.5, 0, 0, 0)),
+            (OptimizationType.qalm, (50, 50, 1.5, 0, 0, 0)),
+            (OptimizationType.qalm, (20, 20, 1.5, 1, 0, 0)),
+            (OptimizationType.qalm, (20, 20, 1.5, 0, 1, 0)),
+            (OptimizationType.qalm, (20, 20, 1.5, 0, 0, 1)),
         ]
 
         graph_labels = [
@@ -114,9 +113,8 @@ def run_experiments():
             "Pool50, Steps10, Rep_tol1.5",
             "Pool50, Steps50, Rep_tol1.5",
             "Pool20, Steps20, Rep_tol1.5, exp_incr",
-            "Pool20, Steps20, Rep_tol1.5, decr_only",
-            "Pool50, Steps50, Rep_tol1.5, exp_incr",
-            "Pool50, Steps50, Rep_tol1.5, decr_only",
+            "Pool20, Steps20, Rep_tol1.5, no_incr",
+            "Pool20, Steps20, Rep_tol1.5, keep_dist",
         ]
 
         arguments = [(experiment[0], (circuit[0], circuit[1], timeout) + experiment[1]) for experiment in experiments]
@@ -141,9 +139,9 @@ def run_experiments():
         original_gate_count = voqc_result[1][0]
 
 
-        # with open(f"pickled_results/{circuit[1]}_{timeout}_results.pkl", 'wb') as f:
-        #    f.truncate(0)
-        #    pickle.dump(results, f)
+        with open(f"pickled_results/{circuit[1]}_{timeout}_results.pkl", 'wb') as f:
+            f.truncate(0)
+            pickle.dump(results, f)
 
 
         for i in range(len(results)):
@@ -237,9 +235,9 @@ def run_quartz(filename, circuit_name, timeout, roqc_interval):
 
     return final_results
 
-def run_qalm(filename, circuit_name, timeout, exploration_pool_size, exploration_steps, repeat_tolerance, exploration_increase, no_increase):
+def run_qalm(filename, circuit_name, timeout, exploration_pool_size, exploration_steps, repeat_tolerance, exploration_increase, no_increase, only_keep_distant_circuits):
     # Interval doesn't matter for test_qalm
-    result = subprocess.run(["./build_non_conda/test_qalm", f"{filename}", f"{circuit_name}", f"{timeout}", f"{exploration_pool_size}", f"{exploration_steps}", f"{repeat_tolerance}", f"{exploration_increase}", f"{no_increase}"], capture_output = True, text=True)
+    result = subprocess.run(["./build_non_conda/test_qalm", f"{filename}", f"{circuit_name}", f"{timeout}", f"{exploration_pool_size}", f"{exploration_steps}", f"{repeat_tolerance}", f"{exploration_increase}", f"{no_increase}", f"{only_keep_distant_circuits}"], capture_output = True, text=True)
     result_lines = result.stdout.splitlines()
     costs = []
     times = []

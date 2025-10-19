@@ -286,7 +286,9 @@ class Graph {
            const size_t exploration_pool_size = 10,
            size_t exploration_steps = 10,
            const float repeat_tolerance = 1.5,
-           const bool exploration_increase = false);
+           const bool exploration_increase = false,
+           const bool keep_only_distant_circuits = false);
+
   void constant_and_rotation_elimination();
   void rotation_merging(GateType target_rotation);
   [[nodiscard]] std::string to_qasm(bool print_result = false,

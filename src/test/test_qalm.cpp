@@ -33,6 +33,7 @@ int main(int argc, char **argv) {
     float repeat_tolerance = std::stof(argv[6]);
     bool exploration_increase = std::stoi(argv[7]);
     bool strictly_reducing_rules = std::stoi(argv[8]);
+    bool only_keep_distant_circuits = std::stoi(argv[9]);
 
 
   ParamInfo param_info(/*num_input_symbolic_params=*/2, false);
@@ -119,12 +120,13 @@ int main(int argc, char **argv) {
                                               true,
                                               nullptr,
                                               timeout,
-                                              kQuartzRootPath.string() + "/benchmark-logs/" + circuit_name + "_timeout_" + std::to_string(timeout) + "_exp_pool_" + std::to_string(exploration_pool_size) + "_exp_steps_" + std::to_string(exploration_steps) + "_exp_increase_" + std::to_string(exploration_increase) + "_" + "_no_increase_" + std::to_string(strictly_reducing_rules),
+                                              kQuartzRootPath.string() + "/benchmark-logs/" + circuit_name + "_timeout_" + std::to_string(timeout) + "_exp_pool_" + std::to_string(exploration_pool_size) + "_exp_steps_" + std::to_string(exploration_steps) + "_exp_increase_" + std::to_string(exploration_increase) + "_" + "_no_increase_" + std::to_string(strictly_reducing_rules) + "_only_keep_distant_circuits_" + std::to_string(only_keep_distant_circuits),
                                               true,
                                               exploration_pool_size,
                                               exploration_steps,
                                               repeat_tolerance,
-                                              exploration_increase);
+                                              exploration_increase,
+                                              only_keep_distant_circuits);
   std::cout << "Optimized graph:" << std::endl;
   std::cout << graph_optimized->to_qasm();
   return 0;
