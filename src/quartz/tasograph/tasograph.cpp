@@ -2193,7 +2193,10 @@ bool is_similar(CircuitSeq *a, CircuitSeq *b, int threshold) {
   distance[0].assign(threshold * 2 + 1, threshold);
   distance[1].assign(threshold * 2 + 1, threshold);
   // distance[i & 1][threshold + j]: distance between a[0..i] and b[0..i+j]
-  distance[1][threshold] = 0;  // a[0..-1] and b[0..-1]
+  for (int j = 0; j <= threshold; j++) {
+    // distance[1][threshold] = 0, this is a[0..-1] and b[0..-1]
+    distance[1][threshold - j] = distance[1][threshold + j] = j;
+  }
   for (int i = 0; i < a->get_num_gates(); i++) {
     distance[i & 1].assign(threshold * 2 + 1, threshold);
     for (int j = 1; j < threshold * 2; j++) {
@@ -2202,7 +2205,7 @@ bool is_similar(CircuitSeq *a, CircuitSeq *b, int threshold) {
         distance[i & 1][j] = distance[~i & 1][j];
       } else {
         distance[i & 1][j] =
-            std::min(std::min(distance[~i & 1][j], distance[~i & 1][j - 1]),
+            std::min(std::min(distance[~i & 1][j], distance[~i & 1][j + 1]),
                      distance[i & 1][j - 1]) +
             1;
       }
@@ -2316,6 +2319,13 @@ Graph::optimize_qalm(const std::vector<GraphXfer *> &xfers, double cost_upper_bo
       }
       bool keep_candidate = new_candidates.size() < kShrinkToNumCandidates;
       if (!keep_candidate && !kDebugCost) {
+        while (!candidates.empty()) {
+          if (!store_all_steps_file_prefix.empty()) {
+            // no need to record history of removed graphs
+            previous_graph.erase(candidates.top().get());
+          }
+          candidates.pop();
+        }
         break;
       }
       std::unique_ptr<CircuitSeq> candidate_seq;
