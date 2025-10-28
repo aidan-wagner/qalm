@@ -2293,7 +2293,7 @@ Graph::optimize_qalm(const std::vector<GraphXfer *> &xfers, double cost_upper_bo
 
   if (only_keep_distant_circuits) {
     std::cout << "only keep distant" << std::endl;
-    kMaxNumCandidates = 100;
+    kMaxNumCandidates = 2000;
     kShrinkToNumCandidates = 10;
   }
 
@@ -2331,9 +2331,10 @@ Graph::optimize_qalm(const std::vector<GraphXfer *> &xfers, double cost_upper_bo
       std::unique_ptr<CircuitSeq> candidate_seq;
       if (keep_candidate && only_keep_distant_circuits) {
         candidate_seq = candidate->to_circuit_sequence();
+        candidate_seq->to_canonical_representation(context);
         for (auto &existing_circuit : new_candidates_vec) {
           if (is_similar(candidate_seq.get(), existing_circuit.get(),
-                         std::min(100, candidate->gate_count() / 2))) {
+                         std::min(10, candidate->gate_count() / 2))) {
             keep_candidate = false;
             // std::cout << "Dropped at " << (&existing_circuit -
             // new_candidates_vec.data()) << std::endl;
