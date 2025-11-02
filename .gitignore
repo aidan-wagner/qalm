@@ -81,4 +81,5 @@ pickled_results/*
 result_figures/*
 res_*
 circuit_step*
+comparison_experiments/*
 
