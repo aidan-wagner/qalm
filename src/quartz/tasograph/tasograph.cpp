@@ -2182,6 +2182,7 @@ Graph::optimize_qalm(const std::vector<GraphXfer *> &xfers, double cost_upper_bo
                 std::function<float(Graph *)> cost_function, double timeout,
                 const std::string &store_all_steps_file_prefix,
                 bool continue_storing_all_steps,
+                const size_t initial_pool_size,
                 const size_t exploration_pool_size,
                 size_t exploration_steps,
                 const float repeat_tolerance,
@@ -2191,6 +2192,22 @@ Graph::optimize_qalm(const std::vector<GraphXfer *> &xfers, double cost_upper_bo
     cost_function = [](Graph *graph) { return graph->total_cost(); };
     // cost_function = [](Graph *graph) {return graph->hadamard_reduction_cost(); };
   }
+
+  std::cout << "Intial Pool Size: " << initial_pool_size << std::endl;
+  std::cout << "Exploration Pool Size: " << exploration_pool_size << std::endl;
+  std::cout << "Exploration Steps: " << exploration_steps << std::endl;
+  std::cout << "Repeat Tolerance: " << repeat_tolerance << std::endl;
+  std::cout << "Exploration Increase: " << exploration_increase << std::endl;
+  std::cout << "Only Keep Distant Circuits: " << only_keep_distant_cricuits << std::endl;
+
+  const bool time_benchmark = true;
+
+  std::clock_t start_bench = std::clock();
+  std::clock_t end_bench = std::clock();
+  auto roqc_time = end_bench - start_bench;
+  auto pool_gen_time = end_bench - start_bench;
+  auto shrink_time = end_bench - start_bench;
+  auto explore_time = end_bench - start_bench;
 
   auto start = std::chrono::steady_clock::now();
   std::priority_queue<std::shared_ptr<Graph>,
@@ -2264,6 +2281,7 @@ Graph::optimize_qalm(const std::vector<GraphXfer *> &xfers, double cost_upper_bo
     }
     std::swap(candidates, new_candidates);
     auto shrink_end = std::chrono::steady_clock::now();
+
     if (print_message) {
       fprintf(
           fout,
@@ -2282,36 +2300,50 @@ Graph::optimize_qalm(const std::vector<GraphXfer *> &xfers, double cost_upper_bo
 
   // ######## Start of the main optimization loop ##########
   
-  std::cout << "exploration_increase set to: " << exploration_increase << std::endl;
 
   bool hit_timeout = false;
   size_t rounds_since_reduction = 0;
 
   // std::cout << "Starting optimization loop" << std::endl;
   while (!candidates.empty()) {
+    if (time_benchmark) {
+      start_bench = std::clock();
+    }
+
     if (rounds_since_reduction >= 50 && exploration_increase) {
       exploration_steps *= 2;
       rounds_since_reduction = 0;
     }
-    auto graph = candidates.top();
-    candidates.pop();
+
+    // We want to pull the first 10 graphs out of priority queue to explore
+
+    // Top candidates to explore
+    std::cout << "Starting initial pool creation" << std::endl;
+
+    
+    std::vector<std::shared_ptr<Graph>> top_candidates;
+
+
+    for (int candidate_number = 0; candidate_number < initial_pool_size; candidate_number++) {
+      top_candidates.push_back(candidates.top());
+      candidates.pop();
+      if (candidates.size() < 1) {
+        break; 
+      }
+
+    }
+
+    std::cout << "Made starting pool" << std::endl;
+
+    for (auto candidate: top_candidates){
+
+
+    auto graph = candidate;
     std::vector<Op> all_nodes;
     graph->topology_order_ops(all_nodes);
 
-    // Generate pool of (xfer, node) pairs to randomly draw from
-    // std::vector<std::pair<GraphXfer*, Op>> xfer_applications;
-    // for (auto xfer : xfers) {
-    //   for (auto const &node: all_nodes) {
-    //     std::pair<GraphXfer*, Op> xfer_pair = std::make_pair(xfer, node);
-    //     xfer_applications.push_back(xfer_pair);
-    //   }
-    // }
-
-    // shuffle(xfer_applications.begin(), xfer_applications.end(), rand_engine);
-
     // Apply transformations randomly until you have a certain number of new circuits
     std::vector<std::shared_ptr<Graph>> found_circuits;
-    // std::cout << "Generating intial pool" << std::endl;
 
     int xfer_count = 0;
     while (found_circuits.size() < exploration_pool_size) {
@@ -2369,10 +2401,18 @@ Graph::optimize_qalm(const std::vector<GraphXfer *> &xfers, double cost_upper_bo
       }
     }
 
-    // std::cout << "Circuit pool size after intial generation: " << found_circuits.size() << std::endl;
+    if (time_benchmark) {
+      end_bench = std::clock();
+      pool_gen_time += end_bench - start_bench;
+    }
+
 
     // Allow each circuit to take (10) steps, no branching
-    // std::cout << "Allowing circuit pool to develop" << std::endl;
+    
+    if (time_benchmark) {
+      start_bench = std::clock();
+    }
+
     for (int i = 0; i < 10; i++) {
       for (int circuit_index = 0; circuit_index < found_circuits.size(); circuit_index++) {
         // std::cout << "Evolution on circuit " << circuit_index << std::endl;
@@ -2443,6 +2483,11 @@ Graph::optimize_qalm(const std::vector<GraphXfer *> &xfers, double cost_upper_bo
       }
     }
 
+    if (time_benchmark) {
+      end_bench = std::clock();
+      explore_time += end_bench - start_bench;
+    }
+
     // std::cout << "Circuit pool size after development: " << found_circuits.size() << std::endl;
 
     if (hit_timeout) {
@@ -2450,6 +2495,10 @@ Graph::optimize_qalm(const std::vector<GraphXfer *> &xfers, double cost_upper_bo
     }
 
     // Run roqc on all current circuits
+    
+    if (time_benchmark) {
+      start_bench = std::clock();
+    }
     
     for (int circuit_index = 0; circuit_index < found_circuits.size(); circuit_index++) {
       // std::cout << "Running ROQC on circuit " << circuit_index << std::endl;
@@ -2485,6 +2534,11 @@ Graph::optimize_qalm(const std::vector<GraphXfer *> &xfers, double cost_upper_bo
 
     }
 
+    if (time_benchmark) {
+      end_bench = std::clock();
+      roqc_time += end_bench - start_bench;
+    }
+
     auto end = std::chrono::steady_clock::now();
     if (print_message) {
       fprintf(
@@ -2498,6 +2552,14 @@ Graph::optimize_qalm(const std::vector<GraphXfer *> &xfers, double cost_upper_bo
       fflush(fout);
     }
   }
+
+  if (hit_timeout) {
+      break;
+    }
+
+  }
+
+
 
   // std::cout << "Finished optimization loop" << std::endl;
 
@@ -2539,6 +2601,14 @@ Graph::optimize_qalm(const std::vector<GraphXfer *> &xfers, double cost_upper_bo
     fout_step << "total reduction: " << initial_cost - best_cost << std::endl;
     fout_step << step_count << std::endl;
     fout_step.close();
+  }
+
+  if (time_benchmark) {
+    float total_time = roqc_time + explore_time + pool_gen_time + shrink_time;
+    std::cout << "ROQC time: " << (float)roqc_time/total_time <<std::endl;
+    std::cout << "Explore time: " << (float)explore_time/total_time <<std::endl;
+    std::cout << "Pool Gen time: " << (float)pool_gen_time/total_time <<std::endl;
+    std::cout << "Shrink time: " << (float)shrink_time/total_time <<std::endl;
   }
 
   // End of main optimization loop

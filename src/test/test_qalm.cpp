@@ -28,12 +28,13 @@ int main(int argc, char **argv) {
     assert(argv[4] != nullptr);
 
     std::size_t timeout = std::stoi(argv[3]);
-    std::size_t exploration_pool_size = std::stoi(argv[4]);
-    std::size_t exploration_steps = std::stoi(argv[5]);
-    float repeat_tolerance = std::stof(argv[6]);
-    bool exploration_increase = std::stoi(argv[7]);
-    bool strictly_reducing_rules = std::stoi(argv[8]);
-    bool only_keep_distant_circuits = std::stoi(argv[9]);
+    std::size_t initial_pool_size = std::stoi(argv[4]);
+    std::size_t exploration_pool_size = std::stoi(argv[5]);
+    std::size_t exploration_steps = std::stoi(argv[6]);
+    float repeat_tolerance = std::stof(argv[7]);
+    bool exploration_increase = std::stoi(argv[8]);
+    bool strictly_reducing_rules = std::stoi(argv[9]);
+    bool only_keep_distant_circuits = std::stoi(argv[10]);
 
 
   ParamInfo param_info(/*num_input_symbolic_params=*/2, false);
@@ -62,7 +63,6 @@ int main(int argc, char **argv) {
 
     auto cost_function = [](Graph *graph) { return graph->total_cost(); };
 
-
     // Get xfers that strictly reduce the cost from the ECC set
     auto eccs = eqs.get_all_equivalence_sets();
     for (const auto &ecc : eccs) {
@@ -85,7 +85,7 @@ int main(int argc, char **argv) {
           if (xfer != nullptr) {
             xfers.push_back(xfer);
           }
-        } else {
+        } else if (i != representative_id) {
           auto xfer =
               GraphXfer::create_GraphXfer(&ctx, ecc[i], ecc[representative_id], true);
           if (xfer != nullptr) {
@@ -120,8 +120,17 @@ int main(int argc, char **argv) {
                                               true,
                                               nullptr,
                                               timeout,
-                                              kQuartzRootPath.string() + "/benchmark-logs/" + circuit_name + "_timeout_" + std::to_string(timeout) + "_exp_pool_" + std::to_string(exploration_pool_size) + "_exp_steps_" + std::to_string(exploration_steps) + "_exp_increase_" + std::to_string(exploration_increase) + "_" + "_no_increase_" + std::to_string(strictly_reducing_rules) + "_only_keep_distant_circuits_" + std::to_string(only_keep_distant_circuits),
+                                              kQuartzRootPath.string()
+                                              + "/benchmark-logs/" + circuit_name
+                                              + "_timeout_" + std::to_string(timeout)
+                                              + "_init_pool_" + std::to_string(initial_pool_size)
+                                              + "_exp_pool_" + std::to_string(exploration_pool_size)
+                                              + "_exp_steps_" + std::to_string(exploration_steps) 
+                                              + "_exp_increase_" + std::to_string(exploration_increase)
+                                              + "_no_increase_" + std::to_string(strictly_reducing_rules)
+                                              + "_only_keep_distant_circuits_" + std::to_string(only_keep_distant_circuits),
                                               true,
+                                              initial_pool_size,
                                               exploration_pool_size,
                                               exploration_steps,
                                               repeat_tolerance,

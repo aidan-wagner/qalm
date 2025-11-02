@@ -283,6 +283,7 @@ class Graph {
            double timeout = 3600 /*1 hour*/,
            const std::string &store_all_steps_file_prefix = std::string(),
            bool continue_storing_all_steps = false,
+           const size_t intial_pool_size = 1,
            const size_t exploration_pool_size = 10,
            size_t exploration_steps = 10,
            const float repeat_tolerance = 1.5,

@@ -18,18 +18,18 @@ def process_results():
     total_results["queso_results"] = []
     total_results["repeated_roqc_results"] = []
 
-    with open("qalm_circuits_test.txt", "r") as f:
+    with open("../qalm_experiments/qalm_circuits_full.txt", "r") as f:
         circuit_list = [line.split("/")[-1].strip().split(".")[0] for line in f.readlines()]
 
-    results_file = "qalm_bench_results.csv"
+    results_file = "new_qalm_bench_results.csv"
 
     original_lengths = []
 
     for circuit in circuit_list:
-        original_lengths.append(str(QuantumCircuit.from_qasm_file(f"qalm/circuit/nam_circs/{circuit}.qasm").size()))
+        original_lengths.append(str(QuantumCircuit.from_qasm_file(f"../circuit/nam_circs/{circuit}.qasm").size()))
 
         for res in parse_qalm(circuit):
-            total_results["qalm_" + res[0] + "_results"].append(res[1])
+           total_results["qalm_" + res[0] + "_results"].append(res[1])
 
         r_queso = parse_queso(circuit)
         r_guoq = parse_guoq(circuit)
@@ -44,6 +44,7 @@ def process_results():
         total_results["repeated_roqc_results"].append(r_repeated_roqc)
 
     opt_order = ["qalm_1", "qalm_5","qalm_50", "qalm_100", "qalm_0", "voqc", "qiskit", "guoq", "queso", "repeated_roqc"]
+    opt_order = ["voqc", "qiskit", "guoq", "queso"]
 
     fields = ["Optimizer Name"] + circuit_list
     all_data = []
