@@ -2056,7 +2056,9 @@ Graph::optimize(const std::vector<GraphXfer *> &xfers, double cost_upper_bound,
   while (!candidates.empty()) {
     auto graph = candidates.top();
     candidates.pop();
-    std::cout << "size of current circuit" << cost_function(graph.get()) << std::endl;
+    auto current_cost = cost_function(graph.get());
+    bool found_better_graph_if_greedy_only = false;
+    std::cout << "size of current circuit " << current_cost << std::endl;
     std::vector<Op> all_nodes;
     graph->topology_order_ops(all_nodes);
     for (auto xfer : xfers) {
@@ -2078,8 +2080,27 @@ Graph::optimize(const std::vector<GraphXfer *> &xfers, double cost_upper_bound,
         if (new_graph == nullptr)
           continue;
 
-        // If a certain number of iterations have occured, then run roqc
-        if (new_graph->roqc_countdown == roqc_interval) {
+        if (roqc_interval == 0) {
+          // special case: do greedy only
+          float pre_roqc_cost{cost_function(new_graph.get())};
+          auto pre_roqc_graph = new_graph;
+          new_graph = new_graph->from_qasm_str(graph->context, run_roqc(new_graph->to_qasm().c_str()));
+          if (cost_function(new_graph.get()) >= current_cost) {
+            // throw new_graph away
+            continue;
+          }
+          // new_graph is better, keep new_graph only
+          new_graph->roqc_gates_reduction =
+              pre_roqc_cost - cost_function(new_graph.get());
+          std::cout << "Previous cost=" << current_cost
+                    << ", after Quartz cost=" << pre_roqc_cost
+                    << ", ROQC reduction=" << new_graph->roqc_gates_reduction
+                    << std::endl;
+          new_graph->roqc_countdown = 0;
+          new_graph->pre_roqc_graph = pre_roqc_graph;
+          found_better_graph_if_greedy_only = true;
+        } else if (new_graph->roqc_countdown == roqc_interval) {
+          // If a certain number of iterations have occured, then run roqc
           float pre_roqc_cost{cost_function(new_graph.get())};
           auto pre_roqc_graph = new_graph;
           new_graph = new_graph->from_qasm_str(graph->context, run_roqc(new_graph->to_qasm().c_str()));
@@ -2109,6 +2130,12 @@ Graph::optimize(const std::vector<GraphXfer *> &xfers, double cost_upper_bound,
           best_cost = new_cost;
           best_graph = new_graph;
         }
+        if (found_better_graph_if_greedy_only) {
+          break;
+        }
+      }
+      if (found_better_graph_if_greedy_only) {
+        break;
       }
       if (hit_timeout) {
         break;
