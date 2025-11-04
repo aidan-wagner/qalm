@@ -36,6 +36,8 @@ int main(int argc, char **argv) {
     bool strictly_reducing_rules = std::stoi(argv[9]);
     bool only_keep_distant_circuits = std::stoi(argv[10]);
 
+    bool preprocess = std::stoi(argv[11]);
+
 
   ParamInfo param_info(/*num_input_symbolic_params=*/2, false);
   Context ctx({GateType::input_qubit, GateType::input_param, GateType::cx,
@@ -98,7 +100,7 @@ int main(int argc, char **argv) {
         }
       }
     }
-    std::cout << "greedy_optimize(): Number of xfers that reduce cost: "
+    std::cout << "Number of xfers that reduce or maintain cost: "
               << xfers.size() << std::endl;
   }
   else {
@@ -112,6 +114,19 @@ int main(int argc, char **argv) {
   auto graph = Graph::from_qasm_file(&ctx, input_fn);
   std::cout << "got" << std::endl;
   assert(graph);
+
+  if (preprocess) {
+    graph = graph->greedy_optimize(&ctx, eqset_fn, true, nullptr, kQuartzRootPath.string()
+                                              + "/benchmark-logs/" + circuit_name
+                                              + "_timeout_" + std::to_string(timeout)
+                                              + "_init_pool_" + std::to_string(initial_pool_size)
+                                              + "_exp_pool_" + std::to_string(exploration_pool_size)
+                                              + "_exp_steps_" + std::to_string(exploration_steps) 
+                                              + "_exp_increase_" + std::to_string(exploration_increase)
+                                              + "_no_increase_" + std::to_string(strictly_reducing_rules)
+                                              + "_only_keep_distant_circuits_" + std::to_string(only_keep_distant_circuits) + "_");
+  }
+
 
   auto graph_optimized = graph->optimize_qalm(xfers,
                                               graph->gate_count() * 1.05,
@@ -128,7 +143,7 @@ int main(int argc, char **argv) {
                                               + "_exp_steps_" + std::to_string(exploration_steps) 
                                               + "_exp_increase_" + std::to_string(exploration_increase)
                                               + "_no_increase_" + std::to_string(strictly_reducing_rules)
-                                              + "_only_keep_distant_circuits_" + std::to_string(only_keep_distant_circuits),
+                                              + "_only_keep_distant_circuits_" + std::to_string(only_keep_distant_circuits) + "_",
                                               true,
                                               initial_pool_size,
                                               exploration_pool_size,

@@ -29,6 +29,7 @@ int main(int argc, char **argv) {
 
     std::size_t timeout = std::stoi(argv[3]);
     std::size_t roqc_interval = std::stoi(argv[4]);
+    bool preprocess = std::stoi(argv[5]);
 
   ParamInfo param_info(/*num_input_symbolic_params=*/2, false);
   Context ctx({GateType::input_qubit, GateType::input_param, GateType::cx,
@@ -58,6 +59,10 @@ int main(int argc, char **argv) {
   auto graph = Graph::from_qasm_file(&ctx, input_fn);
   std::cout << "got" << std::endl;
   assert(graph);
+
+  if (preprocess) {
+    graph = graph->greedy_optimize(&ctx, eqset_fn, true, nullptr, kQuartzRootPath.string() + "/benchmark-logs/" + circuit_name + "_timeout_" + std::to_string(timeout) + "_roqc_interval_" + std::to_string(roqc_interval) + "_");
+  }
 
   auto graph_optimized = graph->optimize(xfers, graph->gate_count() * 1.05,
                                          circuit_name, "", true, nullptr, timeout, kQuartzRootPath.string() + "/benchmark-logs/" + circuit_name + "_timeout_" + std::to_string(timeout) + "_roqc_interval_" + std::to_string(roqc_interval) + "_", false, roqc_interval);

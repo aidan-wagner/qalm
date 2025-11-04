@@ -2058,7 +2058,7 @@ Graph::optimize(const std::vector<GraphXfer *> &xfers, double cost_upper_bound,
     candidates.pop();
     auto current_cost = cost_function(graph.get());
     bool found_better_graph_if_greedy_only = false;
-    std::cout << "size of current circuit " << current_cost << std::endl;
+    // std::cout << "size of current circuit " << current_cost << std::endl;
     std::vector<Op> all_nodes;
     graph->topology_order_ops(all_nodes);
     for (auto xfer : xfers) {
