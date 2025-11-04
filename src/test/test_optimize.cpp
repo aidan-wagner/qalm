@@ -31,7 +31,7 @@ int main(int argc, char **argv) {
     std::size_t roqc_interval = std::stoi(argv[4]);
     bool preprocess = std::stoi(argv[5]);
 
-  ParamInfo param_info(/*num_input_symbolic_params=*/2, false);
+  ParamInfo param_info;
   Context ctx({GateType::input_qubit, GateType::input_param, GateType::cx,
                GateType::h, GateType::rz, GateType::x, GateType::add},
               /*num_qubits=*/3, &param_info);
@@ -52,8 +52,7 @@ int main(int argc, char **argv) {
   }
 
   // Get xfer from the equivalent set
-  std::vector<GraphXfer *> xfers =
-      GraphXfer::get_all_xfers_from_ecc(&ctx, eqset_fn);
+  std::vector<GraphXfer *> xfers = GraphXfer::get_all_xfers_from_eqs(&ctx, eqs);
   std::cout << "number of xfers: " << xfers.size() << std::endl;
 
   auto graph = Graph::from_qasm_file(&ctx, input_fn);
@@ -61,7 +60,7 @@ int main(int argc, char **argv) {
   assert(graph);
 
   if (preprocess) {
-    graph = graph->greedy_optimize(&ctx, eqset_fn, true, nullptr, kQuartzRootPath.string() + "/benchmark-logs/" + circuit_name + "_timeout_" + std::to_string(timeout) + "_roqc_interval_" + std::to_string(roqc_interval) + "_");
+    graph = graph->greedy_optimize(&ctx, eqs, true, nullptr, kQuartzRootPath.string() + "/benchmark-logs/" + circuit_name + "_timeout_" + std::to_string(timeout) + "_roqc_interval_" + std::to_string(roqc_interval) + "_");
   }
 
   auto graph_optimized = graph->optimize(xfers, graph->gate_count() * 1.05,
