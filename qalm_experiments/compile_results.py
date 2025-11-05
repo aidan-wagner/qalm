@@ -18,10 +18,10 @@ def process_results():
     total_results["queso_results"] = []
     total_results["repeated_roqc_results"] = []
 
-    with open("../qalm_experiments/qalm_circuits_full.txt", "r") as f:
+    with open("qalm/qalm_experiments/qalm_circuits_full.txt", "r") as f:
         circuit_list = [line.split("/")[-1].strip().split(".")[0] for line in f.readlines()]
 
-    results_file = "new_qalm_bench_results.csv"
+    results_file = "10_min_qalm_bench_results.csv"
 
     original_lengths = []
 
@@ -41,7 +41,7 @@ def process_results():
         total_results["guoq_results"].append(r_guoq)
         total_results["queso_results"].append(r_queso)
         total_results["voqc_results"].append(r_voqc)
-        total_results["repeated_roqc_results"].append(r_repeated_roqc)
+        # total_results["repeated_roqc_results"].append(r_repeated_roqc)
 
     opt_order = ["qalm_1", "qalm_5","qalm_50", "qalm_100", "qalm_0", "voqc", "qiskit", "guoq", "queso", "repeated_roqc"]
     opt_order = ["voqc", "qiskit", "guoq", "queso"]
