@@ -5,6 +5,7 @@ import pickle
 import numpy as np
 from enum import Enum
 import qiskit
+import os
 
 import equiv_verification
 
@@ -26,7 +27,8 @@ def roqc_interval_tester(arguments):
     circuit_name = arguments[1]
     timeout = arguments[2]
     roqc_interval = arguments[3]
-    return run_quartz(filename, circuit_name, timeout, roqc_interval)
+    greedy_start = arguments[4]
+    return run_quartz(filename, circuit_name, timeout, roqc_interval, greedy_start)
 
 def qalm_tester(arguments):
     filename = arguments[0]
@@ -39,7 +41,8 @@ def qalm_tester(arguments):
     exploration_increase = arguments[7]
     no_increase = arguments[8]
     only_keep_distant_circuits = arguments[9]
-    return run_qalm(filename, circuit_name, timeout, intial_pool_size, exploration_pool, exploration_steps, repeat_tolerance, exploration_increase, no_increase, only_keep_distant_circuits)
+    greedy_start = arguments[10]
+    return run_qalm(filename, circuit_name, timeout, intial_pool_size, exploration_pool, exploration_steps, repeat_tolerance, exploration_increase, no_increase, only_keep_distant_circuits, greedy_start)
 
 def run_experiments():
 
@@ -48,62 +51,62 @@ def run_experiments():
     explore_time = 0.0
     pool_gen_time = 0.0
 
-    timeout = 60
+    timeout = 60*3
     validate = False
     circuit_list = [("circuit/nam_circs/adder_8.qasm", "adder_8"),
                     ("circuit/nam_circs/barenco_tof_3.qasm", "barenco_tof_3"),
-                    ("circuit/nam_circs/barenco_tof_4.qasm", "barenco_tof_4"),
-                    ("circuit/nam_circs/barenco_tof_5.qasm", "barenco_tof_5"),
-                    ("circuit/nam_circs/barenco_tof_10.qasm", "barenco_tof_10"),
-                    ("circuit/nam_circs/csla_mux_3.qasm", "csla_mux_3"),
-                    ("circuit/nam_circs/csum_mux_9.qasm", "csum_mux_9"),
-                    ("circuit/nam_circs/gf2^4_mult.qasm", "gf2^4_mult"),
-                    ("circuit/nam_circs/gf2^5_mult.qasm", "gf2^5_mult"),
-                    ("circuit/nam_circs/gf2^6_mult.qasm", "gf2^6_mult"),
-                    ("circuit/nam_circs/gf2^7_mult.qasm", "gf2^7_mult"),
-                    ("circuit/nam_circs/gf2^8_mult.qasm", "gf2^8_mult"),
-                    ("circuit/nam_circs/gf2^9_mult.qasm", "gf2^9_mult"),
-                    ("circuit/nam_circs/gf2^10_mult.qasm", "gf2^10_mult"),
-                    ("circuit/nam_circs/mod5_4.qasm", "mod5_4"),
-                    ("circuit/nam_circs/mod_mult_55.qasm", "mod_mult_55"),
-                    ("circuit/nam_circs/mod_red_21.qasm", "mod_red_21"),
-                    ("circuit/nam_circs/qcla_adder_10.qasm", "qcla_adder_10"),
-                    ("circuit/nam_circs/qcla_com_7.qasm", "qcla_com_7"),
-                    ("circuit/nam_circs/qcla_mod_7.qasm", "qcla_mod_7"),
-                    ("circuit/nam_circs/rc_adder_6.qasm", "rc_adder_6"),
-                    ("circuit/nam_circs/tof_3.qasm", "tof_3"),
-                    ("circuit/nam_circs/tof_4.qasm", "tof_4"),
-                    ("circuit/nam_circs/tof_5.qasm", "tof_5"),
-                    ("circuit/nam_circs/tof_10.qasm", "tof_10"),
-                    ("circuit/nam_circs/vbe_adder_3.qasm", "vbe_adder_3"),
+                    # ("circuit/nam_circs/barenco_tof_4.qasm", "barenco_tof_4"),
+                    # ("circuit/nam_circs/barenco_tof_5.qasm", "barenco_tof_5"),
+                    # ("circuit/nam_circs/barenco_tof_10.qasm", "barenco_tof_10"),
+                    # ("circuit/nam_circs/csla_mux_3.qasm", "csla_mux_3"),
+                    # ("circuit/nam_circs/csum_mux_9.qasm", "csum_mux_9"),
+                    # ("circuit/nam_circs/gf2^4_mult.qasm", "gf2^4_mult"),
+                    # ("circuit/nam_circs/gf2^5_mult.qasm", "gf2^5_mult"),
+                    # ("circuit/nam_circs/gf2^6_mult.qasm", "gf2^6_mult"),
+                    # ("circuit/nam_circs/gf2^7_mult.qasm", "gf2^7_mult"),
+                    # ("circuit/nam_circs/gf2^8_mult.qasm", "gf2^8_mult"),
+                    # ("circuit/nam_circs/gf2^9_mult.qasm", "gf2^9_mult"),
+                    # ("circuit/nam_circs/gf2^10_mult.qasm", "gf2^10_mult"),
+                    # ("circuit/nam_circs/mod5_4.qasm", "mod5_4"),
+                    # ("circuit/nam_circs/mod_mult_55.qasm", "mod_mult_55"),
+                    # ("circuit/nam_circs/mod_red_21.qasm", "mod_red_21"),
+                    # ("circuit/nam_circs/qcla_adder_10.qasm", "qcla_adder_10"),
+                    # ("circuit/nam_circs/qcla_com_7.qasm", "qcla_com_7"),
+                    # ("circuit/nam_circs/qcla_mod_7.qasm", "qcla_mod_7"),
+                    # ("circuit/nam_circs/rc_adder_6.qasm", "rc_adder_6"),
+                    # ("circuit/nam_circs/tof_3.qasm", "tof_3"),
+                    # ("circuit/nam_circs/tof_4.qasm", "tof_4"),
+                    # ("circuit/nam_circs/tof_5.qasm", "tof_5"),
+                    # ("circuit/nam_circs/tof_10.qasm", "tof_10"),
+                    # ("circuit/nam_circs/vbe_adder_3.qasm", "vbe_adder_3"),
                     ];
 
     experiments = [
         # Roqc interval:
-        (OptimizationType.roqc_interval, (0,)),
-        (OptimizationType.roqc_interval, (1,)),
-        (OptimizationType.roqc_interval, (5,)),
-        (OptimizationType.roqc_interval, (10,)),
-        (OptimizationType.roqc_interval, (50,)),
-        # Qalm (exploration_pool, exploration_steps, repeat_tolerance, exploration_increase, no_increase, keep_ony_distant_circuits):
-        (OptimizationType.qalm, (1, 10, 10, 1.5, 0, 0, 0)),
-        (OptimizationType.qalm, (1, 20, 20, 1.5, 0, 0, 0)),
-        (OptimizationType.qalm, (1, 50, 50, 1.5, 0, 0, 0)),
-        (OptimizationType.qalm, (1, 100, 100, 1.5, 0, 0, 0)),
+        (OptimizationType.roqc_interval, (0, 0)),
+        (OptimizationType.roqc_interval, (1, 0)),
+        (OptimizationType.roqc_interval, (5, 0)),
+        (OptimizationType.roqc_interval, (10, 0)),
+        (OptimizationType.roqc_interval, (50, 0)),
+        # Qalm (exploration_pool, exploration_steps, repeat_tolerance, exploration_increase, no_increase, keep_ony_distant_circuits, start with greedy):
+        (OptimizationType.qalm, (1, 10, 10, 1.5, 0, 0, 0, 0)),
+        (OptimizationType.qalm, (1, 20, 20, 1.5, 0, 0, 0, 0)),
+        (OptimizationType.qalm, (1, 50, 50, 1.5, 0, 0, 0, 0)),
+        (OptimizationType.qalm, (1, 100, 100, 1.5, 0, 0, 0, 0)),
 
-        (OptimizationType.qalm, (1, 10, 20, 1.5, 0, 0, 0)),
-        (OptimizationType.qalm, (1, 20, 10, 1.5, 0, 0, 0)),
+        (OptimizationType.qalm, (1, 10, 20, 1.5, 0, 0, 0, 0)),
+        (OptimizationType.qalm, (1, 20, 10, 1.5, 0, 0, 0, 0)),
 
-        (OptimizationType.qalm, (5, 10, 10, 1,5, 0, 0, 0)),
-        (OptimizationType.qalm, (10, 10, 10, 1.5, 0, 0, 0)),
+        (OptimizationType.qalm, (5, 10, 10, 1.5, 0, 0, 0, 0)),
+        (OptimizationType.qalm, (10, 10, 10, 1.5, 0, 0, 0, 0)),
 
-        (OptimizationType.qalm, (10, 10, 10, 1.5, 1, 0, 0)),
-        (OptimizationType.qalm, (10, 10, 10, 1.5, 0, 1, 0)),
-        (OptimizationType.qalm, (10, 10, 10, 1.5, 1, 1, 0)),
+        (OptimizationType.qalm, (10, 10, 10, 1.5, 1, 0, 0, 0)),
+        (OptimizationType.qalm, (10, 10, 10, 1.5, 0, 1, 0, 0)),
+        (OptimizationType.qalm, (10, 10, 10, 1.5, 1, 1, 0, 0)),
     ]
 
     graph_labels = [
-        "Quartz",
+        "Greedy+Roqc",
         "Roqc interval = 1",
         "Roqc interval = 5",
         "Roqc interval = 10",
@@ -131,6 +134,7 @@ def run_experiments():
     for circuit in circuit_list:
         print(f"Running experiments for {circuit[1]}")
 
+        os.mkdir("comparison_results/" + circuit[1])
 
         arguments = [(experiment[0], (circuit[0], circuit[1], timeout) + experiment[1]) for experiment in experiments]
 
@@ -255,8 +259,8 @@ def run_experiments():
     print("Percentage of time spent in Explore phase:", explore_time/total_runs)
     print("Percentage of time spent in Pool Gen phase:", pool_gen_time/total_runs)
 
-def run_quartz(filename, circuit_name, timeout, roqc_interval):
-    result = subprocess.run(["./build_docker/test_optimize", f"{filename}", f"{circuit_name}", f"{timeout}", f"{roqc_interval}"], capture_output = True, text=True)
+def run_quartz(filename, circuit_name, timeout, roqc_interval, greedy_start):
+    result = subprocess.run(["./build_non_conda/test_optimize", f"{filename}", f"{circuit_name}", f"{timeout}", f"{roqc_interval}", f"{greedy_start}"], capture_output = True, text=True)
     result_lines = result.stdout.splitlines()
     costs = []
     times = []
@@ -277,16 +281,16 @@ def run_quartz(filename, circuit_name, timeout, roqc_interval):
 
     final_results = (times, costs)
 
-    with open(f"comparison_results/{circuit_name}_interval_{roqc_interval}_result.qasm", 'w') as f:
+    with open(f"comparison_results/{circuit_name}/interval_{roqc_interval}_result.qasm", 'w') as f:
         f.truncate(0)
         f.write(circuit_string)
 
     return final_results
 
-def run_qalm(filename, circuit_name, timeout, initial_pool_size, exploration_pool_size, exploration_steps, repeat_tolerance, exploration_increase, no_increase, only_keep_distant_circuits):
+def run_qalm(filename, circuit_name, timeout, initial_pool_size, exploration_pool_size, exploration_steps, repeat_tolerance, exploration_increase, no_increase, only_keep_distant_circuits, greedy_start):
     # Interval doesn't matter for test_qalm
-    result = subprocess.run(["./build_docker/test_qalm", f"{filename}", f"{circuit_name}", f"{timeout}", f"{initial_pool_size}", f"{exploration_pool_size}", f"{exploration_steps}", f"{repeat_tolerance}", f"{exploration_increase}", f"{no_increase}", f"{only_keep_distant_circuits}"], capture_output = True, text=True)
-    result_lines = result.stdout.splitlines()
+    result = subprocess.run(["./build_non_conda/test_qalm", f"{filename}", f"{circuit_name}", f"{timeout}", f"{initial_pool_size}", f"{exploration_pool_size}", f"{exploration_steps}", f"{repeat_tolerance}", f"{exploration_increase}", f"{no_increase}", f"{only_keep_distant_circuits}", f"{greedy_start}"], capture_output = True, text=True)
+    print(result.stderr, result.stdout)
     costs = []
     times = []
     circuit_found = False
@@ -327,7 +331,7 @@ def run_qalm(filename, circuit_name, timeout, initial_pool_size, exploration_poo
         pickle.dump((circuit_roqc_time, circuit_explore_time, circuit_pool_gen_time), f)
 
 
-    with open(f"comparison_results/{circuit_name}_qalm_result.qasm", 'w') as f:
+    with open(f"comparison_results/{circuit_name}/{timeout}_{initial_pool_size}_{exploration_pool_size}_{exploration_steps}_{repeat_tolerance}_{exploration_increase}_{no_increase}_{only_keep_distant_circuits}_result.qasm", 'w') as f:
         f.truncate(0)
         f.write(circuit_string)
 
