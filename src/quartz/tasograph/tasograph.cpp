@@ -1,5 +1,6 @@
 #include "tasograph.h"
 
+#include "quartz/math/bitset.h"
 #include "substitution.h"
 
 #include <cassert>
@@ -19,12 +20,24 @@ enum {
   GUID_PRESERVED = 16383
 };
 
-bool equal_to_2k_pi(double d) {
-  d = std::abs(d);
+bool param_equal(const ParamType &a, const ParamType &b) {
+#ifdef USE_RATIONAL
+  return a == b;
+#else
+  return std::abs(a - b) <= eps;
+#endif
+}
+
+bool equal_to_2k_pi(const ParamType &p) {
+#ifdef USE_RATIONAL
+  return p.denominator() == Int(1) && !p.numerator().is_odd();
+#else
+  auto d = std::abs(p);
   int m = d / (2 * PI);
   if (std::abs(d - m * 2 * PI) > eps && std::abs(d - (m + 1) * 2 * PI) > eps)
     return false;
   return true;
+#endif
 }
 
 Op::Op(void) : guid(GUID_INVALID), ptr(NULL) {}
@@ -736,9 +749,14 @@ void Graph::constant_and_rotation_elimination() {
           }
           result = params[0] + params[1];
           // Normalize result to [0, 2pi)
-          result = std::fmod(result, 2 * PI);
-          if (result < 0)
-            result += 2 * PI;
+#ifdef USE_RATIONAL
+          result -= (ParamType)floor(result / ((ParamType)2 * PI)) *
+                    ((ParamType)2 * PI);
+#else
+          result = std::fmod(result, (ParamType)2 * PI);
+#endif
+          if (result < (ParamType)0)
+            result += (ParamType)2 * PI;
 
           Op merged_op(context->next_global_unique_id(),
                        context->get_gate(GateType::input_param));
@@ -756,9 +774,14 @@ void Graph::constant_and_rotation_elimination() {
           param = get_param_value(edge.srcOp);
           result = -param;
           // Normalize result to [0, 2pi)
-          result = std::fmod(result, 2 * PI);
-          if (result < 0)
-            result += 2 * PI;
+#ifdef USE_RATIONAL
+          result -= (ParamType)floor(result / ((ParamType)2 * PI)) *
+                    ((ParamType)2 * PI);
+#else
+          result = std::fmod(result, (ParamType)2 * PI);
+#endif
+          if (result < (ParamType)0)
+            result += (ParamType)2 * PI;
           param_idx[edge.srcOp] = context->get_new_param_id(result);
           // Find destination
           assert(outEdges[op].size() == 1);
@@ -990,7 +1013,7 @@ void Graph::rotation_merging(GateType target_rotation) {
     assert(false);
   }
   // Step 1: calculate the bitmask of each operator
-  std::unordered_map<Pos, uint64_t, PosHash> bitmasks;
+  std::unordered_map<Pos, QubitMaskType, PosHash> bitmasks;
   std::unordered_map<Pos, int, PosHash> pos_to_qubits;
   std::queue<Op> todos;
 
@@ -999,7 +1022,10 @@ void Graph::rotation_merging(GateType target_rotation) {
     if (it.first.ptr->tp == GateType::input_qubit) {
       todos.push(it.first);
       int qubit_idx = input_qubit_op_2_qubit_idx[it.first];
-      bitmasks[Pos(it.first, 0)] = 1 << qubit_idx;
+      if (bitmasks.count(Pos(it.first, 0)) == 0) {
+        bitmasks[Pos(it.first, 0)] = Bitset(get_num_qubits());
+      }
+      bitmasks[Pos(it.first, 0)][qubit_idx] = true;
       pos_to_qubits[Pos(it.first, 0)] = qubit_idx;
     } else if (it.first.ptr->tp == GateType::input_param) {
       todos.push(it.first);
@@ -1102,7 +1128,8 @@ void Graph::rotation_merging(GateType target_rotation) {
 
     // Step 4: merge rotations with the same bitmasks on the same qubit
     std::unordered_map<
-        int, std::unordered_map<uint64_t, std::unordered_set<Pos, PosHash>>>
+        int, std::unordered_map<QubitMaskType, std::unordered_set<Pos, PosHash>,
+                                QubitMaskHash>>
         qubit_2_bm_2_pos;
     for (const auto &pos : covered) {
       if (pos.op.ptr->tp == GateType::cx) {
@@ -1250,15 +1277,15 @@ void Graph::to_qasm(const std::string &save_filename, bool print_result,
 
 std::string Graph::to_qasm(bool print_result, bool print_guid) const {
   std::ostringstream o;
-  std::map<float, std::string> constant_2_pi;
-  std::vector<float> multiples;
+  std::map<ParamType, std::string> constant_2_pi;
+  std::vector<ParamType> multiples;
   for (int i = 1; i <= 8; ++i) {
-    multiples.push_back(i * 0.25);
-    multiples.push_back(-i * 0.25);
+    multiples.push_back((ParamType)i / (ParamType)4);
+    multiples.push_back(-(ParamType)i / (ParamType)4);
   }
-  multiples.push_back(0);
-  for (auto f : multiples) {
-    constant_2_pi[f * PI] = "pi*" + std::to_string(f);
+  multiples.push_back((ParamType)0);
+  for (const auto &f : multiples) {
+    constant_2_pi[f * PI] = "pi*" + param_to_string(f);
   }
 
   o << "OPENQASM 2.0;" << std::endl;
@@ -1310,6 +1337,10 @@ std::string Graph::to_qasm(bool print_result, bool print_guid) const {
             assert(param_has_value(edge.srcOp));
             param_values[edge.dstIdx - num_qubits] =
                 get_param_value(edge.srcOp);
+            if (op.ptr->is_param_halved(edge.dstIdx - num_qubits)) {
+              param_values[edge.dstIdx - num_qubits] =
+                  param_values[edge.dstIdx - num_qubits] * (ParamType)2;
+            }
           }
         }
         bool first = true;
@@ -1320,7 +1351,7 @@ std::string Graph::to_qasm(bool print_result, bool print_guid) const {
             iss << ',';
           bool found = false;
           for (auto it : constant_2_pi) {
-            if (std::abs(f - it.first) < eps) {
+            if (param_equal(f, it.first)) {
               iss << it.second;
               found = true;
             }
@@ -1449,7 +1480,7 @@ Graph::_from_qasm_stream(Context *ctx,
           // 0.123
           // pi/2
           // pi
-          ParamType p = 0.0;
+          ParamType p = 0;
           bool negative = token[0] == '-';
           if (negative)
             token = token.substr(1);
@@ -1461,10 +1492,10 @@ Graph::_from_qasm_stream(Context *ctx,
               auto d = token.substr(3, std::string::npos);
               if (token[2] == '*') {
                 // pi*0.123
-                p = std::stod(d) * PI;
+                p = string_to_param(d) * PI;
               } else if (token[2] == '/') {
                 // pi/2
-                p = PI / std::stod(d);
+                p = PI / string_to_param(d);
               } else {
                 std::cerr << "Unsupported parameter format: " << token
                           << std::endl;
@@ -1474,14 +1505,14 @@ Graph::_from_qasm_stream(Context *ctx,
           } else if (token.find("pi") != std::string::npos) {
             // 0.123*pi
             auto d = token.substr(0, token.find("*"));
-            p = std::stod(d) * PI;
+            p = string_to_param(d) * PI;
             if (token.find("/") != std::string::npos) {
               // 0.123*pi/2
-              p = p / std::stod(token.substr(token.find("/") + 1));
+              p = p / string_to_param(token.substr(token.find("/") + 1));
             }
           } else {
             // 0.123
-            p = std::stod(token);
+            p = string_to_param_without_pi(token);
           }
           if (negative)
             p = -p;
@@ -1567,20 +1598,12 @@ void Graph::draw_circuit(const std::string &src_file_name,
 }
 
 std::shared_ptr<Graph>
-Graph::greedy_optimize(Context *ctx, const std::string &equiv_file_name,
+Graph::greedy_optimize(Context *ctx, const EquivalenceSet &eqs,
                        bool print_message,
                        std::function<float(Graph *)> cost_function,
                        const std::string &store_all_steps_file_prefix) {
   if (cost_function == nullptr) {
     cost_function = [](Graph *graph) { return graph->total_cost(); };
-  }
-
-  EquivalenceSet eqs;
-  // Load equivalent dags from file
-  if (!eqs.load_json(ctx, equiv_file_name, /*from_verifier=*/false)) {
-    std::cout << "Failed to load equivalence file \"" << equiv_file_name
-              << "\"." << std::endl;
-    assert(false);
   }
 
   auto original_cost = cost_function(this);
@@ -1931,7 +1954,7 @@ std::shared_ptr<Graph> Graph::optimize_legacy(
 }
 
 std::shared_ptr<Graph>
-Graph::optimize(Context *ctx, const std::string &equiv_file_name,
+Graph::optimize(Context *ctx, const EquivalenceSet &eqs,
                 const std::string &circuit_name, bool print_message,
                 std::function<float(Graph *)> cost_function,
                 double cost_upper_bound, double timeout,
@@ -1940,17 +1963,15 @@ Graph::optimize(Context *ctx, const std::string &equiv_file_name,
     cost_function = [](Graph *graph) { return graph->total_cost(); };
   }
   // Get xfer from the equivalent set
-  std::vector<GraphXfer *> xfers =
-      GraphXfer::get_all_xfers_from_ecc(ctx, equiv_file_name);
+  std::vector<GraphXfer *> xfers = GraphXfer::get_all_xfers_from_eqs(ctx, eqs);
   if (print_message) {
     std::cout << "Number of xfers: " << xfers.size() << std::endl;
   }
   if (cost_upper_bound == -1) {
     cost_upper_bound = total_cost() * 1.05;
   }
-  auto preprocessed_graph =
-      greedy_optimize(ctx, equiv_file_name, print_message, cost_function,
-                      store_all_steps_file_prefix);
+  auto preprocessed_graph = greedy_optimize(
+      ctx, eqs, print_message, cost_function, store_all_steps_file_prefix);
   return preprocessed_graph->optimize(
       xfers, cost_upper_bound, circuit_name, /*log_file_name=*/"",
       print_message, cost_function, timeout, store_all_steps_file_prefix,
@@ -2532,7 +2553,9 @@ Graph::optimize_qalm(const std::vector<GraphXfer *> &xfers, double cost_upper_bo
       auto curr_graph = found_circuits[circuit_index];
       float pre_roqc_cost{cost_function(curr_graph.get())};
       auto pre_roqc_graph = curr_graph;
-      curr_graph = curr_graph->from_qasm_str(curr_graph->context, run_roqc(curr_graph->to_qasm().c_str()));
+      // curr_graph = curr_graph->->from_qasm_str(curr_graph->context, run_roqc(curr_graph->to_qasm().c_str()));
+      auto seq = CircuitSeq::from_qasm_style_string(curr_graph->context, run_roqc(curr_graph->to_qasm().c_str()));
+      curr_graph = std::make_shared<Graph>(curr_graph->context, seq.get());
       curr_graph->roqc_gates_reduction = pre_roqc_cost - cost_function(curr_graph.get());
       curr_graph->roqc_countdown = 0;
       curr_graph->pre_roqc_graph = pre_roqc_graph;
@@ -3197,7 +3220,6 @@ void Graph::topology_order_ops(std::vector<Op> &ops) const {
 // It construct a sequence of gates in topology order for each graph
 // Returns true if the two sequences are the same
 bool Graph::equal(const Graph &other) const {
-  double epsilon = 1e-6;
   std::vector<Op> ops1, ops2;
   topology_order_ops(ops1);
   other.topology_order_ops(ops2);
@@ -3229,7 +3251,7 @@ bool Graph::equal(const Graph &other) const {
         }
       }
       for (int j = 0; j < num_params; j++) {
-        if (std::abs(params1[j] - params2[j]) > epsilon) {
+        if (!param_equal(params1[j], params2[j])) {
           return false;
         }
       }
@@ -3409,9 +3431,11 @@ ParamType Graph::get_param_value(const Op &op) const {
 bool Graph::param_has_value(const Op &op) const {
   auto idx = param_idx.find(op);
   if (idx == param_idx.end()) {
+    std::cout << "param_idx not found" << std::endl;
     return false;  // not a parameter
   }
   if (!context->param_is_const(idx->second)) {
+    std::cout << context << " " << idx->second << " not const" << std::endl;
     return false;  // not constant
   }
   return true;

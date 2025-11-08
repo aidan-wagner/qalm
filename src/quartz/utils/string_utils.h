@@ -14,6 +14,10 @@ std::string to_string_with_precision(const T &val, int precision = 6) {
   return out.str();
 }
 
+class Rational;
+template <>
+std::string to_string_with_precision(const Rational &val, int precision);
+
 template <typename T>
 std::string to_json_style_string(const std::vector<T> &vec) {
   std::string result = "[";
@@ -64,7 +68,9 @@ bool read_json_style_vector(S &ss, std::vector<T> &vec) {
     return false;
   }
   int vec_size;
-  ss >> vec_size;
+  if (!(ss >> vec_size)) {
+    return false;
+  }
   vec.reserve(vec_size);
   vec.clear();
   for (int i = 0; i < vec_size; i++) {
@@ -98,5 +104,16 @@ bool read_json_style_vector(S &ss, std::vector<T> &vec) {
   }
   return true;
 }
+
+/**
+ * Specialization: also handle the case "a/b" when reading a floating-point
+ * value from std::istream.
+ * @param ss The istream with a json array at the beginning,
+ * created by to_json_style_string(vec) above but potentially in Rational
+ * instead of double.
+ * @param vec The returned vector. The original content is deleted.
+ * @return True iff the read is successful.
+ */
+bool read_json_style_vector(std::istream &ss, std::vector<double> &vec);
 
 }  // namespace quartz
