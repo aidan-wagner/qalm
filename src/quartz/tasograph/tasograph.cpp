@@ -2553,7 +2553,9 @@ Graph::optimize_qalm(const std::vector<GraphXfer *> &xfers, double cost_upper_bo
       auto curr_graph = found_circuits[circuit_index];
       float pre_roqc_cost{cost_function(curr_graph.get())};
       auto pre_roqc_graph = curr_graph;
-      curr_graph = curr_graph->from_qasm_str(curr_graph->context, run_roqc(curr_graph->to_qasm().c_str()));
+      // curr_graph = curr_graph->->from_qasm_str(curr_graph->context, run_roqc(curr_graph->to_qasm().c_str()));
+      auto seq = CircuitSeq::from_qasm_style_string(curr_graph->context, run_roqc(curr_graph->to_qasm().c_str()));
+      curr_graph = std::make_shared<Graph>(curr_graph->context, seq.get());
       curr_graph->roqc_gates_reduction = pre_roqc_cost - cost_function(curr_graph.get());
       curr_graph->roqc_countdown = 0;
       curr_graph->pre_roqc_graph = pre_roqc_graph;

@@ -39,7 +39,7 @@ int main(int argc, char **argv) {
     bool preprocess = std::stoi(argv[11]);
 
 
-  ParamInfo param_info(/*num_input_symbolic_params=*/2, false);
+  ParamInfo param_info;
   Context ctx({GateType::input_qubit, GateType::input_param, GateType::cx,
                GateType::h, GateType::rz, GateType::x, GateType::add},
               /*num_qubits=*/3, &param_info);
@@ -106,8 +106,9 @@ int main(int argc, char **argv) {
   else {
 
   // Get xfer from the equivalent set
+    std::cout << "Trying to load eccset" << std::endl;
     xfers =
-        GraphXfer::get_all_xfers_from_ecc(&ctx, eqset_fn);
+        GraphXfer::get_all_xfers_from_eqs(&ctx, eqs);
     std::cout << "number of xfers: " << xfers.size() << std::endl;
   }
 
@@ -116,7 +117,7 @@ int main(int argc, char **argv) {
   assert(graph);
 
   if (preprocess) {
-    graph = graph->greedy_optimize(&ctx, eqset_fn, true, nullptr, kQuartzRootPath.string()
+    graph = graph->greedy_optimize(&ctx, eqs, true, nullptr, kQuartzRootPath.string()
                                               + "/benchmark-logs/" + circuit_name
                                               + "_timeout_" + std::to_string(timeout)
                                               + "_init_pool_" + std::to_string(initial_pool_size)
