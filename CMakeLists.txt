@@ -3,7 +3,7 @@ project(Quartz)
 
 SET(CMAKE_BUILD_TYPE "Release")
 
-add_compile_definitions(USE_RATIONAL)
+# add_compile_definitions(USE_RATIONAL)
 
 include(FetchContent)
 
