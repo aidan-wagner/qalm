@@ -2118,6 +2118,8 @@ Graph::optimize(const std::vector<GraphXfer *> &xfers, double cost_upper_bound,
           std::cout << "Previous cost=" << current_cost
                     << ", after Quartz cost=" << pre_roqc_cost
                     << ", ROQC reduction=" << new_graph->roqc_gates_reduction
+                    << " xfer: " << xfer->src_str()
+                    << " --> " << xfer->dst_str()
                     << std::endl;
           new_graph->roqc_countdown = 0;
           new_graph->pre_roqc_graph = pre_roqc_graph;
