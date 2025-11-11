@@ -2242,6 +2242,8 @@ Graph::optimize_qalm(const std::vector<GraphXfer *> &xfers, double cost_upper_bo
                 const float repeat_tolerance,
                 const bool exploration_increase,
                 const bool only_keep_distant_cricuits) {
+  auto rand_engine = std::default_random_engine {};
+  std::mt19937 gen(rand_engine); // mersenne_twister_engine
   if (cost_function == nullptr) {
     cost_function = [](Graph *graph) { return graph->total_cost(); };
     // cost_function = [](Graph *graph) {return graph->hadamard_reduction_cost(); };
@@ -2270,8 +2272,6 @@ Graph::optimize_qalm(const std::vector<GraphXfer *> &xfers, double cost_upper_bo
   std::set<size_t> hashmap;
   std::shared_ptr<Graph> best_graph(new Graph(*this));
   auto best_cost = cost_function(this);
-
-  auto rand_engine = std::default_random_engine {};
 
   candidates.push(best_graph);
   hashmap.insert(hash());
@@ -2381,32 +2381,38 @@ Graph::optimize_qalm(const std::vector<GraphXfer *> &xfers, double cost_upper_bo
     for (int candidate_number = 0; candidate_number < initial_pool_size; candidate_number++) {
       top_candidates.push_back(candidates.top());
       candidates.pop();
-      if (candidates.size() < 1) {
+      if (candidates.empty()) {
         break; 
       }
-
     }
 
-    std::cout << "Made starting pool" << std::endl;
+    std::cout << "Made starting pool, cost =" << std::endl;
+    for (const auto &candidate: top_candidates){
+      std::cout << " " << cost_function(candidate.get());
+    }
+    std::cout << std::endl;
 
-    for (auto candidate: top_candidates){
+    for (const auto &candidate: top_candidates){
 
 
-    auto graph = candidate;
+    const auto &graph = candidate;
     std::vector<Op> all_nodes;
     graph->topology_order_ops(all_nodes);
+
+    std::uniform_int_distribution<> xfers_dist(0, (int)xfers.size() - 1);
+    std::uniform_int_distribution<> node_dist(0, (int)all_nodes.size() - 1);
 
     // Apply transformations randomly until you have a certain number of new circuits
     std::vector<std::shared_ptr<Graph>> found_circuits;
 
     int xfer_count = 0;
     while (found_circuits.size() < exploration_pool_size) {
-      if (xfer_count > xfers.size() * all_nodes.size() * repeat_tolerance) {
+      if (xfer_count > (double)xfers.size() * all_nodes.size() * repeat_tolerance) {
         break;
       }
       xfer_count++;
-      auto xfer = xfers[rand() % xfers.size()];
-      auto node = all_nodes[rand() % all_nodes.size()];
+      auto xfer = xfers[xfers_dist(gen)];
+      auto node = all_nodes[node_dist(gen)];
       invoke_cnt++;
       auto new_graph =
           graph->apply_xfer(xfer, node, context->has_parameterized_gate());
@@ -2470,23 +2476,24 @@ Graph::optimize_qalm(const std::vector<GraphXfer *> &xfers, double cost_upper_bo
     for (int i = 0; i < 10; i++) {
       for (int circuit_index = 0; circuit_index < found_circuits.size(); circuit_index++) {
         // std::cout << "Evolution on circuit " << circuit_index << std::endl;
-        auto graph = found_circuits[circuit_index];
+        const auto &graph = found_circuits[circuit_index];
 
         // Regenerate possible transformations
         all_nodes.clear();
         graph->topology_order_ops(all_nodes);
+        std::uniform_int_distribution<> node_dist(0, (int)all_nodes.size() - 1);
 
         // Try random transformations until one succees
 
         bool found_new_circuit = false;
         int xfer_count = 0;
         while (!found_new_circuit) {
-          if (xfer_count > xfers.size() * all_nodes.size() * repeat_tolerance) {
+          if (xfer_count > (double)xfers.size() * all_nodes.size() * repeat_tolerance) {
             break;
           }
           xfer_count++;
-          auto xfer = xfers[rand() % xfers.size()];
-          auto node = all_nodes[rand() % all_nodes.size()];
+          auto xfer = xfers[xfers_dist(gen)];
+          auto node = all_nodes[node_dist(gen)];
           invoke_cnt++;
           auto new_graph =
               graph->apply_xfer(xfer, node, context->has_parameterized_gate());
@@ -2609,7 +2616,7 @@ Graph::optimize_qalm(const std::vector<GraphXfer *> &xfers, double cost_upper_bo
     }
   }
 
-  if (hit_timeout) {
+    if (hit_timeout) {
       break;
     }
 
