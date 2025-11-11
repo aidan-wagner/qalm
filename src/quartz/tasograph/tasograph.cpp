@@ -2386,243 +2386,247 @@ Graph::optimize_qalm(const std::vector<GraphXfer *> &xfers, double cost_upper_bo
       }
     }
 
-    std::cout << "Made starting pool, cost =" << std::endl;
+    std::cout << "Made starting pool, cost =";
     for (const auto &candidate: top_candidates){
       std::cout << " " << cost_function(candidate.get());
     }
     std::cout << std::endl;
 
-    for (const auto &candidate: top_candidates){
+    for (const auto &candidate : top_candidates) {
+      const auto &graph = candidate;
+      std::vector<Op> all_nodes;
+      graph->topology_order_ops(all_nodes);
 
+      std::uniform_int_distribution<> xfers_dist(0, (int)xfers.size() - 1);
+      std::uniform_int_distribution<> node_dist(0, (int)all_nodes.size() - 1);
 
-    const auto &graph = candidate;
-    std::vector<Op> all_nodes;
-    graph->topology_order_ops(all_nodes);
+      // Apply transformations randomly until you have a certain number of new
+      // circuits
+      std::vector<std::shared_ptr<Graph>> found_circuits;
 
-    std::uniform_int_distribution<> xfers_dist(0, (int)xfers.size() - 1);
-    std::uniform_int_distribution<> node_dist(0, (int)all_nodes.size() - 1);
-
-    // Apply transformations randomly until you have a certain number of new circuits
-    std::vector<std::shared_ptr<Graph>> found_circuits;
-
-    int xfer_count = 0;
-    while (found_circuits.size() < exploration_pool_size) {
-      if (xfer_count > (double)xfers.size() * all_nodes.size() * repeat_tolerance) {
-        break;
-      }
-      xfer_count++;
-      auto xfer = xfers[xfers_dist(gen)];
-      auto node = all_nodes[node_dist(gen)];
-      invoke_cnt++;
-      auto new_graph =
-          graph->apply_xfer(xfer, node, context->has_parameterized_gate());
-      auto end = std::chrono::steady_clock::now();
-      if ((double)std::chrono::duration_cast<std::chrono::milliseconds>(end -
-                                                                        start)
-                  .count() /
-              1000.0 >
-          timeout) {
-        std::cout << "Timeout in generation. Program terminated. Best cost is " << best_cost
-                  << std::endl;
-        hit_timeout = true;
-        break;
-      }
-      if (new_graph == nullptr)
-        continue;
-
-      auto new_hash = new_graph->hash();
-      auto new_cost = cost_function(new_graph.get());
-      if (new_cost > cost_upper_bound)
-        continue;
-      if (hashmap.find(new_hash) != hashmap.end()) {
-        continue;
-      }
-      hashmap.insert(new_hash);
-
-      found_circuits.push_back(new_graph);
-      candidates.push(new_graph);
-
-      if (!store_all_steps_file_prefix.empty()) {
-        // record history
-        previous_graph[new_graph.get()] = graph;
-      }
-
-      if (new_cost < best_cost) {
-        best_cost = new_cost;
-        best_graph = new_graph;
-        rounds_since_reduction = 0;
-      }
-      else {
-        rounds_since_reduction++;
-      }
-
-      if (hit_timeout) {
-        break;
-      }
-    }
-
-    if (time_benchmark) {
-      end_bench = std::clock();
-      pool_gen_time += end_bench - start_bench;
-    }
-
-
-    // Allow each circuit to take (10) steps, no branching
-    
-    if (time_benchmark) {
-      start_bench = std::clock();
-    }
-
-    for (int i = 0; i < 10; i++) {
-      for (int circuit_index = 0; circuit_index < found_circuits.size(); circuit_index++) {
-        // std::cout << "Evolution on circuit " << circuit_index << std::endl;
-        const auto &graph = found_circuits[circuit_index];
-
-        // Regenerate possible transformations
-        all_nodes.clear();
-        graph->topology_order_ops(all_nodes);
-        std::uniform_int_distribution<> node_dist(0, (int)all_nodes.size() - 1);
-
-        // Try random transformations until one succees
-
-        bool found_new_circuit = false;
-        int xfer_count = 0;
-        while (!found_new_circuit) {
-          if (xfer_count > (double)xfers.size() * all_nodes.size() * repeat_tolerance) {
-            break;
-          }
-          xfer_count++;
-          auto xfer = xfers[xfers_dist(gen)];
-          auto node = all_nodes[node_dist(gen)];
-          invoke_cnt++;
-          auto new_graph =
-              graph->apply_xfer(xfer, node, context->has_parameterized_gate());
-          auto end = std::chrono::steady_clock::now();
-          if ((double)std::chrono::duration_cast<std::chrono::milliseconds>(end -
-                                                                            start)
-                      .count() /
-                  1000.0 >
-              timeout) {
-            std::cout << "Timeout in evolution. Program terminated. Best cost is " << best_cost
-                      << std::endl;
-            hit_timeout = true;
-            break;
-          }
-          if (new_graph == nullptr)
-            continue;
-
-          auto new_hash = new_graph->hash();
-          auto new_cost = cost_function(new_graph.get());
-          if (new_cost > cost_upper_bound)
-            continue;
-          if (hashmap.find(new_hash) != hashmap.end()) {
-            continue;
-          }
-
-          found_circuits[circuit_index] = new_graph;
-          candidates.push(new_graph);
-          found_new_circuit = true;
-
-          if (!store_all_steps_file_prefix.empty()) {
-            // record history
-            previous_graph[new_graph.get()] = graph;
-          }
-
-          if (new_cost < best_cost) {
-            best_cost = new_cost;
-            best_graph = new_graph;
-          }
-
+      int xfer_count = 0;
+      while (found_circuits.size() < exploration_pool_size) {
+        if (xfer_count >
+            (double)xfers.size() * all_nodes.size() * repeat_tolerance) {
+          break;
         }
+        xfer_count++;
+        auto xfer = xfers[xfers_dist(gen)];
+        auto node = all_nodes[node_dist(gen)];
+        invoke_cnt++;
+        auto new_graph =
+            graph->apply_xfer(xfer, node, context->has_parameterized_gate());
+        auto end = std::chrono::steady_clock::now();
+        if ((double)std::chrono::duration_cast<std::chrono::milliseconds>(end -
+                                                                          start)
+                    .count() /
+                1000.0 >
+            timeout) {
+          std::cout
+              << "Timeout in generation. Program terminated. Best cost is "
+              << best_cost << std::endl;
+          hit_timeout = true;
+          break;
+        }
+        if (new_graph == nullptr)
+          continue;
+
+        auto new_hash = new_graph->hash();
+        auto new_cost = cost_function(new_graph.get());
+        if (new_cost > cost_upper_bound)
+          continue;
+        if (hashmap.find(new_hash) != hashmap.end()) {
+          continue;
+        }
+        hashmap.insert(new_hash);
+
+        found_circuits.push_back(new_graph);
+        candidates.push(new_graph);
+
+        if (!store_all_steps_file_prefix.empty()) {
+          // record history
+          previous_graph[new_graph.get()] = graph;
+        }
+
+        if (new_cost < best_cost) {
+          best_cost = new_cost;
+          best_graph = new_graph;
+          rounds_since_reduction = 0;
+        } else {
+          rounds_since_reduction++;
+        }
+
         if (hit_timeout) {
           break;
         }
       }
 
+      if (time_benchmark) {
+        end_bench = std::clock();
+        pool_gen_time += end_bench - start_bench;
+      }
+
+      // Allow each circuit to take (10) steps, no branching
+
+      if (time_benchmark) {
+        start_bench = std::clock();
+      }
+
+      for (int i = 0; i < 10; i++) {
+        for (int circuit_index = 0; circuit_index < found_circuits.size();
+             circuit_index++) {
+          // std::cout << "Evolution on circuit " << circuit_index << std::endl;
+          const auto &graph = found_circuits[circuit_index];
+
+          // Regenerate possible transformations
+          all_nodes.clear();
+          graph->topology_order_ops(all_nodes);
+          std::uniform_int_distribution<> node_dist(0,
+                                                    (int)all_nodes.size() - 1);
+
+          // Try random transformations until one succees
+
+          bool found_new_circuit = false;
+          int xfer_count = 0;
+          while (!found_new_circuit) {
+            if (xfer_count >
+                (double)xfers.size() * all_nodes.size() * repeat_tolerance) {
+              break;
+            }
+            xfer_count++;
+            auto xfer = xfers[xfers_dist(gen)];
+            auto node = all_nodes[node_dist(gen)];
+            invoke_cnt++;
+            auto new_graph = graph->apply_xfer(
+                xfer, node, context->has_parameterized_gate());
+            auto end = std::chrono::steady_clock::now();
+            if ((double)std::chrono::duration_cast<std::chrono::milliseconds>(
+                    end - start)
+                        .count() /
+                    1000.0 >
+                timeout) {
+              std::cout
+                  << "Timeout in evolution. Program terminated. Best cost is "
+                  << best_cost << std::endl;
+              hit_timeout = true;
+              break;
+            }
+            if (new_graph == nullptr)
+              continue;
+
+            auto new_hash = new_graph->hash();
+            auto new_cost = cost_function(new_graph.get());
+            if (new_cost > cost_upper_bound)
+              continue;
+            if (hashmap.find(new_hash) != hashmap.end()) {
+              continue;
+            }
+
+            found_circuits[circuit_index] = new_graph;
+            candidates.push(new_graph);
+            found_new_circuit = true;
+
+            if (!store_all_steps_file_prefix.empty()) {
+              // record history
+              previous_graph[new_graph.get()] = graph;
+            }
+
+            if (new_cost < best_cost) {
+              best_cost = new_cost;
+              best_graph = new_graph;
+            }
+          }
+          if (hit_timeout) {
+            break;
+          }
+        }
+
+        if (hit_timeout) {
+          break;
+        }
+      }
+
+      if (time_benchmark) {
+        end_bench = std::clock();
+        explore_time += end_bench - start_bench;
+      }
+
+      // std::cout << "Circuit pool size after development: " <<
+      // found_circuits.size() << std::endl;
+
       if (hit_timeout) {
         break;
       }
-    }
 
-    if (time_benchmark) {
-      end_bench = std::clock();
-      explore_time += end_bench - start_bench;
-    }
+      // Run roqc on all current circuits
 
-    // std::cout << "Circuit pool size after development: " << found_circuits.size() << std::endl;
+      if (time_benchmark) {
+        start_bench = std::clock();
+      }
+
+      for (int circuit_index = 0; circuit_index < found_circuits.size();
+           circuit_index++) {
+        // std::cout << "Running ROQC on circuit " << circuit_index <<
+        // std::endl;
+        auto curr_graph = found_circuits[circuit_index];
+        float pre_roqc_cost{cost_function(curr_graph.get())};
+        auto pre_roqc_graph = curr_graph;
+        // curr_graph = curr_graph->->from_qasm_str(curr_graph->context,
+        // run_roqc(curr_graph->to_qasm().c_str()));
+        auto seq = CircuitSeq::from_qasm_style_string(
+            curr_graph->context, run_roqc(curr_graph->to_qasm().c_str()));
+        curr_graph = std::make_shared<Graph>(curr_graph->context, seq.get());
+        curr_graph->roqc_gates_reduction =
+            pre_roqc_cost - cost_function(curr_graph.get());
+        curr_graph->roqc_countdown = 0;
+        curr_graph->pre_roqc_graph = pre_roqc_graph;
+
+        auto new_hash = curr_graph->hash();
+        auto new_cost = cost_function(curr_graph.get());
+        // std::cout << "cost is: " << new_cost << " with hash: " << new_hash <<
+        // std::endl;
+        if (new_cost > cost_upper_bound)
+          continue;
+        if (hashmap.find(new_hash) != hashmap.end()) {
+          continue;
+        }
+
+        // std::cout << "adding new candidate" << std::endl;
+
+        candidates.push(curr_graph);
+        if (new_cost < best_cost) {
+          best_cost = new_cost;
+          best_graph = curr_graph;
+        }
+
+        if (candidates.size() > kMaxNumCandidates) {
+          shrink_candidates();
+        }
+      }
+
+      if (time_benchmark) {
+        end_bench = std::clock();
+        roqc_time += end_bench - start_bench;
+      }
+
+      auto end = std::chrono::steady_clock::now();
+      if (print_message) {
+        fprintf(
+            fout,
+            "[%s] Best cost: %f\tcandidate number: %zu\tafter %.3f seconds.\n",
+            circuit_name.c_str(), best_cost, candidates.size(),
+            (double)std::chrono::duration_cast<std::chrono::milliseconds>(end -
+                                                                          start)
+                    .count() /
+                1000.0);
+        fflush(fout);
+      }
+    }
 
     if (hit_timeout) {
       break;
     }
-
-    // Run roqc on all current circuits
-    
-    if (time_benchmark) {
-      start_bench = std::clock();
-    }
-    
-    for (int circuit_index = 0; circuit_index < found_circuits.size(); circuit_index++) {
-      // std::cout << "Running ROQC on circuit " << circuit_index << std::endl;
-      auto curr_graph = found_circuits[circuit_index];
-      float pre_roqc_cost{cost_function(curr_graph.get())};
-      auto pre_roqc_graph = curr_graph;
-      // curr_graph = curr_graph->->from_qasm_str(curr_graph->context, run_roqc(curr_graph->to_qasm().c_str()));
-      auto seq = CircuitSeq::from_qasm_style_string(curr_graph->context, run_roqc(curr_graph->to_qasm().c_str()));
-      curr_graph = std::make_shared<Graph>(curr_graph->context, seq.get());
-      curr_graph->roqc_gates_reduction = pre_roqc_cost - cost_function(curr_graph.get());
-      curr_graph->roqc_countdown = 0;
-      curr_graph->pre_roqc_graph = pre_roqc_graph;
-
-      auto new_hash = curr_graph->hash();
-      auto new_cost = cost_function(curr_graph.get());
-      // std::cout << "cost is: " << new_cost << " with hash: " << new_hash << std::endl;
-      if (new_cost > cost_upper_bound)
-        continue;
-      if (hashmap.find(new_hash) != hashmap.end()) {
-        continue;
-      }
-
-      // std::cout << "adding new candidate" << std::endl;
-
-      candidates.push(curr_graph);
-      if (new_cost < best_cost) {
-        best_cost = new_cost;
-        best_graph = curr_graph;
-      }
-
-      if (candidates.size() > kMaxNumCandidates) {
-        shrink_candidates();
-      }
-
-
-    }
-
-    if (time_benchmark) {
-      end_bench = std::clock();
-      roqc_time += end_bench - start_bench;
-    }
-
-    auto end = std::chrono::steady_clock::now();
-    if (print_message) {
-      fprintf(
-          fout,
-          "[%s] Best cost: %f\tcandidate number: %zu\tafter %.3f seconds.\n",
-          circuit_name.c_str(), best_cost, candidates.size(),
-          (double)std::chrono::duration_cast<std::chrono::milliseconds>(end -
-                                                                        start)
-                  .count() /
-              1000.0);
-      fflush(fout);
-    }
   }
-
-    if (hit_timeout) {
-      break;
-    }
-
-  }
-
-
 
   // std::cout << "Finished optimization loop" << std::endl;
 
