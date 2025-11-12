@@ -24,19 +24,19 @@ int main(int argc, char **argv) {
     }
   }
 
-    assert(argv[3] != nullptr);
-    assert(argv[4] != nullptr);
+  assert(argv[3] != nullptr);
+  assert(argv[4] != nullptr);
 
-    std::size_t timeout = std::stoi(argv[3]);
-    std::size_t initial_pool_size = std::stoi(argv[4]);
-    std::size_t exploration_pool_size = std::stoi(argv[5]);
-    std::size_t exploration_steps = std::stoi(argv[6]);
-    float repeat_tolerance = std::stof(argv[7]);
-    bool exploration_increase = std::stoi(argv[8]);
-    bool strictly_reducing_rules = std::stoi(argv[9]);
-    bool only_keep_distant_circuits = std::stoi(argv[10]);
+  std::size_t timeout = std::stoi(argv[3]);
+  std::size_t initial_pool_size = std::stoi(argv[4]);
+  std::size_t exploration_pool_size = std::stoi(argv[5]);
+  std::size_t exploration_steps = std::stoi(argv[6]);
+  float repeat_tolerance = std::stof(argv[7]);
+  bool exploration_increase = std::stoi(argv[8]);
+  bool strictly_reducing_rules = std::stoi(argv[9]);
+  bool only_keep_distant_circuits = std::stoi(argv[10]);
 
-    bool preprocess = std::stoi(argv[11]);
+  bool preprocess = std::stoi(argv[11]);
 
 
   ParamInfo param_info;
@@ -112,7 +112,8 @@ int main(int argc, char **argv) {
     std::cout << "number of xfers: " << xfers.size() << std::endl;
   }
 
-  auto graph = Graph::from_qasm_file(&ctx, input_fn);
+  auto seq = CircuitSeq::from_qasm_file(&ctx, input_fn);
+  auto graph = std::make_shared<Graph>(&ctx, seq.get());
   std::cout << "got" << std::endl;
   assert(graph);
 
