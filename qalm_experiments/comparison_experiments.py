@@ -49,7 +49,7 @@ def run_experiments():
     if os.path.isdir("comparison_results") or os.path.isdir("pickled_results"):
         raise Exception("comparison_results or pickled_results found in current directory. These must be removed")
 
-    os.mkdir("comparison_experiments")
+    os.mkdir("comparison_results")
     os.mkdir("pickled_results")
 
 
