@@ -46,6 +46,12 @@ def qalm_tester(arguments):
 
 def run_experiments():
 
+    if os.path.isdir("comparison_results") or os.path.isdir("pickled_results"):
+        raise Exception("comparison_results or pickled_results found in current directory. These must be removed")
+
+    os.mkdir("comparison_experiments")
+    os.mkdir("pickled_results")
+
 
     roqc_time = 0.0
     explore_time = 0.0
