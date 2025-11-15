@@ -2277,7 +2277,7 @@ Graph::optimize_qalm(const std::vector<GraphXfer *> &xfers, double cost_upper_bo
                 const bool exploration_increase,
                 const bool only_keep_distant_cricuits) {
   auto rand_engine = std::default_random_engine {};
-  std::mt19937 gen(rand_engine); // mersenne_twister_engine
+  std::mt19937 gen(rand_engine()); // mersenne_twister_engine
   if (cost_function == nullptr) {
     cost_function = [](Graph *graph) { return graph->total_cost(); };
     // cost_function = [](Graph *graph) {return graph->hadamard_reduction_cost(); };
