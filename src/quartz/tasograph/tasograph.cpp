@@ -2496,13 +2496,13 @@ Graph::optimize_qalm(const std::vector<GraphXfer *> &xfers, double cost_upper_bo
         pool_gen_time += end_bench - start_bench;
       }
 
-      // Allow each circuit to take (10) steps, no branching
+      // Allow each circuit to take <exploration_steps> steps, no branching
 
       if (time_benchmark) {
         start_bench = std::clock();
       }
 
-      for (int i = 0; i < 10; i++) {
+      for (int i = 0; i < exploration_steps; i++) {
         for (int circuit_index = 0; circuit_index < found_circuits.size();
              circuit_index++) {
           // std::cout << "Evolution on circuit " << circuit_index << std::endl;
