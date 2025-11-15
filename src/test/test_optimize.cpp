@@ -55,17 +55,18 @@ int main(int argc, char **argv) {
   std::vector<GraphXfer *> xfers = GraphXfer::get_all_xfers_from_eqs(&ctx, eqs);
   std::cout << "number of xfers: " << xfers.size() << std::endl;
 
-  auto seq = CircuitSeq::from_qasm_file(&ctx, input_fn);
-  auto graph = std::make_shared<Graph>(&ctx, seq.get());
-  std::cout << "got" << std::endl;
+  auto graph = Graph::from_qasm_file(&ctx, input_fn);
+  std::cout << "Circuit retrieved from qasm file" << std::endl;
   assert(graph);
 
   if (preprocess) {
     graph = graph->greedy_optimize(&ctx, eqs, true, nullptr, kQuartzRootPath.string() + "/benchmark-logs/" + circuit_name + "_timeout_" + std::to_string(timeout) + "_roqc_interval_" + std::to_string(roqc_interval) + "_");
   }
 
+  // auto graph_optimized = graph->optimize(xfers, graph->gate_count() * 1.05,
+  //                                     circuit_name, "", true, nullptr, timeout, kQuartzRootPath.string() + "/benchmark-logs/" + circuit_name + "_timeout_" + std::to_string(timeout) + "_roqc_interval_" + std::to_string(roqc_interval) + "_", false, roqc_interval);
   auto graph_optimized = graph->optimize(xfers, graph->gate_count() * 1.05,
-                                         circuit_name, "", true, nullptr, timeout, kQuartzRootPath.string() + "/benchmark-logs/" + circuit_name + "_timeout_" + std::to_string(timeout) + "_roqc_interval_" + std::to_string(roqc_interval) + "_", false, roqc_interval);
+                                       circuit_name, "", true, nullptr, timeout, "", false, roqc_interval);
   std::cout << "Optimized graph:" << std::endl;
   std::cout << graph_optimized->to_qasm();
   return 0;

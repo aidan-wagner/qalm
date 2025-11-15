@@ -2139,9 +2139,7 @@ Graph::optimize(const std::vector<GraphXfer *> &xfers, double cost_upper_bound,
           // special case: do greedy only
           float pre_roqc_cost{cost_function(new_graph.get())};
           auto pre_roqc_graph = new_graph;
-          // new_graph = new_graph->from_qasm_str(graph->context, run_roqc(new_graph->to_qasm().c_str()));
-          auto seq = CircuitSeq::from_qasm_style_string(graph->context, run_roqc(new_graph->to_qasm().c_str()));
-          new_graph = std::make_shared<Graph>(graph->context, seq.get());
+          new_graph = new_graph->from_qasm_str(graph->context, run_roqc(new_graph->to_qasm().c_str()));
           if (cost_function(new_graph.get()) >= current_cost) {
             // throw new_graph away
             continue;
@@ -2162,9 +2160,7 @@ Graph::optimize(const std::vector<GraphXfer *> &xfers, double cost_upper_bound,
           // If a certain number of iterations have occured, then run roqc
           float pre_roqc_cost{cost_function(new_graph.get())};
           auto pre_roqc_graph = new_graph;
-          // new_graph = new_graph->from_qasm_str(graph->context, run_roqc(new_graph->to_qasm().c_str()));
-          auto seq = CircuitSeq::from_qasm_style_string(graph->context, run_roqc(new_graph->to_qasm().c_str()));
-          new_graph = std::make_shared<Graph>(graph->context, seq.get());
+          new_graph = new_graph->from_qasm_str(graph->context, run_roqc(new_graph->to_qasm().c_str()));
           new_graph->roqc_gates_reduction = pre_roqc_cost - cost_function(new_graph.get());
           new_graph->roqc_countdown = 0;
           new_graph->pre_roqc_graph = pre_roqc_graph;
@@ -2607,9 +2603,7 @@ Graph::optimize_qalm(const std::vector<GraphXfer *> &xfers, double cost_upper_bo
         auto pre_roqc_graph = curr_graph;
         // curr_graph = curr_graph->->from_qasm_str(curr_graph->context,
         // run_roqc(curr_graph->to_qasm().c_str()));
-        auto seq = CircuitSeq::from_qasm_style_string(
-            curr_graph->context, run_roqc(curr_graph->to_qasm().c_str()));
-        curr_graph = std::make_shared<Graph>(curr_graph->context, seq.get());
+        curr_graph = curr_graph->from_qasm_str(curr_graph->context, run_roqc(curr_graph->to_qasm().c_str()));
         curr_graph->roqc_gates_reduction =
             pre_roqc_cost - cost_function(curr_graph.get());
         curr_graph->roqc_countdown = 0;

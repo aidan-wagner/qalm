@@ -55,30 +55,30 @@ def run_experiments():
     validate = False
     circuit_list = [("circuit/nam_circs/adder_8.qasm", "adder_8"),
                     ("circuit/nam_circs/barenco_tof_3.qasm", "barenco_tof_3"),
-                    ("circuit/nam_circs/barenco_tof_4.qasm", "barenco_tof_4"),
-                    ("circuit/nam_circs/barenco_tof_5.qasm", "barenco_tof_5"),
-                    ("circuit/nam_circs/barenco_tof_10.qasm", "barenco_tof_10"),
-                    ("circuit/nam_circs/csla_mux_3.qasm", "csla_mux_3"),
-                    ("circuit/nam_circs/csum_mux_9.qasm", "csum_mux_9"),
-                    ("circuit/nam_circs/gf2^4_mult.qasm", "gf2^4_mult"),
-                    ("circuit/nam_circs/gf2^5_mult.qasm", "gf2^5_mult"),
-                    ("circuit/nam_circs/gf2^6_mult.qasm", "gf2^6_mult"),
-                    ("circuit/nam_circs/gf2^7_mult.qasm", "gf2^7_mult"),
-                    ("circuit/nam_circs/gf2^8_mult.qasm", "gf2^8_mult"),
-                    ("circuit/nam_circs/gf2^9_mult.qasm", "gf2^9_mult"),
-                    ("circuit/nam_circs/gf2^10_mult.qasm", "gf2^10_mult"),
-                    ("circuit/nam_circs/mod5_4.qasm", "mod5_4"),
-                    ("circuit/nam_circs/mod_mult_55.qasm", "mod_mult_55"),
-                    ("circuit/nam_circs/mod_red_21.qasm", "mod_red_21"),
-                    ("circuit/nam_circs/qcla_adder_10.qasm", "qcla_adder_10"),
-                    ("circuit/nam_circs/qcla_com_7.qasm", "qcla_com_7"),
-                    ("circuit/nam_circs/qcla_mod_7.qasm", "qcla_mod_7"),
-                    ("circuit/nam_circs/rc_adder_6.qasm", "rc_adder_6"),
-                    ("circuit/nam_circs/tof_3.qasm", "tof_3"),
-                    ("circuit/nam_circs/tof_4.qasm", "tof_4"),
-                    ("circuit/nam_circs/tof_5.qasm", "tof_5"),
-                    ("circuit/nam_circs/tof_10.qasm", "tof_10"),
-                    ("circuit/nam_circs/vbe_adder_3.qasm", "vbe_adder_3"),
+                    # ("circuit/nam_circs/barenco_tof_4.qasm", "barenco_tof_4"),
+                    # ("circuit/nam_circs/barenco_tof_5.qasm", "barenco_tof_5"),
+                    # ("circuit/nam_circs/barenco_tof_10.qasm", "barenco_tof_10"),
+                    # ("circuit/nam_circs/csla_mux_3.qasm", "csla_mux_3"),
+                    # ("circuit/nam_circs/csum_mux_9.qasm", "csum_mux_9"),
+                    # ("circuit/nam_circs/gf2^4_mult.qasm", "gf2^4_mult"),
+                    # ("circuit/nam_circs/gf2^5_mult.qasm", "gf2^5_mult"),
+                    # ("circuit/nam_circs/gf2^6_mult.qasm", "gf2^6_mult"),
+                    # ("circuit/nam_circs/gf2^7_mult.qasm", "gf2^7_mult"),
+                    # ("circuit/nam_circs/gf2^8_mult.qasm", "gf2^8_mult"),
+                    # ("circuit/nam_circs/gf2^9_mult.qasm", "gf2^9_mult"),
+                    # ("circuit/nam_circs/gf2^10_mult.qasm", "gf2^10_mult"),
+                    # ("circuit/nam_circs/mod5_4.qasm", "mod5_4"),
+                    # ("circuit/nam_circs/mod_mult_55.qasm", "mod_mult_55"),
+                    # ("circuit/nam_circs/mod_red_21.qasm", "mod_red_21"),
+                    # ("circuit/nam_circs/qcla_adder_10.qasm", "qcla_adder_10"),
+                    # ("circuit/nam_circs/qcla_com_7.qasm", "qcla_com_7"),
+                    # ("circuit/nam_circs/qcla_mod_7.qasm", "qcla_mod_7"),
+                    # ("circuit/nam_circs/rc_adder_6.qasm", "rc_adder_6"),
+                    # ("circuit/nam_circs/tof_3.qasm", "tof_3"),
+                    # ("circuit/nam_circs/tof_4.qasm", "tof_4"),
+                    # ("circuit/nam_circs/tof_5.qasm", "tof_5"),
+                    # ("circuit/nam_circs/tof_10.qasm", "tof_10"),
+                    # ("circuit/nam_circs/vbe_adder_3.qasm", "vbe_adder_3"),
                     ];
 
     experiments = [
@@ -260,7 +260,7 @@ def run_experiments():
     print("Percentage of time spent in Pool Gen phase:", pool_gen_time/total_runs)
 
 def run_quartz(filename, circuit_name, timeout, roqc_interval, greedy_start):
-    result = subprocess.run(["./build_non_conda/test_optimize", f"{filename}", f"{circuit_name}", f"{timeout}", f"{roqc_interval}", f"{greedy_start}"], capture_output = True, text=True)
+    result = subprocess.run(["./build/test_optimize", f"{filename}", f"{circuit_name}", f"{timeout}", f"{roqc_interval}", f"{greedy_start}"], capture_output = True, text=True)
     result_lines = result.stdout.splitlines()
     costs = []
     times = []
@@ -289,8 +289,8 @@ def run_quartz(filename, circuit_name, timeout, roqc_interval, greedy_start):
 
 def run_qalm(filename, circuit_name, timeout, initial_pool_size, exploration_pool_size, exploration_steps, repeat_tolerance, exploration_increase, no_increase, only_keep_distant_circuits, greedy_start):
     # Interval doesn't matter for test_qalm
-    result = subprocess.run(["./build_non_conda/test_qalm", f"{filename}", f"{circuit_name}", f"{timeout}", f"{initial_pool_size}", f"{exploration_pool_size}", f"{exploration_steps}", f"{repeat_tolerance}", f"{exploration_increase}", f"{no_increase}", f"{only_keep_distant_circuits}", f"{greedy_start}"], capture_output = True, text=True)
-    print(result.stderr, result.stdout)
+    result = subprocess.run(["./build/test_qalm", f"{filename}", f"{circuit_name}", f"{timeout}", f"{initial_pool_size}", f"{exploration_pool_size}", f"{exploration_steps}", f"{repeat_tolerance}", f"{exploration_increase}", f"{no_increase}", f"{only_keep_distant_circuits}", f"{greedy_start}"], capture_output = True, text=True)
+    result_lines = result.stdout.splitlines()
     costs = []
     times = []
     circuit_found = False

@@ -112,9 +112,8 @@ int main(int argc, char **argv) {
     std::cout << "number of xfers: " << xfers.size() << std::endl;
   }
 
-  auto seq = CircuitSeq::from_qasm_file(&ctx, input_fn);
-  auto graph = std::make_shared<Graph>(&ctx, seq.get());
-  std::cout << "got" << std::endl;
+  auto graph = Graph::from_qasm_file(&ctx, input_fn);
+  std::cout << "Recieved circuit from qasm file" << std::endl;
   assert(graph);
 
   if (preprocess) {
@@ -130,6 +129,29 @@ int main(int argc, char **argv) {
   }
 
 
+  // auto graph_optimized = graph->optimize_qalm(xfers,
+  //                                             graph->gate_count() * 1.05,
+  //                                             circuit_name,
+  //                                             "",
+  //                                             false,
+  //                                             nullptr,
+  //                                             timeout,
+  //                                             kQuartzRootPath.string()
+  //                                             + "/benchmark-logs/" + circuit_name
+  //                                             + "_timeout_" + std::to_string(timeout)
+  //                                             + "_init_pool_" + std::to_string(initial_pool_size)
+  //                                             + "_exp_pool_" + std::to_string(exploration_pool_size)
+  //                                             + "_exp_steps_" + std::to_string(exploration_steps) 
+  //                                             + "_exp_increase_" + std::to_string(exploration_increase)
+  //                                             + "_no_increase_" + std::to_string(strictly_reducing_rules)
+  //                                             + "_only_keep_distant_circuits_" + std::to_string(only_keep_distant_circuits) + "_",
+  //                                             true,
+  //                                             initial_pool_size,
+  //                                             exploration_pool_size,
+  //                                             exploration_steps,
+  //                                             repeat_tolerance,
+  //                                             exploration_increase,
+  //                                             only_keep_distant_circuits);
   auto graph_optimized = graph->optimize_qalm(xfers,
                                               graph->gate_count() * 1.05,
                                               circuit_name,
@@ -137,15 +159,7 @@ int main(int argc, char **argv) {
                                               true,
                                               nullptr,
                                               timeout,
-                                              kQuartzRootPath.string()
-                                              + "/benchmark-logs/" + circuit_name
-                                              + "_timeout_" + std::to_string(timeout)
-                                              + "_init_pool_" + std::to_string(initial_pool_size)
-                                              + "_exp_pool_" + std::to_string(exploration_pool_size)
-                                              + "_exp_steps_" + std::to_string(exploration_steps) 
-                                              + "_exp_increase_" + std::to_string(exploration_increase)
-                                              + "_no_increase_" + std::to_string(strictly_reducing_rules)
-                                              + "_only_keep_distant_circuits_" + std::to_string(only_keep_distant_circuits) + "_",
+                                              "",
                                               true,
                                               initial_pool_size,
                                               exploration_pool_size,
