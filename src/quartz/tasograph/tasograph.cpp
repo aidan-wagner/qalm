@@ -2506,7 +2506,9 @@ Graph::optimize_qalm(const std::vector<GraphXfer *> &xfers, double cost_upper_bo
         for (int circuit_index = 0; circuit_index < found_circuits.size();
              circuit_index++) {
           // std::cout << "Evolution on circuit " << circuit_index << std::endl;
-          const auto &graph = found_circuits[circuit_index];
+          // We can't use const auto& because found_circuits[circuit_index]
+          // is changing.
+          const auto graph = found_circuits[circuit_index];
 
           // Regenerate possible transformations
           all_nodes.clear();
