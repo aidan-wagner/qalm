@@ -24,12 +24,12 @@ int main(int argc, char **argv) {
     }
   }
 
-    assert(argv[3] != nullptr);
-    assert(argv[4] != nullptr);
+  assert(argv[3] != nullptr);
+  assert(argv[4] != nullptr);
 
-    std::size_t timeout = std::stoi(argv[3]);
-    std::size_t roqc_interval = std::stoi(argv[4]);
-    bool preprocess = std::stoi(argv[5]);
+  std::size_t timeout = std::stoi(argv[3]);
+  int roqc_interval = std::stoi(argv[4]);
+  bool preprocess = std::stoi(argv[5]);
 
   ParamInfo param_info;
   Context ctx({GateType::input_qubit, GateType::input_param, GateType::cx,
@@ -59,14 +59,22 @@ int main(int argc, char **argv) {
   std::cout << "Circuit retrieved from qasm file" << std::endl;
   assert(graph);
 
+  auto start = std::chrono::steady_clock::now();
   if (preprocess) {
-    graph = graph->greedy_optimize(&ctx, eqs, true, nullptr, kQuartzRootPath.string() + "/benchmark-logs/" + circuit_name + "_timeout_" + std::to_string(timeout) + "_roqc_interval_" + std::to_string(roqc_interval) + "_");
+    graph = graph->greedy_optimize_with_roqc(
+        &ctx, xfers, circuit_name, "", true, nullptr, timeout,
+        kQuartzRootPath.string() + "/benchmark-logs/" + circuit_name +
+            "_timeout_" + std::to_string(timeout) + "_roqc_interval_" +
+            std::to_string(roqc_interval) + "_", start);
   }
 
-  // auto graph_optimized = graph->optimize(xfers, graph->gate_count() * 1.05,
-  //                                     circuit_name, "", true, nullptr, timeout, kQuartzRootPath.string() + "/benchmark-logs/" + circuit_name + "_timeout_" + std::to_string(timeout) + "_roqc_interval_" + std::to_string(roqc_interval) + "_", false, roqc_interval);
-  auto graph_optimized = graph->optimize(xfers, graph->gate_count() * 1.05,
-                                       circuit_name, "", true, nullptr, timeout, "", false, roqc_interval);
+  auto graph_optimized = graph->optimize(
+      xfers, graph->gate_count() * 1.05, circuit_name, "", true, nullptr,
+      timeout,
+      kQuartzRootPath.string() + "/benchmark-logs/" + circuit_name +
+          "_timeout_" + std::to_string(timeout) + "_roqc_interval_" +
+          std::to_string(roqc_interval) + "_",
+      preprocess, start, roqc_interval);
   std::cout << "Optimized graph:" << std::endl;
   std::cout << graph_optimized->to_qasm();
   return 0;

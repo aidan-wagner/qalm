@@ -111,6 +111,8 @@ def run_experiments():
         (OptimizationType.qalm, (10, 10, 10, 1.5, 1, 0, 0, 0)),
         (OptimizationType.qalm, (10, 10, 10, 1.5, 0, 1, 0, 0)),
         (OptimizationType.qalm, (10, 10, 10, 1.5, 1, 1, 0, 0)),
+        (OptimizationType.qalm, (10, 10, 10, 1.5, 0, 1, 0, 1)),
+        (OptimizationType.qalm, (10, 10, 10, 1.5, 1, 1, 0, 1)),
     ]
 
     graph_labels = [
@@ -134,6 +136,8 @@ def run_experiments():
         "Init10, Gen10, Steps10, Rep_tol1.5, exp_incr",
         "Init10, Gen10, Steps10, Rep_tol1.5, no_incr",
         "Init10, Gen10, Steps10, Rep_tol1.5, exp_incr+no_incr",
+        "Greedy, Init10, Gen10, Steps10, Rep_tol1.5, no_incr",
+        "Greedy, Init10, Gen10, Steps10, Rep_tol1.5, exp_incr+no_incr",
     ]
 
     # voqc_avg = 0
@@ -190,7 +194,7 @@ def run_experiments():
 
 
         for i in range(len(results)):
-            ax.plot(results[i][0], results[i][1], label = graph_labels[i])
+            ax.plot(results[i][0], results[i][1], label = graph_labels[i], linestyle=['-', '--', ':'][i % 3])
             exp_avgs[i] += float(results[i][1][-1]) / float(original_gate_count) 
 
         # ax.plot(voqc_result[0], voqc_result[1], label = "Voqc")
