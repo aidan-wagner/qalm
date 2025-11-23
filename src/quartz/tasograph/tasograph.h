@@ -305,6 +305,18 @@ class Graph {
                std::chrono::time_point<std::chrono::steady_clock>::min(),
            const int roqc_interval = 0);
 
+  std::shared_ptr<Graph>
+  optimize_ucb(const std::vector<GraphXfer *> &xfers, double cost_upper_bound,
+               const std::string &circuit_name,
+               const std::string &log_file_name, bool print_message,
+               std::function<float(Graph *)> cost_function = nullptr,
+               double timeout = 3600 /*1 hour*/,
+               const std::string &store_all_steps_file_prefix = std::string(),
+               bool continue_storing_all_steps = false,
+
+               std::chrono::time_point<std::chrono::steady_clock> time_start =
+                   std::chrono::time_point<std::chrono::steady_clock>::min(),
+               int roqc_interval = 0);
   std::shared_ptr<Graph> optimize_qalm(
       const std::vector<GraphXfer *> &xfers, double cost_upper_bound,
       const std::string &circuit_name, const std::string &log_file_name,

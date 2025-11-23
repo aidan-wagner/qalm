@@ -59,7 +59,7 @@ def run_experiments():
     explore_time = 0.0
     pool_gen_time = 0.0
 
-    timeout = 60*10
+    timeout = 600
     validate = False
     circuit_list = [("circuit/nam_circs/adder_8.qasm", "adder_8"),
                     ("circuit/nam_circs/barenco_tof_3.qasm", "barenco_tof_3"),
@@ -91,24 +91,27 @@ def run_experiments():
 
     experiments = [
         # Roqc interval:
-        (OptimizationType.roqc_interval, (0, 0)),
         (OptimizationType.roqc_interval, (1, 0)),
-        (OptimizationType.roqc_interval, (5, 0)),
-        (OptimizationType.roqc_interval, (10, 0)),
-        (OptimizationType.roqc_interval, (50, 0)),
+        (OptimizationType.roqc_interval, (2, 0)),
+        (OptimizationType.roqc_interval, (1, 1)),
+        (OptimizationType.roqc_interval, (2, 1)),
+        (OptimizationType.roqc_interval, (-1, 1)),
+        (OptimizationType.roqc_interval, (-2, 1)),
+        (OptimizationType.roqc_interval, (1, 3)),
+        (OptimizationType.roqc_interval, (2, 3)),
         # Qalm (exploration_pool, exploration_steps, repeat_tolerance, exploration_increase, no_increase, keep_ony_distant_circuits, start with greedy):
-        (OptimizationType.qalm, (1, 10, 10, 1.5, 0, 0, 0, 0)),
-        (OptimizationType.qalm, (1, 20, 20, 1.5, 0, 0, 0, 0)),
-        (OptimizationType.qalm, (1, 50, 50, 1.5, 0, 0, 0, 0)),
-        (OptimizationType.qalm, (1, 100, 100, 1.5, 0, 0, 0, 0)),
-
-        (OptimizationType.qalm, (1, 10, 20, 1.5, 0, 0, 0, 0)),
-        (OptimizationType.qalm, (1, 20, 10, 1.5, 0, 0, 0, 0)),
-
-        (OptimizationType.qalm, (5, 10, 10, 1.5, 0, 0, 0, 0)),
-        (OptimizationType.qalm, (10, 10, 10, 1.5, 0, 0, 0, 0)),
-
-        (OptimizationType.qalm, (10, 10, 10, 1.5, 1, 0, 0, 0)),
+        # (OptimizationType.qalm, (1, 10, 10, 1.5, 0, 0, 0, 0)),
+        # (OptimizationType.qalm, (1, 20, 20, 1.5, 0, 0, 0, 0)),
+        # (OptimizationType.qalm, (1, 50, 50, 1.5, 0, 0, 0, 0)),
+        # (OptimizationType.qalm, (1, 100, 100, 1.5, 0, 0, 0, 0)),
+        #
+        # (OptimizationType.qalm, (1, 10, 20, 1.5, 0, 0, 0, 0)),
+        # (OptimizationType.qalm, (1, 20, 10, 1.5, 0, 0, 0, 0)),
+        #
+        # (OptimizationType.qalm, (5, 10, 10, 1.5, 0, 0, 0, 0)),
+        # (OptimizationType.qalm, (10, 10, 10, 1.5, 0, 0, 0, 0)),
+        #
+        # (OptimizationType.qalm, (10, 10, 10, 1.5, 1, 0, 0, 0)),
         (OptimizationType.qalm, (10, 10, 10, 1.5, 0, 1, 0, 0)),
         (OptimizationType.qalm, (10, 10, 10, 1.5, 1, 1, 0, 0)),
         (OptimizationType.qalm, (10, 10, 10, 1.5, 0, 1, 0, 1)),
@@ -116,24 +119,29 @@ def run_experiments():
     ]
 
     graph_labels = [
-        "Greedy+Roqc",
         "Roqc interval = 1",
-        "Roqc interval = 5",
-        "Roqc interval = 10",
-        "Roqc interval = 50",
+        "Roqc interval = 2",
+        "Greedy, Roqc interval = 1",
+        "Greedy, Roqc interval = 2",
+        "Greedy, Roqc interval = 1, cost + sqrt(depth)",
+        "Greedy, Roqc interval = 2, cost + sqrt(depth)",
+        "Greedy, Roqc interval = 1, UCB",
+        "Greedy, Roqc interval = 2, UCB",
+        # "Roqc interval = 10",
+        # "Roqc interval = 50",
 
-        "Init1, Gen10, Steps10, Rep_tol1.5",
-        "Init1, Gen20, Steps20, Rep_tol1.5",
-        "Init1, Gen50, Steps50, Rep_tol1.5",
-        "Init1, PoolGen100, Steps100, Rep_tol1.5",
-
-        "Init1, PoolGen10, Steps20, Rep_tol1.5",
-        "Init1, Pool20, Steps10, Rep_tol1.5",
-
-        "Init5, Pool10, Steps10, Rep_tol1.5",
-        "Init10, Pool10, Steps10, Rep_tol1.5",
-
-        "Init10, Gen10, Steps10, Rep_tol1.5, exp_incr",
+        # "Init1, Gen10, Steps10, Rep_tol1.5",
+        # "Init1, Gen20, Steps20, Rep_tol1.5",
+        # "Init1, Gen50, Steps50, Rep_tol1.5",
+        # "Init1, PoolGen100, Steps100, Rep_tol1.5",
+        #
+        # "Init1, PoolGen10, Steps20, Rep_tol1.5",
+        # "Init1, Pool20, Steps10, Rep_tol1.5",
+        #
+        # "Init5, Pool10, Steps10, Rep_tol1.5",
+        # "Init10, Pool10, Steps10, Rep_tol1.5",
+        #
+        # "Init10, Gen10, Steps10, Rep_tol1.5, exp_incr",
         "Init10, Gen10, Steps10, Rep_tol1.5, no_incr",
         "Init10, Gen10, Steps10, Rep_tol1.5, exp_incr+no_incr",
         "Greedy, Init10, Gen10, Steps10, Rep_tol1.5, no_incr",
@@ -203,7 +211,7 @@ def run_experiments():
         ax.set_xlabel("Time (s)")
         ax.set_ylabel("Gate Count")
 
-        ax.set_title(f"Optimization Experiments - {circuit[1]} - ECC set (5,3)")
+        ax.set_title(f"Optimization Experiments - {circuit[1]} - ECC set (6,3)")
 
 
         fig.legend(bbox_to_anchor=(1.1, 1), loc="upper right", fontsize="x-small")

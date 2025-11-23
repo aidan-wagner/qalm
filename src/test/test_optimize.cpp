@@ -13,7 +13,7 @@ int main(int argc, char **argv) {
   std::string circuit_name = "adder_8";
   std::string output_fn;
   std::string eqset_fn =
-      kQuartzRootPath.string() + "/eccset/Nam_5_3_complete_ECC_set.json";
+      kQuartzRootPath.string() + "/eccset/Nam_6_3_complete_ECC_set.json";
 
   if (argc >= 2) {
     assert(argv[1] != nullptr);
@@ -29,7 +29,9 @@ int main(int argc, char **argv) {
 
   std::size_t timeout = std::stoi(argv[3]);
   int roqc_interval = std::stoi(argv[4]);
-  bool preprocess = std::stoi(argv[5]);
+  int ucb = std::stoi(argv[5]);
+  int preprocess = ucb % 2;
+  ucb = ucb / 2;
 
   ParamInfo param_info;
   Context ctx({GateType::input_qubit, GateType::input_param, GateType::cx,
@@ -65,17 +67,30 @@ int main(int argc, char **argv) {
         &ctx, xfers, circuit_name, "", true, nullptr, timeout,
         kQuartzRootPath.string() + "/benchmark-logs/" + circuit_name +
             "_timeout_" + std::to_string(timeout) + "_roqc_interval_" +
-            std::to_string(roqc_interval) + "_", start);
+            std::to_string(roqc_interval) + "_",
+        start);
   }
 
-  auto graph_optimized = graph->optimize(
-      xfers, graph->gate_count() * 1.05, circuit_name, "", true, nullptr,
-      timeout,
-      kQuartzRootPath.string() + "/benchmark-logs/" + circuit_name +
-          "_timeout_" + std::to_string(timeout) + "_roqc_interval_" +
-          std::to_string(roqc_interval) + "_",
-      preprocess, start, roqc_interval);
-  std::cout << "Optimized graph:" << std::endl;
-  std::cout << graph_optimized->to_qasm();
+  if (ucb) {
+    auto graph_optimized = graph->optimize_ucb(
+        xfers, graph->gate_count() * 1.05, circuit_name, "", true, nullptr,
+        timeout, "", preprocess, start, roqc_interval);
+    std::cout << "Optimized graph:" << std::endl;
+    std::cout << graph_optimized->to_qasm();
+  } else {
+    // auto graph_optimized = graph->optimize(xfers, graph->gate_count() * 1.05,
+    //                                     circuit_name, "", true, nullptr,
+    //                                     timeout, kQuartzRootPath.string() +
+    //                                     "/benchmark-logs/" + circuit_name +
+    //                                     "_timeout_" + std::to_string(timeout)
+    //                                     + "_roqc_interval_" +
+    //                                     std::to_string(roqc_interval) + "_",
+    //                                     false, roqc_interval);
+    auto graph_optimized = graph->optimize(
+        xfers, graph->gate_count() * 1.05, circuit_name, "", true, nullptr,
+        timeout, "", false, start, roqc_interval);
+    std::cout << "Optimized graph:" << std::endl;
+    std::cout << graph_optimized->to_qasm();
+  }
   return 0;
 }
