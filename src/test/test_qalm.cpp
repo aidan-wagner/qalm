@@ -115,6 +115,7 @@ int main(int argc, char **argv) {
   auto start = std::chrono::steady_clock::now();
   if (preprocess) {
     graph = graph->greedy_optimize_with_roqc(
+        // graph = graph->greedy_optimize_with_local_search(
         &ctx, xfers, circuit_name, "", true, nullptr, timeout,
         kQuartzRootPath.string() + "/benchmark-logs/" + circuit_name +
             "_timeout_" + std::to_string(timeout) + "_init_pool_" +

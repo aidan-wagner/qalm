@@ -244,6 +244,14 @@ class Graph {
       const std::string &store_all_steps_file_prefix = std::string(),
       std::chrono::time_point<std::chrono::steady_clock> time_start =
           std::chrono::time_point<std::chrono::steady_clock>::min());
+  std::shared_ptr<Graph> greedy_optimize_with_local_search(
+      Context *ctx, const std::vector<GraphXfer *> &xfers,
+      const std::string &circuit_name, const std::string &log_file_name,
+      bool print_message, std::function<float(Graph *)> cost_function = nullptr,
+      double timeout = 3600 /*1 hour*/,
+      const std::string &store_all_steps_file_prefix = std::string(),
+      std::chrono::time_point<std::chrono::steady_clock> time_start =
+          std::chrono::time_point<std::chrono::steady_clock>::min());
   std::shared_ptr<Graph>
   optimize_legacy(float alpha, int budget, bool print_subst, Context *ctx,
                   const std::string &equiv_file_name,
