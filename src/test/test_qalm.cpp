@@ -141,7 +141,7 @@ int main(int argc, char **argv) {
   }
 
   auto graph_optimized = graph->optimize_qalm(
-      xfers, graph->gate_count() * 1.05, circuit_name, "", false, nullptr,
+      xfers, graph->gate_count() * 1.05, circuit_name, "", true, nullptr,
       timeout,
       kQuartzRootPath.string() + "/benchmark-logs/" + circuit_name +
           "_timeout_" + std::to_string(timeout) + "_init_pool_" +
