@@ -1945,22 +1945,33 @@ std::shared_ptr<Graph> Graph::greedy_optimize_with_local_search(
 
           // Step 2: Local search around the transformed region (fixed window)
           std::vector<Op> candidate_nodes;
-          candidate_graph->topology_order_ops(candidate_nodes);
-          // Use the same position as center, bounded by the new graph size
-          int center_node_id =
-              std::min(current_node_id, (int)candidate_nodes.size() - 1);
-
-          // Try applying xfers in the fixed local neighborhood (left 5, right
-          // 5)
-          int local_start = std::max(0, center_node_id - kNumLookBackNodes);
-          int local_end = std::min((int)candidate_nodes.size(),
-                                   center_node_id + kNumLookBackNodes + 1);
+          const int num_target_nodes = xfer->dstOps.size() + kNumLookBackNodes;
+          candidate_nodes.reserve(num_target_nodes);
+          // Conduct a local BFS around the transformed region
+          std::queue<OpX *> to_visit;
+          std::unordered_set<OpX *> visited;
+          for (auto &dstOp : xfer->dstOps) {
+            candidate_nodes.push_back(dstOp->mapOp);
+            visited.insert(dstOp);
+            to_visit.push(dstOp);
+          }
+          while (!to_visit.empty() &&
+                 candidate_nodes.size() < num_target_nodes) {
+            auto opX = to_visit.front();
+            to_visit.pop();
+            // Only search to the left
+            for (auto &tensorX : opX->inputs) {
+              if (tensorX.op != nullptr && visited.count(tensorX.op) == 0) {
+                visited.insert(tensorX.op);
+                to_visit.push(tensorX.op);
+                candidate_nodes.push_back(tensorX.op->mapOp);
+              }
+            }
+          }
 
           bool found_improvement = false;
           // Try all xfers in the local window
-          for (int local_idx = local_start;
-               local_idx < local_end && !found_improvement; local_idx++) {
-            const auto &local_node = candidate_nodes[local_idx];
+          for (const auto &local_node : candidate_nodes) {
             for (auto local_xfer : xfers) {
               auto local_graph = candidate_graph->apply_xfer(
                   local_xfer, local_node, context->has_parameterized_gate());
@@ -1975,6 +1986,9 @@ std::shared_ptr<Graph> Graph::greedy_optimize_with_local_search(
                 found_improvement = true;
                 break;  // Found improvement, use this
               }
+            }
+            if (found_improvement) {
+              break;
             }
           }
 
@@ -3428,6 +3442,10 @@ std::shared_ptr<Graph> Graph::apply_xfer(GraphXfer *xfer, Op op,
     // If failed, the unmatch is already done in _pattern_matching.
     // Return nullptr.
     return new_graph;
+  //  for (auto &it : matched_opx_op_pairs_dq) {
+  //    std::cout << gate_type_name(it.second.ptr->tp) << " ";
+  //  }
+  //  std::cout << std::endl;
 
   if (success) {
     new_graph = xfer->create_new_graph(this);
