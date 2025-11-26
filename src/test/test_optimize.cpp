@@ -66,6 +66,11 @@ int main(int argc, char **argv) {
         kQuartzRootPath.string() + "/benchmark-logs/" + circuit_name +
             "_timeout_" + std::to_string(timeout) + "_roqc_interval_" +
             std::to_string(roqc_interval) + "_", start);
+    graph = graph->greedy_optimize_with_local_search(
+        &ctx, xfers, circuit_name, "", true, nullptr, timeout,
+        kQuartzRootPath.string() + "/benchmark-logs/" + circuit_name +
+            "_timeout_" + std::to_string(timeout) + "_roqc_interval_" +
+            std::to_string(roqc_interval) + "_", start);
   }
 
   auto graph_optimized = graph->optimize(

@@ -1758,7 +1758,7 @@ std::shared_ptr<Graph> Graph::greedy_optimize_with_roqc(
   std::shared_ptr<Graph> optimized_graph = std::make_shared<Graph>(*this);
   auto current_cost = cost_function(this);
   const auto original_cost = current_cost;
-  bool optimized_in_this_iteration;
+  //  bool optimized_in_this_iteration;
   std::vector<Op> all_nodes;
   optimized_graph->topology_order_ops(all_nodes);
   int step_count = 0;
@@ -1770,91 +1770,94 @@ std::shared_ptr<Graph> Graph::greedy_optimize_with_roqc(
   const int kNumLookBackNodes = 5;
   int last_node_id = 0;
   bool hit_timeout = false;
-  do {
-    optimized_in_this_iteration = false;
-    for (auto xfer : xfers) {
-      bool optimized_this_xfer;
-      do {
-        optimized_this_xfer = false;
-        for (int node_diff = 0; node_diff < (int)all_nodes.size();
-             node_diff++) {
-          const auto &node =
-              all_nodes[(last_node_id + node_diff) % (int)all_nodes.size()];
-          auto graph_before_roqc = optimized_graph->apply_xfer(
-              xfer, node, context->has_parameterized_gate());
-          if (!graph_before_roqc) {
-            continue;
-          }
-          auto new_graph = graph_before_roqc->from_qasm_str(
-              graph_before_roqc->context,
-              run_roqc(graph_before_roqc->to_qasm().c_str()));
-          auto new_cost = cost_function(new_graph.get());
-          if (new_cost < current_cost) {
-            optimized_graph.swap(new_graph);
-            current_cost = new_cost;
-            // Update the wires after applying a transformation.
-            all_nodes.clear();
-            optimized_graph->topology_order_ops(all_nodes);
-            optimized_this_xfer = true;
-            optimized_in_this_iteration = true;
-            // Look back kNumLookBackNodes nodes.
-            last_node_id =
-                std::max(0, (last_node_id + node_diff) % (int)all_nodes.size() -
-                                kNumLookBackNodes);
-            if (!store_all_steps_file_prefix.empty()) {
-              step_count++;
-              graph_before_roqc->to_qasm(store_all_steps_file_prefix +
-                                             std::to_string(step_count) +
-                                             ".qasm",
-                                         /*print_result=*/false,
-                                         /*print_guid=*/false);
-              step_count++;
-              optimized_graph->to_qasm(store_all_steps_file_prefix +
+  //  do {
+  //    optimized_in_this_iteration = false;
+  for (auto &xfer : xfers) {
+    bool optimized_this_xfer;
+    do {
+      optimized_this_xfer = false;
+      for (int node_diff = 0; node_diff < (int)all_nodes.size(); node_diff++) {
+        int current_node_id =
+            (last_node_id + node_diff) % (int)all_nodes.size();
+        const auto &node = all_nodes[current_node_id];
+        auto graph_before_roqc = optimized_graph->apply_xfer(
+            xfer, node, context->has_parameterized_gate());
+        if (!graph_before_roqc) {
+          continue;
+        }
+        auto new_graph = graph_before_roqc->from_qasm_str(
+            graph_before_roqc->context,
+            run_roqc(graph_before_roqc->to_qasm().c_str()));
+        auto new_cost = cost_function(new_graph.get());
+        if (new_cost < current_cost) {
+          optimized_graph.swap(new_graph);
+          current_cost = new_cost;
+          // Update the wires after applying a transformation.
+          all_nodes.clear();
+          optimized_graph->topology_order_ops(all_nodes);
+          optimized_this_xfer = true;
+          //            optimized_in_this_iteration = true;
+          // Look back kNumLookBackNodes nodes.
+          last_node_id =
+              std::max(0, (last_node_id + node_diff) % (int)all_nodes.size() -
+                              kNumLookBackNodes);
+          if (!store_all_steps_file_prefix.empty()) {
+            step_count++;
+            graph_before_roqc->to_qasm(store_all_steps_file_prefix +
                                            std::to_string(step_count) + ".qasm",
                                        /*print_result=*/false,
                                        /*print_guid=*/false);
-            }
-            if (print_message) {
-              auto end = std::chrono::steady_clock::now();
-              fprintf(
-                  fout,
-                  "[%s] Best cost: %f\tcandidate number: 1\tafter %.3f "
-                  "seconds.\n",
-                  circuit_name.c_str(), current_cost,
-                  (double)std::chrono::duration_cast<std::chrono::milliseconds>(
-                      end - start)
-                          .count() /
-                      1000.0);
-              fflush(fout);
-            }
-            // Since |all_nodes| has changed, we cannot continue this loop.
-            break;
+            step_count++;
+            optimized_graph->to_qasm(store_all_steps_file_prefix +
+                                         std::to_string(step_count) + ".qasm",
+                                     /*print_result=*/false,
+                                     /*print_guid=*/false);
           }
-          auto end = std::chrono::steady_clock::now();
-          if ((double)std::chrono::duration_cast<std::chrono::milliseconds>(
-                  end - start)
-                      .count() /
-                  1000.0 >
-              timeout) {
-            std::cout
-                << "Timeout in greedy phase. Program terminated. Best cost is "
-                << current_cost << std::endl;
-            hit_timeout = true;
-            break;
+          if (print_message) {
+            std::cout << "Found improvement in greedy with ROQC, ["
+                      << (&xfer - xfers.data()) << "] " << xfer->src_str()
+                      << " --> " << xfer->dst_str() << " at ("
+                      << current_node_id << ")" << std::endl;
+            auto end = std::chrono::steady_clock::now();
+            fprintf(
+                fout,
+                "[%s] Best cost: %f\tcandidate number: 1\tafter %.3f "
+                "seconds.\n",
+                circuit_name.c_str(), current_cost,
+                (double)std::chrono::duration_cast<std::chrono::milliseconds>(
+                    end - start)
+                        .count() /
+                    1000.0);
+            fflush(fout);
           }
-        }
-        if (hit_timeout) {
+          // Since |all_nodes| has changed, we cannot continue this loop.
           break;
         }
-      } while (optimized_this_xfer);
+        auto end = std::chrono::steady_clock::now();
+        if ((double)std::chrono::duration_cast<std::chrono::milliseconds>(end -
+                                                                          start)
+                    .count() /
+                1000.0 >
+            timeout) {
+          std::cout
+              << "Timeout in greedy phase. Program terminated. Best cost is "
+              << current_cost << std::endl;
+          hit_timeout = true;
+          break;
+        }
+      }
       if (hit_timeout) {
         break;
       }
-    }
+    } while (optimized_this_xfer);
     if (hit_timeout) {
       break;
     }
-  } while (optimized_in_this_iteration);
+  }
+  //    if (hit_timeout) {
+  //      break;
+  //    }
+  //  } while (optimized_in_this_iteration);
 
   auto optimized_cost = cost_function(optimized_graph.get());
 
@@ -1909,7 +1912,7 @@ std::shared_ptr<Graph> Graph::greedy_optimize_with_local_search(
       from_qasm_str(context, run_roqc(to_qasm().c_str()));
   auto current_cost = cost_function(optimized_graph.get());
   const auto original_cost = cost_function(this);
-  bool optimized_in_this_iteration;
+  //  bool optimized_in_this_iteration;
   std::vector<Op> all_nodes;
   optimized_graph->topology_order_ops(all_nodes);
   int step_count = 0;
@@ -1921,138 +1924,151 @@ std::shared_ptr<Graph> Graph::greedy_optimize_with_local_search(
   const int kNumLookBackNodes = 5;
   int last_node_id = 0;
   bool hit_timeout = false;
-  do {
-    optimized_in_this_iteration = false;
-    for (auto xfer : xfers) {
-      bool optimized_this_xfer;
-      do {
-        optimized_this_xfer = false;
-        for (int node_diff = 0; node_diff < (int)all_nodes.size();
-             node_diff++) {
-          int current_node_id =
-              (last_node_id + node_diff) % (int)all_nodes.size();
-          const auto &node = all_nodes[current_node_id];
+  //  do {
+  //    optimized_in_this_iteration = false;
+  for (auto &xfer : xfers) {
+    bool optimized_this_xfer;
+    do {
+      optimized_this_xfer = false;
+      for (int node_diff = 0; node_diff < (int)all_nodes.size(); node_diff++) {
+        int current_node_id =
+            (last_node_id + node_diff) % (int)all_nodes.size();
+        const auto &node = all_nodes[current_node_id];
 
-          // Record cost before any transformation
-          float cost_before_xfer = cost_function(optimized_graph.get());
-          // Step 1: Apply one Quartz transformation
-          auto candidate_graph = optimized_graph->apply_xfer(
-              xfer, node, context->has_parameterized_gate());
-          if (!candidate_graph) {
-            continue;
-          }
-          // std::cout << "Cost before xfer: " << cost_before_xfer << std::endl;
+        // Record cost before any transformation
+        float cost_before_xfer = cost_function(optimized_graph.get());
+        // Step 1: Apply one Quartz transformation
+        auto candidate_graph = optimized_graph->apply_xfer(
+            xfer, node, context->has_parameterized_gate());
+        if (!candidate_graph) {
+          continue;
+        }
+        // std::cout << "Cost before xfer: " << cost_before_xfer << std::endl;
 
-          // Step 2: Local search around the transformed region (fixed window)
-          std::vector<Op> candidate_nodes;
-          const int num_target_nodes = xfer->dstOps.size() + kNumLookBackNodes;
-          candidate_nodes.reserve(num_target_nodes);
-          // Conduct a local BFS around the transformed region
-          std::queue<OpX *> to_visit;
-          std::unordered_set<OpX *> visited;
-          for (auto &dstOp : xfer->dstOps) {
-            candidate_nodes.push_back(dstOp->mapOp);
-            visited.insert(dstOp);
-            to_visit.push(dstOp);
-          }
-          while (!to_visit.empty() &&
-                 candidate_nodes.size() < num_target_nodes) {
-            auto opX = to_visit.front();
-            to_visit.pop();
-            // Only search to the left
-            for (auto &tensorX : opX->inputs) {
-              if (tensorX.op != nullptr && visited.count(tensorX.op) == 0) {
-                visited.insert(tensorX.op);
-                to_visit.push(tensorX.op);
-                candidate_nodes.push_back(tensorX.op->mapOp);
-              }
+        // Step 2: Local search around the transformed region (fixed window)
+        std::vector<Op> candidate_nodes;
+        const int num_target_nodes = xfer->dstOps.size() + 0;
+        candidate_nodes.reserve(num_target_nodes);
+        // Conduct a local BFS around the transformed region
+        std::queue<OpX *> to_visit;
+        std::unordered_set<OpX *> visited;
+        for (auto &dstOp : xfer->dstOps) {
+          candidate_nodes.push_back(dstOp->mapOp);
+          visited.insert(dstOp);
+          to_visit.push(dstOp);
+        }
+        /*while (!to_visit.empty() &&
+               candidate_nodes.size() < num_target_nodes) {
+          auto opX = to_visit.front();
+          to_visit.pop();
+          // Only search to the left
+          for (auto &tensorX : opX->inputs) {
+            if (tensorX.op != nullptr && visited.count(tensorX.op) == 0) {
+              visited.insert(tensorX.op);
+              to_visit.push(tensorX.op);
+              candidate_nodes.push_back(tensorX.op->mapOp);
             }
           }
+        }*/
 
-          bool found_improvement = false;
-          // Try all xfers in the local window
-          for (const auto &local_node : candidate_nodes) {
-            for (auto local_xfer : xfers) {
-              auto local_graph = candidate_graph->apply_xfer(
-                  local_xfer, local_node, context->has_parameterized_gate());
-              if (!local_graph) {
-                continue;
-              }
-              auto local_cost = cost_function(local_graph.get());
-              // std::cout << "Local cost: " << local_cost << std::endl;
-              // Only compare with the original cost before any xfer
-              if (local_cost < cost_before_xfer) {
-                candidate_graph.swap(local_graph);
-                found_improvement = true;
-                break;  // Found improvement, use this
-              }
+        bool found_improvement = false;
+        // Try all xfers in the local window
+        GraphXfer *local_xfer_used;
+        int local_xfer_id;
+        int local_node_id;
+        for (const auto &local_node : candidate_nodes) {
+          for (auto &local_xfer : xfers) {
+            auto local_graph = candidate_graph->apply_xfer(
+                local_xfer, local_node, context->has_parameterized_gate());
+            if (!local_graph) {
+              continue;
             }
-            if (found_improvement) {
-              break;
+            local_graph = local_graph->from_qasm_str(
+                local_graph->context, run_roqc(local_graph->to_qasm().c_str()));
+            auto local_cost = cost_function(local_graph.get());
+            // std::cout << "Local cost: " << local_cost << std::endl;
+            // Only compare with the original cost before any xfer
+            if (local_cost < cost_before_xfer) {
+              candidate_graph.swap(local_graph);
+              found_improvement = true;
+              local_xfer_used = local_xfer;
+              local_xfer_id = &local_xfer - xfers.data();
+              local_node_id = &local_node - candidate_nodes.data();
+              break;  // Found improvement, use this
             }
           }
-
-          // Step 3: Keep if we found improvement in local search
           if (found_improvement) {
-            std::cout << "Found improvement in local search" << std::endl;
-            auto final_cost = cost_function(candidate_graph.get());
-            optimized_graph.swap(candidate_graph);
-            current_cost = final_cost;
-            // Update the wires after applying a transformation.
-            all_nodes.clear();
-            optimized_graph->topology_order_ops(all_nodes);
-            optimized_this_xfer = true;
-            optimized_in_this_iteration = true;
-            // Look back kNumLookBackNodes nodes from current position
-            last_node_id = std::max(0, current_node_id - kNumLookBackNodes);
-            if (!store_all_steps_file_prefix.empty()) {
-              step_count++;
-              optimized_graph->to_qasm(store_all_steps_file_prefix +
-                                           std::to_string(step_count) + ".qasm",
-                                       /*print_result=*/false,
-                                       /*print_guid=*/false);
-            }
-            if (print_message) {
-              auto end = std::chrono::steady_clock::now();
-              fprintf(
-                  fout,
-                  "[%s] Best cost: %f\tcandidate number: 1\tafter %.3f "
-                  "seconds.\n",
-                  circuit_name.c_str(), current_cost,
-                  (double)std::chrono::duration_cast<std::chrono::milliseconds>(
-                      end - start)
-                          .count() /
-                      1000.0);
-              fflush(fout);
-            }
-            // Since |all_nodes| has changed, we cannot continue this loop.
-            break;
-          }
-          auto end = std::chrono::steady_clock::now();
-          if ((double)std::chrono::duration_cast<std::chrono::milliseconds>(
-                  end - start)
-                      .count() /
-                  1000.0 >
-              timeout) {
-            std::cout
-                << "Timeout in greedy phase. Program terminated. Best cost is "
-                << current_cost << std::endl;
-            hit_timeout = true;
             break;
           }
         }
-        if (hit_timeout) {
+
+        // Step 3: Keep if we found improvement in local search
+        if (found_improvement) {
+          std::cout << "Found improvement in local search, ["
+                    << (&xfer - xfers.data()) << "] " << xfer->src_str()
+                    << " --> " << xfer->dst_str() << " at (" << current_node_id
+                    << ") then [" << local_xfer_id << "] "
+                    << local_xfer_used->src_str() << " --> "
+                    << local_xfer_used->dst_str() << " at (local "
+                    << local_node_id << ")" << std::endl;
+          auto final_cost = cost_function(candidate_graph.get());
+          optimized_graph.swap(candidate_graph);
+          current_cost = final_cost;
+          // Update the wires after applying a transformation.
+          all_nodes.clear();
+          optimized_graph->topology_order_ops(all_nodes);
+          optimized_this_xfer = true;
+          //          optimized_in_this_iteration = true;
+          // Look back kNumLookBackNodes nodes from current position
+          last_node_id = std::max(0, current_node_id - kNumLookBackNodes);
+          if (!store_all_steps_file_prefix.empty()) {
+            step_count++;
+            optimized_graph->to_qasm(store_all_steps_file_prefix +
+                                         std::to_string(step_count) + ".qasm",
+                                     /*print_result=*/false,
+                                     /*print_guid=*/false);
+          }
+          if (print_message) {
+            auto end = std::chrono::steady_clock::now();
+            fprintf(
+                fout,
+                "[%s] Best cost: %f\tcandidate number: 1\tafter %.3f "
+                "seconds.\n",
+                circuit_name.c_str(), current_cost,
+                (double)std::chrono::duration_cast<std::chrono::milliseconds>(
+                    end - start)
+                        .count() /
+                    1000.0);
+            fflush(fout);
+          }
+          // Since |all_nodes| has changed, we cannot continue this loop.
           break;
         }
-      } while (optimized_this_xfer);
+        auto end = std::chrono::steady_clock::now();
+        if ((double)std::chrono::duration_cast<std::chrono::milliseconds>(end -
+                                                                          start)
+                    .count() /
+                1000.0 >
+            timeout) {
+          std::cout
+              << "Timeout in greedy phase. Program terminated. Best cost is "
+              << current_cost << std::endl;
+          hit_timeout = true;
+          break;
+        }
+      }
       if (hit_timeout) {
         break;
       }
-    }
+    } while (optimized_this_xfer);
     if (hit_timeout) {
       break;
     }
-  } while (optimized_in_this_iteration);
+  }
+  //    if (hit_timeout) {
+  //      break;
+  //    }
+  //  } while (optimized_in_this_iteration);
 
   auto optimized_cost = cost_function(optimized_graph.get());
 
