@@ -1888,6 +1888,7 @@ std::shared_ptr<Graph> Graph::greedy_optimize_with_local_search(
     const std::string &circuit_name, const std::string &log_file_name,
     bool print_message, std::function<float(Graph *)> cost_function,
     double timeout, const std::string &store_all_steps_file_prefix,
+    bool continue_storing_all_steps,
     std::chrono::time_point<std::chrono::steady_clock> time_start) {
   if (cost_function == nullptr) {
     cost_function = [](Graph *graph) { return graph->total_cost(); };
@@ -1917,8 +1918,15 @@ std::shared_ptr<Graph> Graph::greedy_optimize_with_local_search(
   optimized_graph->topology_order_ops(all_nodes);
   int step_count = 0;
   if (!store_all_steps_file_prefix.empty()) {
-    to_qasm(store_all_steps_file_prefix + "0.qasm", /*print_result=*/false,
-            /*print_guid=*/false);
+    if (continue_storing_all_steps) {
+      std::ifstream fin(store_all_steps_file_prefix + ".txt");
+      assert(fin.is_open());
+      fin >> step_count;
+      fin.close();
+    } else {
+      to_qasm(store_all_steps_file_prefix + "0.qasm", /*print_result=*/false,
+              /*print_guid=*/false);
+    }
   }
   // look back/forward this many nodes for local search
   const int kNumLookBackNodes = 5;

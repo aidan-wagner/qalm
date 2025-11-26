@@ -250,6 +250,7 @@ class Graph {
       bool print_message, std::function<float(Graph *)> cost_function = nullptr,
       double timeout = 3600 /*1 hour*/,
       const std::string &store_all_steps_file_prefix = std::string(),
+      bool continue_storing_all_steps = false,
       std::chrono::time_point<std::chrono::steady_clock> time_start =
           std::chrono::time_point<std::chrono::steady_clock>::min());
   std::shared_ptr<Graph>

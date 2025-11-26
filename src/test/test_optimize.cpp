@@ -70,7 +70,7 @@ int main(int argc, char **argv) {
         &ctx, xfers, circuit_name, "", true, nullptr, timeout,
         kQuartzRootPath.string() + "/benchmark-logs/" + circuit_name +
             "_timeout_" + std::to_string(timeout) + "_roqc_interval_" +
-            std::to_string(roqc_interval) + "_", start);
+            std::to_string(roqc_interval) + "_", true, start);
   }
 
   auto graph_optimized = graph->optimize(
