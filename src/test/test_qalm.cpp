@@ -109,13 +109,17 @@ int main(int argc, char **argv) {
   }
 
   auto graph = Graph::from_qasm_file(&ctx, input_fn);
-  std::cout << "Recieved circuit from qasm file" << std::endl;
+  std::cout << "Received circuit from qasm file" << std::endl;
   assert(graph);
 
   auto start = std::chrono::steady_clock::now();
   if (preprocess) {
+    // If strictly_reducing_rules is true, we need to get all xfers again here.
+    const auto &greedy_xfers =
+        strictly_reducing_rules ? GraphXfer::get_all_xfers_from_eqs(&ctx, eqs)
+                                : xfers;
     graph = graph->greedy_optimize_with_roqc(
-        &ctx, xfers, circuit_name, "", true, nullptr, timeout,
+        &ctx, greedy_xfers, circuit_name, "", true, nullptr, timeout,
         kQuartzRootPath.string() + "/benchmark-logs/" + circuit_name +
             "_timeout_" + std::to_string(timeout) + "_init_pool_" +
             std::to_string(initial_pool_size) + "_exp_pool_" +
@@ -127,7 +131,7 @@ int main(int argc, char **argv) {
             std::to_string(only_keep_distant_circuits) + "_",
         start);
     graph = graph->greedy_optimize_with_local_search(
-        &ctx, xfers, circuit_name, "", true, nullptr, timeout,
+        &ctx, greedy_xfers, circuit_name, "", true, nullptr, timeout,
         kQuartzRootPath.string() + "/benchmark-logs/" + circuit_name +
             "_timeout_" + std::to_string(timeout) + "_init_pool_" +
             std::to_string(initial_pool_size) + "_exp_pool_" +
