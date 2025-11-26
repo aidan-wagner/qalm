@@ -2905,8 +2905,9 @@ std::shared_ptr<Graph> Graph::optimize_qalm(
             graph->topology_order_ops(all_nodes);
           }
           if (all_nodes.empty()) {
-            // can't apply any transformation now.
-            break;
+            // Can't apply any transformation now. Restart!
+            all_nodes.clear();
+            graph->topology_order_ops(all_nodes);
           }
           std::uniform_int_distribution<> node_dist(0,
                                                     (int)all_nodes.size() - 1);
