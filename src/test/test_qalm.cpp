@@ -137,7 +137,7 @@ int main(int argc, char **argv) {
             std::to_string(strictly_reducing_rules) +
             "_only_keep_distant_circuits_" +
             std::to_string(only_keep_distant_circuits) + "_",
-        start);
+        true, start);
   }
 
   auto graph_optimized = graph->optimize_qalm(
