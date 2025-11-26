@@ -2655,7 +2655,7 @@ std::shared_ptr<Graph> Graph::optimize_qalm(
     std::chrono::time_point<std::chrono::steady_clock> time_start,
     const size_t initial_pool_size, const size_t exploration_pool_size,
     size_t exploration_steps, const float repeat_tolerance,
-    const bool exploration_increase, const bool only_keep_distant_cricuits) {
+    const bool exploration_increase, const bool only_keep_distant_circuits) {
   auto rand_engine = std::default_random_engine{};
   std::mt19937 gen(rand_engine());  // mersenne_twister_engine
   if (cost_function == nullptr) {
@@ -2669,7 +2669,7 @@ std::shared_ptr<Graph> Graph::optimize_qalm(
   std::cout << "Exploration Steps: " << exploration_steps << std::endl;
   std::cout << "Repeat Tolerance: " << repeat_tolerance << std::endl;
   std::cout << "Exploration Increase: " << exploration_increase << std::endl;
-  std::cout << "Only Keep Distant Circuits: " << only_keep_distant_cricuits
+  std::cout << "Only Keep Distant Circuits: " << only_keep_distant_circuits
             << std::endl;
 
   const bool time_benchmark = true;
@@ -2889,17 +2889,25 @@ std::shared_ptr<Graph> Graph::optimize_qalm(
         start_bench = std::clock();
       }
 
-      for (int i = 0; i < exploration_steps; i++) {
-        for (int circuit_index = 0; circuit_index < found_circuits.size();
-             circuit_index++) {
+      for (int circuit_index = 0; circuit_index < found_circuits.size();
+           circuit_index++) {
+        for (int i = 0; i < exploration_steps; i++) {
           // std::cout << "Evolution on circuit " << circuit_index << std::endl;
           // We can't use const auto& because found_circuits[circuit_index]
           // is changing.
           const auto graph = found_circuits[circuit_index];
 
-          // Regenerate possible transformations
-          all_nodes.clear();
-          graph->topology_order_ops(all_nodes);
+          /// XXX: misusing the tag name, only_keep_distant_circuits should be
+          /// only do local transformations
+          if (!only_keep_distant_circuits || i == 0) {
+            // Regenerate possible transformations
+            all_nodes.clear();
+            graph->topology_order_ops(all_nodes);
+          }
+          if (all_nodes.empty()) {
+            // can't apply any transformation now.
+            break;
+          }
           std::uniform_int_distribution<> node_dist(0,
                                                     (int)all_nodes.size() - 1);
 
@@ -2939,6 +2947,13 @@ std::shared_ptr<Graph> Graph::optimize_qalm(
               continue;
             if (hashmap.find(new_hash) != hashmap.end()) {
               continue;
+            }
+            if (only_keep_distant_circuits) {
+              all_nodes.clear();
+              all_nodes.reserve(xfer->dstOps.size());
+              for (auto &opX : xfer->dstOps) {
+                all_nodes.push_back(opX->mapOp);
+              }
             }
 
             found_circuits[circuit_index] = new_graph;
