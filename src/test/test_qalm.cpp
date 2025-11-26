@@ -13,7 +13,7 @@ int main(int argc, char **argv) {
   std::string circuit_name = "adder_8";
   std::string output_fn;
   std::string eqset_fn =
-      kQuartzRootPath.string() + "/eccset/Nam_5_3_complete_ECC_set.json";
+      kQuartzRootPath.string() + "/eccset/Nam_6_3_complete_ECC_set.json";
 
   if (argc >= 2) {
     assert(argv[1] != nullptr);
@@ -114,7 +114,18 @@ int main(int argc, char **argv) {
 
   auto start = std::chrono::steady_clock::now();
   if (preprocess) {
-    //    graph = graph->greedy_optimize_with_roqc(
+    graph = graph->greedy_optimize_with_roqc(
+        &ctx, xfers, circuit_name, "", true, nullptr, timeout,
+        kQuartzRootPath.string() + "/benchmark-logs/" + circuit_name +
+            "_timeout_" + std::to_string(timeout) + "_init_pool_" +
+            std::to_string(initial_pool_size) + "_exp_pool_" +
+            std::to_string(exploration_pool_size) + "_exp_steps_" +
+            std::to_string(exploration_steps) + "_exp_increase_" +
+            std::to_string(exploration_increase) + "_no_increase_" +
+            std::to_string(strictly_reducing_rules) +
+            "_only_keep_distant_circuits_" +
+            std::to_string(only_keep_distant_circuits) + "_",
+        start);
     graph = graph->greedy_optimize_with_local_search(
         &ctx, xfers, circuit_name, "", true, nullptr, timeout,
         kQuartzRootPath.string() + "/benchmark-logs/" + circuit_name +
