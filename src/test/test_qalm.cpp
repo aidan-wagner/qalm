@@ -34,7 +34,7 @@ int main(int argc, char **argv) {
   float repeat_tolerance = std::stof(argv[7]);
   bool exploration_increase = std::stoi(argv[8]);
   bool strictly_reducing_rules = std::stoi(argv[9]);
-  bool only_keep_distant_circuits = std::stoi(argv[10]);
+  bool only_do_local_transformations = std::stoi(argv[10]);
 
   bool preprocess = std::stoi(argv[11]);
 
@@ -127,8 +127,8 @@ int main(int argc, char **argv) {
             std::to_string(exploration_steps) + "_exp_increase_" +
             std::to_string(exploration_increase) + "_no_increase_" +
             std::to_string(strictly_reducing_rules) +
-            "_only_keep_distant_circuits_" +
-            std::to_string(only_keep_distant_circuits) + "_",
+            "_only_do_local_transformations_" +
+            std::to_string(only_do_local_transformations) + "_",
         start);
     graph = graph->greedy_optimize_with_local_search(
         &ctx, greedy_xfers, circuit_name, "", true, nullptr, timeout,
@@ -139,8 +139,8 @@ int main(int argc, char **argv) {
             std::to_string(exploration_steps) + "_exp_increase_" +
             std::to_string(exploration_increase) + "_no_increase_" +
             std::to_string(strictly_reducing_rules) +
-            "_only_keep_distant_circuits_" +
-            std::to_string(only_keep_distant_circuits) + "_",
+            "_only_do_local_transformations_" +
+            std::to_string(only_do_local_transformations) + "_",
         true, start);
   }
 
@@ -154,11 +154,11 @@ int main(int argc, char **argv) {
           std::to_string(exploration_steps) + "_exp_increase_" +
           std::to_string(exploration_increase) + "_no_increase_" +
           std::to_string(strictly_reducing_rules) +
-          "_only_keep_distant_circuits_" +
-          std::to_string(only_keep_distant_circuits) + "_",
+          "_only_do_local_transformations_" +
+          std::to_string(only_do_local_transformations) + "_",
       preprocess, start, initial_pool_size, exploration_pool_size,
       exploration_steps, repeat_tolerance, exploration_increase,
-      only_keep_distant_circuits);
+      only_do_local_transformations);
   std::cout << "Optimized graph:" << std::endl;
   std::cout << graph_optimized->to_qasm();
   return 0;

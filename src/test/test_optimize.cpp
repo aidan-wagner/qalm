@@ -13,7 +13,7 @@ int main(int argc, char **argv) {
   std::string circuit_name = "adder_8";
   std::string output_fn;
   std::string eqset_fn =
-      kQuartzRootPath.string() + "/eccset/Nam_5_3_complete_ECC_set.json";
+      kQuartzRootPath.string() + "/eccset/Nam_6_3_complete_ECC_set.json";
 
   if (argc >= 2) {
     assert(argv[1] != nullptr);

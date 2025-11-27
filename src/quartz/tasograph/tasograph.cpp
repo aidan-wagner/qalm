@@ -2655,7 +2655,7 @@ std::shared_ptr<Graph> Graph::optimize_qalm(
     std::chrono::time_point<std::chrono::steady_clock> time_start,
     const size_t initial_pool_size, const size_t exploration_pool_size,
     size_t exploration_steps, const float repeat_tolerance,
-    const bool exploration_increase, const bool only_keep_distant_circuits) {
+    const bool exploration_increase, const bool only_do_local_transformations) {
   auto rand_engine = std::default_random_engine{};
   std::mt19937 gen(rand_engine());  // mersenne_twister_engine
   if (cost_function == nullptr) {
@@ -2669,8 +2669,8 @@ std::shared_ptr<Graph> Graph::optimize_qalm(
   std::cout << "Exploration Steps: " << exploration_steps << std::endl;
   std::cout << "Repeat Tolerance: " << repeat_tolerance << std::endl;
   std::cout << "Exploration Increase: " << exploration_increase << std::endl;
-  std::cout << "Only Keep Distant Circuits: " << only_keep_distant_circuits
-            << std::endl;
+  std::cout << "Only Do Local Transformations: "
+            << only_do_local_transformations << std::endl;
 
   const bool time_benchmark = true;
 
@@ -2897,9 +2897,7 @@ std::shared_ptr<Graph> Graph::optimize_qalm(
           // is changing.
           const auto graph = found_circuits[circuit_index];
 
-          /// XXX: misusing the tag name, only_keep_distant_circuits should be
-          /// only do local transformations
-          if (!only_keep_distant_circuits || i == 0) {
+          if (!only_do_local_transformations || i == 0) {
             // Regenerate possible transformations
             all_nodes.clear();
             graph->topology_order_ops(all_nodes);
@@ -2949,7 +2947,7 @@ std::shared_ptr<Graph> Graph::optimize_qalm(
             if (hashmap.find(new_hash) != hashmap.end()) {
               continue;
             }
-            if (only_keep_distant_circuits) {
+            if (only_do_local_transformations) {
               all_nodes.clear();
               all_nodes.reserve(xfer->dstOps.size());
               for (auto &opX : xfer->dstOps) {
