@@ -3027,7 +3027,7 @@ std::shared_ptr<Graph> Graph::optimize_qalm(
         // curr_graph = curr_graph->->from_qasm_str(curr_graph->context,
         // run_roqc(curr_graph->to_qasm().c_str()));
         curr_graph = curr_graph->from_qasm_str(
-            curr_graph->context, run_roqc(curr_graph->to_qasm().c_str()));
+            curr_graph->context, run_roqc_two_way_rotation_merge(curr_graph->to_qasm().c_str()));
         curr_graph->roqc_gates_reduction =
             pre_roqc_cost - cost_function(curr_graph.get());
         curr_graph->roqc_countdown = 0;
