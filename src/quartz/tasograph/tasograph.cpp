@@ -2394,7 +2394,9 @@ Graph::optimize(const std::vector<GraphXfer *> &xfers, double cost_upper_bound,
                 const std::string &store_all_steps_file_prefix,
                 bool continue_storing_all_steps,
                 std::chrono::time_point<std::chrono::steady_clock> time_start,
-                const int roqc_interval) {
+                const int roqc_interval, const bool two_way_rotation_merging) {
+  std::cout << "ROQC Interval: " << roqc_interval << std::endl;
+  std::cout << "Two Way Rotation Merging: " << two_way_rotation_merging << std::endl;
   if (cost_function == nullptr) {
     cost_function = [](Graph *graph) { return graph->total_cost(); };
     // cost_function = [](Graph *graph) {return
@@ -2521,8 +2523,14 @@ Graph::optimize(const std::vector<GraphXfer *> &xfers, double cost_upper_bound,
           if (dist(random_engine) < 0.015) {
             float pre_roqc_cost{cost_function(new_graph.get())};
             auto pre_roqc_graph = new_graph;
-            new_graph = new_graph->from_qasm_str(
-                graph->context, run_roqc(new_graph->to_qasm().c_str()));
+            if (two_way_rotation_merging) {
+              new_graph = new_graph->from_qasm_str(
+                  new_graph->context, run_roqc_two_way_rotation_merge(new_graph->to_qasm().c_str()));
+            }
+            else {
+              new_graph = new_graph->from_qasm_str(
+                  new_graph->context, run_roqc(new_graph->to_qasm().c_str()));
+            }
             new_graph->roqc_gates_reduction =
                 pre_roqc_cost - cost_function(new_graph.get());
             new_graph->roqc_countdown = 0;
@@ -2532,8 +2540,14 @@ Graph::optimize(const std::vector<GraphXfer *> &xfers, double cost_upper_bound,
           // special case: do greedy only
           float pre_roqc_cost{cost_function(new_graph.get())};
           auto pre_roqc_graph = new_graph;
-          new_graph = new_graph->from_qasm_str(
-              graph->context, run_roqc(new_graph->to_qasm().c_str()));
+          if (two_way_rotation_merging) {
+            new_graph = new_graph->from_qasm_str(
+                new_graph->context, run_roqc_two_way_rotation_merge(new_graph->to_qasm().c_str()));
+          }
+          else {
+            new_graph = new_graph->from_qasm_str(
+                new_graph->context, run_roqc(new_graph->to_qasm().c_str()));
+          }
           // std::cout << Verifier::difference_str(pre_roqc_graph.get(), new_graph.get()) << std::endl;
           if (cost_function(new_graph.get()) >= current_cost) {
             // throw new_graph away
@@ -2554,8 +2568,14 @@ Graph::optimize(const std::vector<GraphXfer *> &xfers, double cost_upper_bound,
           // If a certain number of iterations have occured, then run roqc
           float pre_roqc_cost{cost_function(new_graph.get())};
           auto pre_roqc_graph = new_graph;
-          new_graph = new_graph->from_qasm_str(
-              graph->context, run_roqc(new_graph->to_qasm().c_str()));
+          if (two_way_rotation_merging) {
+            new_graph = new_graph->from_qasm_str(
+                new_graph->context, run_roqc_two_way_rotation_merge(new_graph->to_qasm().c_str()));
+          }
+          else {
+            new_graph = new_graph->from_qasm_str(
+                new_graph->context, run_roqc(new_graph->to_qasm().c_str()));
+          }
           new_graph->roqc_gates_reduction =
               pre_roqc_cost - cost_function(new_graph.get());
           new_graph->roqc_countdown = 0;
@@ -2673,7 +2693,8 @@ std::shared_ptr<Graph> Graph::optimize_qalm(
     std::chrono::time_point<std::chrono::steady_clock> time_start,
     const size_t initial_pool_size, const size_t exploration_pool_size,
     size_t exploration_steps, const float repeat_tolerance,
-    const bool exploration_increase, const bool only_do_local_transformations) {
+    const bool exploration_increase, const bool only_do_local_transformations,
+    const bool two_way_rotation_merging) {
   auto rand_engine = std::default_random_engine{};
   std::mt19937 gen(rand_engine());  // mersenne_twister_engine
   if (cost_function == nullptr) {
@@ -2689,6 +2710,7 @@ std::shared_ptr<Graph> Graph::optimize_qalm(
   std::cout << "Exploration Increase: " << exploration_increase << std::endl;
   std::cout << "Only Do Local Transformations: "
             << only_do_local_transformations << std::endl;
+  std::cout << "Two Way Rotation Merging: " << two_way_rotation_merging << std::endl;
 
   const bool time_benchmark = true;
 
@@ -3028,6 +3050,14 @@ std::shared_ptr<Graph> Graph::optimize_qalm(
         // run_roqc(curr_graph->to_qasm().c_str()));
         curr_graph = curr_graph->from_qasm_str(
             curr_graph->context, run_roqc_two_way_rotation_merge(curr_graph->to_qasm().c_str()));
+        if (two_way_rotation_merging) {
+          curr_graph = curr_graph->from_qasm_str(
+              curr_graph->context, run_roqc_two_way_rotation_merge(curr_graph->to_qasm().c_str()));
+        }
+        else {
+          curr_graph = curr_graph->from_qasm_str(
+              curr_graph->context, run_roqc(curr_graph->to_qasm().c_str()));
+        }
         curr_graph->roqc_gates_reduction =
             pre_roqc_cost - cost_function(curr_graph.get());
         curr_graph->roqc_countdown = 0;

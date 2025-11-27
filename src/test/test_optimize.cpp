@@ -30,6 +30,7 @@ int main(int argc, char **argv) {
   std::size_t timeout = std::stoi(argv[3]);
   int roqc_interval = std::stoi(argv[4]);
   bool preprocess = std::stoi(argv[5]);
+  bool two_way_rotation_merging = std::stoi(argv[6]);
 
   ParamInfo param_info;
   Context ctx({GateType::input_qubit, GateType::input_param, GateType::cx,
@@ -79,7 +80,7 @@ int main(int argc, char **argv) {
       kQuartzRootPath.string() + "/benchmark-logs/" + circuit_name +
           "_timeout_" + std::to_string(timeout) + "_roqc_interval_" +
           std::to_string(roqc_interval) + "_",
-      preprocess, start, roqc_interval);
+      preprocess, start, roqc_interval, two_way_rotation_merging);
   std::cout << "Optimized graph:" << std::endl;
   std::cout << graph_optimized->to_qasm();
   return 0;

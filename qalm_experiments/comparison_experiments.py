@@ -104,7 +104,7 @@ def run_experiments():
     experiments = [
         # Roqc interval:
         # (OptimizationType.roqc_interval, (0, 0)),
-        (OptimizationType.roqc_interval, (1, 1)),
+        (OptimizationType.roqc_interval, (1, 1, 0)),
         # (OptimizationType.roqc_interval, (5, 0)),
         # (OptimizationType.roqc_interval, (10, 0)),
         # (OptimizationType.roqc_interval, (50, 0)),
@@ -121,19 +121,19 @@ def run_experiments():
         # (OptimizationType.qalm, (10, 10, 10, 1.5, 0, 0, 0, 0)),
         #
         # (OptimizationType.qalm, (10, 10, 10, 1.5, 1, 0, 0, 0)),
-        (OptimizationType.qalm, (10, 10, 10, 1.5, 0, 1, 0, 0)),
-        (OptimizationType.qalm, (10, 10, 10, 1.5, 1, 1, 0, 0)),
-        (OptimizationType.qalm, (10, 10, 10, 1.5, 0, 1, 0, 1)),
-        (OptimizationType.qalm, (10, 10, 10, 1.5, 1, 1, 0, 1)),
+        (OptimizationType.qalm, (10, 10, 10, 1.5, 0, 1, 0, 0, 0)),
+        (OptimizationType.qalm, (10, 10, 10, 1.5, 1, 1, 0, 0, 0)),
+        (OptimizationType.qalm, (10, 10, 10, 1.5, 0, 1, 0, 1, 0)),
+        (OptimizationType.qalm, (10, 10, 10, 1.5, 1, 1, 0, 1, 0)),
         # (OptimizationType.qalm, (10, 10, 10, 1.5, 0, 1, 1, 0)),
         # (OptimizationType.qalm, (10, 10, 10, 1.5, 1, 1, 1, 0)),
-        (OptimizationType.qalm, (10, 10, 10, 1.5, 0, 1, 1, 1)),
-        (OptimizationType.qalm, (10, 10, 10, 1.5, 1, 1, 1, 1)),
-        (OptimizationType.qalm, (10, 10, 10, 1.5, 0, 0, 1, 0)),
-        (OptimizationType.qalm, (10, 10, 10, 1.5, 0, 0, 0, 1)),
-        (OptimizationType.qalm, (10, 10, 10, 1.5, 1, 0, 0, 1)),
-        (OptimizationType.qalm, (10, 10, 10, 1.5, 0, 0, 1, 1)),
-        (OptimizationType.qalm, (10, 10, 10, 1.5, 1, 0, 1, 1)),
+        (OptimizationType.qalm, (10, 10, 10, 1.5, 0, 1, 1, 1, 0)),
+        (OptimizationType.qalm, (10, 10, 10, 1.5, 1, 1, 1, 1, 0)),
+        (OptimizationType.qalm, (10, 10, 10, 1.5, 0, 0, 1, 0, 0)),
+        (OptimizationType.qalm, (10, 10, 10, 1.5, 0, 0, 0, 1, 0)),
+        (OptimizationType.qalm, (10, 10, 10, 1.5, 1, 0, 0, 1, 0)),
+        (OptimizationType.qalm, (10, 10, 10, 1.5, 0, 0, 1, 1, 0)),
+        (OptimizationType.qalm, (10, 10, 10, 1.5, 1, 0, 1, 1, 0)),
     ]
 
     graph_labels = [

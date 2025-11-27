@@ -312,7 +312,8 @@ class Graph {
            bool continue_storing_all_steps = false,
            std::chrono::time_point<std::chrono::steady_clock> time_start =
                std::chrono::time_point<std::chrono::steady_clock>::min(),
-           const int roqc_interval = 0);
+           const int roqc_interval = 0,
+           const bool two_way_rotation_merging = false);
 
   std::shared_ptr<Graph> optimize_qalm(
       const std::vector<GraphXfer *> &xfers, double cost_upper_bound,
@@ -327,7 +328,8 @@ class Graph {
       const size_t exploration_pool_size = 10, size_t exploration_steps = 10,
       const float repeat_tolerance = 1.5,
       const bool exploration_increase = false,
-      const bool only_do_local_transformations = false);
+      const bool only_do_local_transformations = false,
+      const bool two_way_rotation_merging = false);
   void constant_and_rotation_elimination();
   void rotation_merging(GateType target_rotation);
   [[nodiscard]] std::string to_qasm(bool print_result = false,

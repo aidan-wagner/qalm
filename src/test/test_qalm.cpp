@@ -13,7 +13,7 @@ int main(int argc, char **argv) {
   std::string circuit_name = "adder_8";
   std::string output_fn;
   std::string eqset_fn =
-      kQuartzRootPath.string() + "/eccset/Nam_6_3_complete_ECC_set.json";
+      kQuartzRootPath.string() + "/eccset/Nam_5_3_complete_ECC_set.json";
 
   if (argc >= 2) {
     assert(argv[1] != nullptr);
@@ -37,6 +37,7 @@ int main(int argc, char **argv) {
   bool only_do_local_transformations = std::stoi(argv[10]);
 
   bool preprocess = std::stoi(argv[11]);
+  bool two_way_rotation_merging = std::stoi(argv[12]);
 
   ParamInfo param_info;
   Context ctx({GateType::input_qubit, GateType::input_param, GateType::cx,
@@ -158,7 +159,7 @@ int main(int argc, char **argv) {
           std::to_string(only_do_local_transformations) + "_",
       preprocess, start, initial_pool_size, exploration_pool_size,
       exploration_steps, repeat_tolerance, exploration_increase,
-      only_do_local_transformations);
+      only_do_local_transformations, two_way_rotation_merging);
   std::cout << "Optimized graph:" << std::endl;
   std::cout << graph_optimized->to_qasm();
   return 0;
