@@ -13,7 +13,8 @@ int main(int argc, char **argv) {
   std::string circuit_name = "adder_8";
   std::string output_fn;
   std::string eqset_fn =
-      kQuartzRootPath.string() + "/eccset/Nam_5_3_complete_ECC_set.json";
+      kQuartzRootPath.string() + "/";
+  eqset_fn = eqset_fn + argv[13];
 
   if (argc >= 2) {
     assert(argv[1] != nullptr);
@@ -38,6 +39,9 @@ int main(int argc, char **argv) {
 
   bool preprocess = std::stoi(argv[11]);
   bool two_way_rotation_merging = std::stoi(argv[12]);
+
+
+
 
   ParamInfo param_info;
   Context ctx({GateType::input_qubit, GateType::input_param, GateType::cx,
