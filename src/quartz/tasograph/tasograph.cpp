@@ -10,6 +10,7 @@
 
 extern "C" const char* run_roqc(const char *circuit_string);
 extern "C" const char* run_roqc_internal(const char *circuit_string);
+extern "C" const char* run_roqc_two_way_rotation_merge(const char *circuit_string);
 
 namespace quartz {
 
