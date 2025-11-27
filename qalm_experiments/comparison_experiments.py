@@ -40,9 +40,9 @@ def qalm_tester(arguments):
     repeat_tolerance = arguments[6]
     exploration_increase = arguments[7]
     no_increase = arguments[8]
-    only_keep_distant_circuits = arguments[9]
+    only_do_local_transformations = arguments[9]
     greedy_start = arguments[10]
-    return run_qalm(filename, circuit_name, timeout, intial_pool_size, exploration_pool, exploration_steps, repeat_tolerance, exploration_increase, no_increase, only_keep_distant_circuits, greedy_start)
+    return run_qalm(filename, circuit_name, timeout, intial_pool_size, exploration_pool, exploration_steps, repeat_tolerance, exploration_increase, no_increase, only_do_local_transformations, greedy_start)
 
 def run_experiments():
 
@@ -87,57 +87,87 @@ def run_experiments():
                     ("circuit/nam_circs/tof_5.qasm", "tof_5"),
                     ("circuit/nam_circs/tof_10.qasm", "tof_10"),
                     ("circuit/nam_circs/vbe_adder_3.qasm", "vbe_adder_3"),
-                    ];
+                    # ("../../PycharmProjects/ucc-bench/benchmarks/circuits/ucc/prep_select_N10_ghz_basis_rz_rx_ry_h_cx.qasm", "ghz_10"),
+                    # ("../../PycharmProjects/ucc-bench/benchmarks/circuits/ucc/prep_select_N25_ghz_basis_rz_rx_ry_h_cx.qasm", "ghz_25"),
+                    # ("../../PycharmProjects/ucc-bench/benchmarks/circuits/ucc/qcnn_N10_4layers_basis_rz_rx_ry_h_cx.qasm", "qcnn_10"),
+                    # ("../../PycharmProjects/ucc-bench/benchmarks/circuits/ucc/qcnn_N100_7layers_basis_rz_rx_ry_h_cx.qasm", "qcnn_100"),
+                    # ("../../PycharmProjects/ucc-bench/benchmarks/circuits/benchpress/qaoa_barabasi_albert_N10_3reps_basis_rz_rx_ry_cx.qasm", "qaoa_10"),
+                    # ("../../PycharmProjects/ucc-bench/benchmarks/circuits/benchpress/qaoa_barabasi_albert_N100_3reps_basis_rz_rx_ry_cx.qasm", "qaoa_100"),
+                    # ("../../PycharmProjects/ucc-bench/benchmarks/circuits/benchpress/qft_N010_basis_rz_rx_ry_cx.qasm", "qft_10"),
+                    # ("../../PycharmProjects/ucc-bench/benchmarks/circuits/benchpress/qft_N100_basis_rz_rx_ry_cx.qasm", "qft_100"),
+                    # ("../../PycharmProjects/ucc-bench/benchmarks/circuits/benchpress/qv_N010_12345_basis_rz_rx_ry_cx.qasm", "qv_10"),
+                    # ("../../PycharmProjects/ucc-bench/benchmarks/circuits/benchpress/qv_N100_12345_basis_rz_rx_ry_cx.qasm", "qv_100"),
+                    # ("../../PycharmProjects/ucc-bench/benchmarks/circuits/benchpress/square_heisenberg_N9_basis_rz_rx_ry_cx.qasm", "heisenberg_9"),
+                    # ("../../PycharmProjects/ucc-bench/benchmarks/circuits/benchpress/square_heisenberg_N100_basis_rz_rx_ry_cx.qasm", "heisenberg_100"),
+                    ]
 
     experiments = [
         # Roqc interval:
-        (OptimizationType.roqc_interval, (0, 0)),
-        (OptimizationType.roqc_interval, (1, 0)),
-        (OptimizationType.roqc_interval, (5, 0)),
-        (OptimizationType.roqc_interval, (10, 0)),
-        (OptimizationType.roqc_interval, (50, 0)),
+        # (OptimizationType.roqc_interval, (0, 0)),
+        (OptimizationType.roqc_interval, (1, 1)),
+        # (OptimizationType.roqc_interval, (5, 0)),
+        # (OptimizationType.roqc_interval, (10, 0)),
+        # (OptimizationType.roqc_interval, (50, 0)),
         # Qalm (exploration_pool, exploration_steps, repeat_tolerance, exploration_increase, no_increase, keep_ony_distant_circuits, start with greedy):
-        (OptimizationType.qalm, (1, 10, 10, 1.5, 0, 0, 0, 0)),
-        (OptimizationType.qalm, (1, 20, 20, 1.5, 0, 0, 0, 0)),
-        (OptimizationType.qalm, (1, 50, 50, 1.5, 0, 0, 0, 0)),
-        (OptimizationType.qalm, (1, 100, 100, 1.5, 0, 0, 0, 0)),
-
-        (OptimizationType.qalm, (1, 10, 20, 1.5, 0, 0, 0, 0)),
-        (OptimizationType.qalm, (1, 20, 10, 1.5, 0, 0, 0, 0)),
-
-        (OptimizationType.qalm, (5, 10, 10, 1.5, 0, 0, 0, 0)),
-        (OptimizationType.qalm, (10, 10, 10, 1.5, 0, 0, 0, 0)),
-
-        (OptimizationType.qalm, (10, 10, 10, 1.5, 1, 0, 0, 0)),
+        # (OptimizationType.qalm, (1, 10, 10, 1.5, 0, 0, 0, 0)),
+        # (OptimizationType.qalm, (1, 20, 20, 1.5, 0, 0, 0, 0)),
+        # (OptimizationType.qalm, (1, 50, 50, 1.5, 0, 0, 0, 0)),
+        # (OptimizationType.qalm, (1, 100, 100, 1.5, 0, 0, 0, 0)),
+        #
+        # (OptimizationType.qalm, (1, 10, 20, 1.5, 0, 0, 0, 0)),
+        # (OptimizationType.qalm, (1, 20, 10, 1.5, 0, 0, 0, 0)),
+        #
+        # (OptimizationType.qalm, (5, 10, 10, 1.5, 0, 0, 0, 0)),
+        # (OptimizationType.qalm, (10, 10, 10, 1.5, 0, 0, 0, 0)),
+        #
+        # (OptimizationType.qalm, (10, 10, 10, 1.5, 1, 0, 0, 0)),
         (OptimizationType.qalm, (10, 10, 10, 1.5, 0, 1, 0, 0)),
         (OptimizationType.qalm, (10, 10, 10, 1.5, 1, 1, 0, 0)),
         (OptimizationType.qalm, (10, 10, 10, 1.5, 0, 1, 0, 1)),
         (OptimizationType.qalm, (10, 10, 10, 1.5, 1, 1, 0, 1)),
+        # (OptimizationType.qalm, (10, 10, 10, 1.5, 0, 1, 1, 0)),
+        # (OptimizationType.qalm, (10, 10, 10, 1.5, 1, 1, 1, 0)),
+        (OptimizationType.qalm, (10, 10, 10, 1.5, 0, 1, 1, 1)),
+        (OptimizationType.qalm, (10, 10, 10, 1.5, 1, 1, 1, 1)),
+        (OptimizationType.qalm, (10, 10, 10, 1.5, 0, 0, 1, 0)),
+        (OptimizationType.qalm, (10, 10, 10, 1.5, 0, 0, 0, 1)),
+        (OptimizationType.qalm, (10, 10, 10, 1.5, 1, 0, 0, 1)),
+        (OptimizationType.qalm, (10, 10, 10, 1.5, 0, 0, 1, 1)),
+        (OptimizationType.qalm, (10, 10, 10, 1.5, 1, 0, 1, 1)),
     ]
 
     graph_labels = [
-        "Greedy+Roqc",
-        "Roqc interval = 1",
-        "Roqc interval = 5",
-        "Roqc interval = 10",
-        "Roqc interval = 50",
-
-        "Init1, Gen10, Steps10, Rep_tol1.5",
-        "Init1, Gen20, Steps20, Rep_tol1.5",
-        "Init1, Gen50, Steps50, Rep_tol1.5",
-        "Init1, PoolGen100, Steps100, Rep_tol1.5",
-
-        "Init1, PoolGen10, Steps20, Rep_tol1.5",
-        "Init1, Pool20, Steps10, Rep_tol1.5",
-
-        "Init5, Pool10, Steps10, Rep_tol1.5",
-        "Init10, Pool10, Steps10, Rep_tol1.5",
-
-        "Init10, Gen10, Steps10, Rep_tol1.5, exp_incr",
+        # "Greedy+Roqc",
+        "Greedy, Roqc interval = 1",
+        # "Roqc interval = 5",
+        # "Roqc interval = 10",
+        # "Roqc interval = 50",
+        #
+        # "Init1, Gen10, Steps10, Rep_tol1.5",
+        # "Init1, Gen20, Steps20, Rep_tol1.5",
+        # "Init1, Gen50, Steps50, Rep_tol1.5",
+        # "Init1, PoolGen100, Steps100, Rep_tol1.5",
+        #
+        # "Init1, PoolGen10, Steps20, Rep_tol1.5",
+        # "Init1, Pool20, Steps10, Rep_tol1.5",
+        #
+        # "Init5, Pool10, Steps10, Rep_tol1.5",
+        # "Init10, Pool10, Steps10, Rep_tol1.5",
+        #
+        # "Init10, Gen10, Steps10, Rep_tol1.5, exp_incr",
         "Init10, Gen10, Steps10, Rep_tol1.5, no_incr",
         "Init10, Gen10, Steps10, Rep_tol1.5, exp_incr+no_incr",
         "Greedy, Init10, Gen10, Steps10, Rep_tol1.5, no_incr",
         "Greedy, Init10, Gen10, Steps10, Rep_tol1.5, exp_incr+no_incr",
+        # "Local, no_incr",
+        # "Local, exp_incr+no_incr",
+        "Greedy, Local, no_incr",
+        "Greedy, Local, exp_incr+no_incr",
+        "Local",
+        "Greedy",
+        "Greedy, All xfers, exp_incr",
+        "Greedy, All xfers, Local",
+        "Greedy, All xfers, Local, exp_incr",
     ]
 
     # voqc_avg = 0
@@ -156,7 +186,7 @@ def run_experiments():
                 results = pickle.load(f)
             for experiment in experiments[5:]:
                 p = experiment[1]
-                with open(f"pickled_results/{circuit[1]}_{timeout}_{p[0]}_{p[1]}_{p[2]}_{p[3]}_{p[4]}_{p[5]}_{p[6]}_time_benchmark.pkl", "rb") as f:
+                with open(f"pickled_results/{circuit[1]}_{timeout}_{p[0]}_{p[1]}_{p[2]}_{p[3]}_{p[4]}_{p[5]}_{p[6]}_{p[7]}_time_benchmark.pkl", "rb") as f:
                     circuit_roqc_time, circuit_explore_time, circuit_pool_gen_time = pickle.load(f)
                     roqc_time += circuit_roqc_time
                     explore_time += circuit_explore_time
@@ -195,7 +225,7 @@ def run_experiments():
 
         for i in range(len(results)):
             ax.plot(results[i][0], results[i][1], label = graph_labels[i], linestyle=['-', '--', ':'][i % 3])
-            exp_avgs[i] += float(results[i][1][-1]) / float(original_gate_count) 
+            exp_avgs[i] += float(results[i][1][-1]) / float(original_gate_count) if len(results[i][1]) > 0 else 1
 
         # ax.plot(voqc_result[0], voqc_result[1], label = "Voqc")
 
@@ -299,9 +329,9 @@ def run_quartz(filename, circuit_name, timeout, roqc_interval, greedy_start):
 
     return final_results
 
-def run_qalm(filename, circuit_name, timeout, initial_pool_size, exploration_pool_size, exploration_steps, repeat_tolerance, exploration_increase, no_increase, only_keep_distant_circuits, greedy_start):
+def run_qalm(filename, circuit_name, timeout, initial_pool_size, exploration_pool_size, exploration_steps, repeat_tolerance, exploration_increase, no_increase, only_do_local_transformations, greedy_start):
     # Interval doesn't matter for test_qalm
-    result = subprocess.run(["./build/test_qalm", f"{filename}", f"{circuit_name}", f"{timeout}", f"{initial_pool_size}", f"{exploration_pool_size}", f"{exploration_steps}", f"{repeat_tolerance}", f"{exploration_increase}", f"{no_increase}", f"{only_keep_distant_circuits}", f"{greedy_start}"], capture_output = True, text=True)
+    result = subprocess.run(["./build/test_qalm", f"{filename}", f"{circuit_name}", f"{timeout}", f"{initial_pool_size}", f"{exploration_pool_size}", f"{exploration_steps}", f"{repeat_tolerance}", f"{exploration_increase}", f"{no_increase}", f"{only_do_local_transformations}", f"{greedy_start}"], capture_output = True, text=True)
     result_lines = result.stdout.splitlines()
     costs = []
     times = []
@@ -338,12 +368,12 @@ def run_qalm(filename, circuit_name, timeout, initial_pool_size, exploration_poo
 
     final_results = (times, costs)
 
-    with open(f"pickled_results/{circuit_name}_{timeout}_{initial_pool_size}_{exploration_pool_size}_{exploration_steps}_{repeat_tolerance}_{exploration_increase}_{no_increase}_{only_keep_distant_circuits}_time_benchmark.pkl", 'wb') as f:
+    with open(f"pickled_results/{circuit_name}_{timeout}_{initial_pool_size}_{exploration_pool_size}_{exploration_steps}_{repeat_tolerance}_{exploration_increase}_{no_increase}_{only_do_local_transformations}_{greedy_start}_time_benchmark.pkl", 'wb') as f:
         f.truncate(0)
         pickle.dump((circuit_roqc_time, circuit_explore_time, circuit_pool_gen_time), f)
 
 
-    with open(f"comparison_results/{circuit_name}/{timeout}_{initial_pool_size}_{exploration_pool_size}_{exploration_steps}_{repeat_tolerance}_{exploration_increase}_{no_increase}_{only_keep_distant_circuits}_result.qasm", 'w') as f:
+    with open(f"comparison_results/{circuit_name}/{timeout}_{initial_pool_size}_{exploration_pool_size}_{exploration_steps}_{repeat_tolerance}_{exploration_increase}_{no_increase}_{only_do_local_transformations}_{greedy_start}_result.qasm", 'w') as f:
         f.truncate(0)
         f.write(circuit_string)
 
