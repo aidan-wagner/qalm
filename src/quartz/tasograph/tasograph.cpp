@@ -2511,7 +2511,21 @@ Graph::optimize(const std::vector<GraphXfer *> &xfers, double cost_upper_bound,
         if (new_graph == nullptr)
           continue;
 
-        if (roqc_interval == 0) {
+        if (roqc_interval == -1) {
+          // special case: vanilla 1.5% roqc
+          static std::uniform_real_distribution<double> dist(0, 1);
+          static std::mt19937 random_engine;
+          if (dist(random_engine) < 0.015) {
+            float pre_roqc_cost{cost_function(new_graph.get())};
+            auto pre_roqc_graph = new_graph;
+            new_graph = new_graph->from_qasm_str(
+                graph->context, run_roqc(new_graph->to_qasm().c_str()));
+            new_graph->roqc_gates_reduction =
+                pre_roqc_cost - cost_function(new_graph.get());
+            new_graph->roqc_countdown = 0;
+            new_graph->pre_roqc_graph = pre_roqc_graph;
+          }
+        } else if (roqc_interval == 0) {
           // special case: do greedy only
           float pre_roqc_cost{cost_function(new_graph.get())};
           auto pre_roqc_graph = new_graph;
