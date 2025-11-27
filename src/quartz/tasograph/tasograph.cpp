@@ -2,12 +2,14 @@
 
 #include "quartz/math/bitset.h"
 #include "substitution.h"
+#include "verifier/verifier.h"
 
 #include <cassert>
 #include <iomanip>
 #include <random>
 
-extern "C" const char *run_roqc(const char *circuit_string);
+extern "C" const char* run_roqc(const char *circuit_string);
+extern "C" const char* run_roqc_internal(const char *circuit_string);
 
 namespace quartz {
 
@@ -2531,6 +2533,7 @@ Graph::optimize(const std::vector<GraphXfer *> &xfers, double cost_upper_bound,
           auto pre_roqc_graph = new_graph;
           new_graph = new_graph->from_qasm_str(
               graph->context, run_roqc(new_graph->to_qasm().c_str()));
+          // std::cout << Verifier::difference_str(pre_roqc_graph.get(), new_graph.get()) << std::endl;
           if (cost_function(new_graph.get()) >= current_cost) {
             // throw new_graph away
             continue;
@@ -2705,6 +2708,8 @@ std::shared_ptr<Graph> Graph::optimize_qalm(
   std::set<size_t> hashmap;
   std::shared_ptr<Graph> best_graph(new Graph(*this));
   auto best_cost = cost_function(this);
+
+  // best_graph = best_graph->from_qasm_str(best_graph->context, run_roqc(best_graph->to_qasm().c_str()));
 
   candidates.push(best_graph);
   hashmap.insert(hash());
