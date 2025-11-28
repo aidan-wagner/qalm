@@ -28,7 +28,9 @@ def roqc_interval_tester(arguments):
     timeout = arguments[2]
     roqc_interval = arguments[3]
     greedy_start = arguments[4]
-    return run_quartz(filename, circuit_name, timeout, roqc_interval, greedy_start)
+    two_way_rm = arguments[5]
+    eccset = arguments[6]
+    return run_quartz(filename, circuit_name, timeout, roqc_interval, greedy_start, two_way_rm, eccset)
 
 def qalm_tester(arguments):
     filename = arguments[0]
@@ -42,7 +44,9 @@ def qalm_tester(arguments):
     no_increase = arguments[8]
     only_do_local_transformations = arguments[9]
     greedy_start = arguments[10]
-    return run_qalm(filename, circuit_name, timeout, intial_pool_size, exploration_pool, exploration_steps, repeat_tolerance, exploration_increase, no_increase, only_do_local_transformations, greedy_start)
+    two_way_rm = arguments[11]
+    eccset = arguments[12]
+    return run_qalm(filename, circuit_name, timeout, intial_pool_size, exploration_pool, exploration_steps, repeat_tolerance, exploration_increase, no_increase, only_do_local_transformations, greedy_start, two_way_rm, eccset)
 
 def run_experiments():
 
@@ -103,12 +107,15 @@ def run_experiments():
 
     experiments = [
         # Roqc interval:
-        # (OptimizationType.roqc_interval, (0, 0)),
-        (OptimizationType.roqc_interval, (1, 1, 0)),
+        (OptimizationType.roqc_interval, (-1, 0, 0, "eccset/Nam_5_3_complete_ECC_set.json")),
+        (OptimizationType.roqc_interval, (-1, 0, 0, "eccset/Nam_6_3_complete_ECC_set.json")),
+        (OptimizationType.roqc_interval, (-1, 0, 1, "eccset/Nam_5_3_complete_ECC_set.json")),
+        (OptimizationType.roqc_interval, (-1, 0, 1, "eccset/Nam_6_3_complete_ECC_set.json")),
+        (OptimizationType.roqc_interval, (1, 1, 0, "eccset/Nam_6_3_complete_ECC_set.json")),
         # (OptimizationType.roqc_interval, (5, 0)),
         # (OptimizationType.roqc_interval, (10, 0)),
         # (OptimizationType.roqc_interval, (50, 0)),
-        # Qalm (exploration_pool, exploration_steps, repeat_tolerance, exploration_increase, no_increase, keep_ony_distant_circuits, start with greedy):
+        # Qalm (initial_pool_size, exploration_pool, exploration_steps, repeat_tolerance, exploration_increase, no_increase, only_do_local_transformations, start with greedy):
         # (OptimizationType.qalm, (1, 10, 10, 1.5, 0, 0, 0, 0)),
         # (OptimizationType.qalm, (1, 20, 20, 1.5, 0, 0, 0, 0)),
         # (OptimizationType.qalm, (1, 50, 50, 1.5, 0, 0, 0, 0)),
@@ -121,24 +128,35 @@ def run_experiments():
         # (OptimizationType.qalm, (10, 10, 10, 1.5, 0, 0, 0, 0)),
         #
         # (OptimizationType.qalm, (10, 10, 10, 1.5, 1, 0, 0, 0)),
-        (OptimizationType.qalm, (10, 10, 10, 1.5, 0, 1, 0, 0, 0)),
-        (OptimizationType.qalm, (10, 10, 10, 1.5, 1, 1, 0, 0, 0)),
-        (OptimizationType.qalm, (10, 10, 10, 1.5, 0, 1, 0, 1, 0)),
-        (OptimizationType.qalm, (10, 10, 10, 1.5, 1, 1, 0, 1, 0)),
+        # (OptimizationType.qalm, (10, 10, 10, 1.5, 0, 1, 0, 0)),
+        # (OptimizationType.qalm, (10, 10, 10, 1.5, 1, 1, 0, 0)),
+        (OptimizationType.qalm, (1, 1, 3, 1.5, 0, 1, 0, 1, 1, "eccset/Nam_6_3_complete_ECC_set.json")),
+        (OptimizationType.qalm, (1, 1, 3, 1.5, 1, 1, 0, 1, 1, "eccset/Nam_6_3_complete_ECC_set.json")),
         # (OptimizationType.qalm, (10, 10, 10, 1.5, 0, 1, 1, 0)),
         # (OptimizationType.qalm, (10, 10, 10, 1.5, 1, 1, 1, 0)),
-        (OptimizationType.qalm, (10, 10, 10, 1.5, 0, 1, 1, 1, 0)),
-        (OptimizationType.qalm, (10, 10, 10, 1.5, 1, 1, 1, 1, 0)),
-        (OptimizationType.qalm, (10, 10, 10, 1.5, 0, 0, 1, 0, 0)),
-        (OptimizationType.qalm, (10, 10, 10, 1.5, 0, 0, 0, 1, 0)),
-        (OptimizationType.qalm, (10, 10, 10, 1.5, 1, 0, 0, 1, 0)),
-        (OptimizationType.qalm, (10, 10, 10, 1.5, 0, 0, 1, 1, 0)),
-        (OptimizationType.qalm, (10, 10, 10, 1.5, 1, 0, 1, 1, 0)),
+        # (OptimizationType.qalm, (10, 10, 4, 1.5, 0, 1, 1, 1, 0)),
+        # (OptimizationType.qalm, (10, 10, 10, 1.5, 1, 1, 1, 1)),
+        # (OptimizationType.qalm, (10, 10, 10, 1.5, 0, 0, 1, 0)),
+        # (OptimizationType.qalm, (10, 10, 10, 1.5, 0, 0, 0, 1)),
+        # (OptimizationType.qalm, (10, 10, 10, 1.5, 1, 0, 0, 1)),
+        # (OptimizationType.qalm, (10, 10, 4, 1.5, 0, 0, 1, 1, 0)),
+        # (OptimizationType.qalm, (10, 10, 10, 1.5, 1, 0, 1, 1)),
+        # (OptimizationType.qalm, (10, 10, 3, 1.5, 0, 0, 1, 1, 0)),
+        # (OptimizationType.qalm, (10, 10, 3, 1.5, 1, 0, 1, 1, 0)),
+        (OptimizationType.qalm, (3, 3, 3, 1.5, 0, 0, 1, 1, 0, "eccset/Nam_5_3_complete_ECC_set.json")),
+        (OptimizationType.qalm, (3, 3, 3, 1.5, 0, 0, 1, 1, 0, "eccset/Nam_6_3_complete_ECC_set.json")),
+        (OptimizationType.qalm, (3, 3, 3, 1.5, 0, 0, 1, 1, 1, "eccset/Nam_5_3_complete_ECC_set.json")),
+        (OptimizationType.qalm, (3, 3, 3, 1.5, 0, 0, 1, 1, 1, "eccset/Nam_6_3_complete_ECC_set.json")),
+        (OptimizationType.qalm, (3, 3, 3, 1.5, 1, 0, 1, 1, 1, "eccset/Nam_6_3_complete_ECC_set.json")),
     ]
 
     graph_labels = [
+        "Vanilla (5,3)",
+        "Vanilla (6,3)",
+        "Vanilla (5,3) 2-way",
+        "Vanilla (6,3) 2-way",
         # "Greedy+Roqc",
-        "Greedy, Roqc interval = 1",
+        "Greedy, Roqc interval = 1 (6,3)",
         # "Roqc interval = 5",
         # "Roqc interval = 10",
         # "Roqc interval = 50",
@@ -155,19 +173,26 @@ def run_experiments():
         # "Init10, Pool10, Steps10, Rep_tol1.5",
         #
         # "Init10, Gen10, Steps10, Rep_tol1.5, exp_incr",
-        "Init10, Gen10, Steps10, Rep_tol1.5, no_incr",
-        "Init10, Gen10, Steps10, Rep_tol1.5, exp_incr+no_incr",
-        "Greedy, Init10, Gen10, Steps10, Rep_tol1.5, no_incr",
-        "Greedy, Init10, Gen10, Steps10, Rep_tol1.5, exp_incr+no_incr",
+        # "Init10, Gen10, Steps10, Rep_tol1.5, no_incr",
+        # "Init10, Gen10, Steps10, Rep_tol1.5, exp_incr+no_incr",
+        "Greedy, Init1, Gen1, Steps3, Rep_tol1.5, no_incr (6,3) 2-way",
+        "Greedy, Init1, Gen1, Steps3, Rep_tol1.5, exp_incr+no_incr (6,3) 2-way",
         # "Local, no_incr",
         # "Local, exp_incr+no_incr",
-        "Greedy, Local, no_incr",
-        "Greedy, Local, exp_incr+no_incr",
-        "Local",
-        "Greedy",
-        "Greedy, All xfers, exp_incr",
-        "Greedy, All xfers, Local",
-        "Greedy, All xfers, Local, exp_incr",
+        # "Greedy, Init10, Gen10, Steps4, Rep_tol1.5, Local, no_incr",
+        # "Greedy, Local, exp_incr+no_incr",
+        # "Local",
+        # "Greedy",
+        # "Greedy, All xfers, exp_incr",
+        # "Greedy, Init10, Gen10, Steps4, Rep_tol1.5, Local, All xfers",
+        # "Greedy, All xfers, Local, exp_incr",
+        # "Greedy, Init10, Gen10, Steps3, Rep_tol1.5, Local, All xfers",
+        # "Greedy, Init10, Gen10, Steps3, Rep_tol1.5, Local, exp_incr+All xfers",
+        "Greedy, Init3, Gen3, Steps3, Rep_tol1.5, Local, All xfers (5,3)",
+        "Greedy, Init3, Gen3, Steps3, Rep_tol1.5, Local, All xfers (6,3)",
+        "Greedy, Init3, Gen3, Steps3, Rep_tol1.5, Local, All xfers (5,3) 2-way",
+        "Greedy, Init3, Gen3, Steps3, Rep_tol1.5, Local, All xfers (6,3) 2-way",
+        "Greedy, Init3, Gen3, Steps3, Rep_tol1.5, Local, exp_incr+All xfers (6,3) 2-way",
     ]
 
     # voqc_avg = 0
@@ -233,7 +258,7 @@ def run_experiments():
         ax.set_xlabel("Time (s)")
         ax.set_ylabel("Gate Count")
 
-        ax.set_title(f"Optimization Experiments - {circuit[1]} - ECC set (5,3)")
+        ax.set_title(f"Optimization Experiments - {circuit[1]} - ECC set (6,3)")
 
 
         fig.legend(bbox_to_anchor=(1.1, 1), loc="upper right", fontsize="x-small")
@@ -301,8 +326,8 @@ def run_experiments():
     print("Percentage of time spent in Explore phase:", explore_time/total_runs)
     print("Percentage of time spent in Pool Gen phase:", pool_gen_time/total_runs)
 
-def run_quartz(filename, circuit_name, timeout, roqc_interval, greedy_start):
-    result = subprocess.run(["./build/test_optimize", f"{filename}", f"{circuit_name}", f"{timeout}", f"{roqc_interval}", f"{greedy_start}"], capture_output = True, text=True)
+def run_quartz(filename, circuit_name, timeout, roqc_interval, greedy_start, two_way_rm, eccset):
+    result = subprocess.run(["./build/test_optimize", f"{filename}", f"{circuit_name}", f"{timeout}", f"{roqc_interval}", f"{greedy_start}", f"{two_way_rm}", f"{eccset}"], capture_output = True, text=True)
     result_lines = result.stdout.splitlines()
     costs = []
     times = []
@@ -329,9 +354,9 @@ def run_quartz(filename, circuit_name, timeout, roqc_interval, greedy_start):
 
     return final_results
 
-def run_qalm(filename, circuit_name, timeout, initial_pool_size, exploration_pool_size, exploration_steps, repeat_tolerance, exploration_increase, no_increase, only_do_local_transformations, greedy_start):
+def run_qalm(filename, circuit_name, timeout, initial_pool_size, exploration_pool_size, exploration_steps, repeat_tolerance, exploration_increase, no_increase, only_do_local_transformations, greedy_start, two_way_rm, eccset):
     # Interval doesn't matter for test_qalm
-    result = subprocess.run(["./build/test_qalm", f"{filename}", f"{circuit_name}", f"{timeout}", f"{initial_pool_size}", f"{exploration_pool_size}", f"{exploration_steps}", f"{repeat_tolerance}", f"{exploration_increase}", f"{no_increase}", f"{only_do_local_transformations}", f"{greedy_start}"], capture_output = True, text=True)
+    result = subprocess.run(["./build/test_qalm", f"{filename}", f"{circuit_name}", f"{timeout}", f"{initial_pool_size}", f"{exploration_pool_size}", f"{exploration_steps}", f"{repeat_tolerance}", f"{exploration_increase}", f"{no_increase}", f"{only_do_local_transformations}", f"{greedy_start}", f"{two_way_rm}", f"{eccset}"], capture_output = True, text=True)
     result_lines = result.stdout.splitlines()
     costs = []
     times = []
