@@ -2824,8 +2824,8 @@ std::shared_ptr<Graph> Graph::optimize_qalm(
       start_bench = std::clock();
     }
 
-    if (rounds_since_reduction >= 50 && exploration_increase) {
-      exploration_steps *= 2;
+    if (rounds_since_reduction >= 100 && exploration_increase) {
+      exploration_steps++;
       rounds_since_reduction = 0;
     }
 
@@ -2862,6 +2862,7 @@ std::shared_ptr<Graph> Graph::optimize_qalm(
       // Apply transformations randomly until you have a certain number of new
       // circuits
       std::vector<std::shared_ptr<Graph>> found_circuits;
+      std::vector<std::vector<Op>> local_nodes;
 
       int xfer_count = 0;
       while (found_circuits.size() < exploration_pool_size) {
@@ -2898,6 +2899,13 @@ std::shared_ptr<Graph> Graph::optimize_qalm(
           continue;
         }
         hashmap.insert(new_hash);
+        if (only_do_local_transformations) {
+          local_nodes.emplace_back();
+          local_nodes.back().reserve(xfer->dstOps.size());
+          for (auto &opX : xfer->dstOps) {
+            local_nodes.back().push_back(opX->mapOp);
+          }
+        }
 
         found_circuits.push_back(new_graph);
         candidates.push(new_graph);
@@ -2939,10 +2947,13 @@ std::shared_ptr<Graph> Graph::optimize_qalm(
           // is changing.
           const auto graph = found_circuits[circuit_index];
 
-          if (!only_do_local_transformations || i == 0) {
+          if (!only_do_local_transformations) {
             // Regenerate possible transformations
             all_nodes.clear();
             graph->topology_order_ops(all_nodes);
+          } else if (i == 0) {
+            // Get local nodes from poolgen
+            all_nodes = local_nodes[circuit_index];
           }
           if (all_nodes.empty()) {
             // Can't apply any transformation now. Restart!
