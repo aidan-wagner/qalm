@@ -2517,10 +2517,10 @@ Graph::optimize(const std::vector<GraphXfer *> &xfers, double cost_upper_bound,
           continue;
 
         if (roqc_interval == -1) {
-          // special case: vanilla 1.5% roqc
+          // special case: vanilla 5% roqc
           static std::uniform_real_distribution<double> dist(0, 1);
           static std::mt19937 random_engine;
-          if (dist(random_engine) < 0.015) {
+          if (dist(random_engine) < 0.05) {
             float pre_roqc_cost{cost_function(new_graph.get())};
             auto pre_roqc_graph = new_graph;
             if (two_way_rotation_merging) {
