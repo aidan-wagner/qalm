@@ -247,7 +247,7 @@ def run_experiments():
 
 
         except:
-            with multiprocessing.Pool(4) as pool:
+            with multiprocessing.Pool(8) as pool:
                 results = pool.map(tester, arguments)
 
         if validate:
