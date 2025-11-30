@@ -79,8 +79,8 @@ def run_experiments():
                     ("circuit/nam_circs/gf2^8_mult.qasm", "gf2^8_mult"),
                     ("circuit/nam_circs/gf2^9_mult.qasm", "gf2^9_mult"),
                     ("circuit/nam_circs/gf2^10_mult.qasm", "gf2^10_mult"),
-                    ("circuit/nam_circs/hwb6.qasm", "gf2^10_mult"),
-                    ("circuit/nam_circs/ham15-low.qasm", "gf2^10_mult"),
+                    ("circuit/nam_circs/hwb6.qasm", "hwb6"),
+                    ("circuit/nam_circs/ham15-low.qasm", "ham15-low"),
                     ("circuit/nam_circs/mod5_4.qasm", "mod5_4"),
                     ("circuit/nam_circs/mod_mult_55.qasm", "mod_mult_55"),
                     ("circuit/nam_circs/mod_red_21.qasm", "mod_red_21"),
@@ -107,8 +107,8 @@ def run_experiments():
                     # ("circuit/nam-benchmarks/gf2^8_mult.qasm", "gf2^8_mult_ccz"),
                     # ("circuit/nam-benchmarks/gf2^9_mult.qasm", "gf2^9_mult_ccz"),
                     # ("circuit/nam-benchmarks/gf2^10_mult.qasm", "gf2^10_mult_ccz"),
-                    # ("circuit/nam-benchmarks/hwb6.qasm", "gf2^10_mult_ccz"),
-                    # ("circuit/nam-benchmarks/ham15-low.qasm", "gf2^10_mult_ccz"),
+                    # ("circuit/nam-benchmarks/hwb6.qasm", "hwb6_ccz"),
+                    # ("circuit/nam-benchmarks/ham15-low.qasm", "ham15-low_ccz"),
                     # ("circuit/nam-benchmarks/mod5_4.qasm", "mod5_4_ccz"),
                     # ("circuit/nam-benchmarks/mod_mult_55.qasm", "mod_mult_55_ccz"),
                     # ("circuit/nam-benchmarks/mod_red_21.qasm", "mod_red_21_ccz"),
@@ -259,7 +259,7 @@ def run_experiments():
 
         # voqc_result = run_voqc(circuit[0])
 
-        original_qc = qiskit.QuantumCircuit.from_qasm_file(circuit[0])
+        original_qc = qiskit.QuantumCircuit.from_qasm_file(circuit[0].replace('nam-benchmarks', 'nam_circs'))
         original_gate_count = original_qc.size()
         # original_gate_count = voqc_result[1][0]
 
