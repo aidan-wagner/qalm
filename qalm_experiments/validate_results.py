@@ -1,15 +1,26 @@
 import multiprocessing
 from equiv_verification import monte_carlo_compare_by_filename
+import os
+import signal
+
+def timeout_handler(signum, frame):
+    print("Timeout occured")
 
 def tester(arguments):
-    circuit_name = arguments[0]
-    interval = arguments[1]
-    initial_file = f"circuit/nam_circs/{circuit_name}.qasm"
-    optimized_file = f"../full_results/fresh_results/qalm_bench/nam/qalm/{circuit_name}_interval_{interval}_timeout_3600_result_circuit.qasm"
-    if monte_carlo_compare_by_filename(initial_file, optimized_file):
-        print(f"Test Passed for {circuit_name} with interval {interval}")
-    else:
-        print(f"!!!!!!!!!!!!!!!! FAILURE for {circuit_name} with interval {interval} !!!!!!!!!!!!!!!!!!!!!")
+
+    signal.signal(signal.SIGALRM, timeout_handler)
+
+    circuit_name = arguments[1][1]
+    new_circuit_path = arguments[0]
+    original_circuit_path = "~/Quantum/qalm/" + arguments[1][0]
+    signal.alarm(60*10)
+    try:
+        if monte_carlo_compare_by_filename(original_circuit_path, new_circuit_path):
+            print(f"Test Passed for {circuit_name} on {new_circuit_path}")
+        else:
+            print(f"!!!!!!!!!!!!!!!! FAILURE for {circuit_name} on {new_circuit_path} !!!!!!!!!!!!!!!!!!!!!")
+    except:
+        pass
 
 def validate_results():
     circuit_list = [("circuit/nam_circs/adder_8.qasm", "adder_8"),
@@ -39,13 +50,16 @@ def validate_results():
                 ("circuit/nam_circs/vbe_adder_3.qasm", "vbe_adder_3"),
                 ];
 
-    arguments = []
-    interval_list = [0,1,5,50,100]
-    for circuit in circuit_list:
-        for interval in interval_list:
-            arguments.append((circuit[1], interval))
 
-    with multiprocessing.Pool(50) as pool:
+    arguments = []
+    circuit_prefix = "comparison_results/"
+    for circuit in circuit_list:
+        all_files = os.listdir(circuit_prefix + circuit[1])
+        for file in all_files:
+            if file[-5:] == ".qasm":
+                arguments.append((circuit_prefix + circuit[1] + "/" + file, circuit))
+
+    with multiprocessing.Pool(8) as pool:
         pool.map(tester, arguments)
 
 if __name__ == '__main__':

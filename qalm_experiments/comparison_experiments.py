@@ -63,10 +63,11 @@ def run_experiments():
     explore_time = 0.0
     pool_gen_time = 0.0
 
-    timeout = 60*10
+    timeout = 60
     validate = False
     circuit_list = [("circuit/nam_circs/adder_8.qasm", "adder_8"),
                     ("circuit/nam_circs/barenco_tof_3.qasm", "barenco_tof_3"),
+<<<<<<< HEAD
                     ("circuit/nam_circs/barenco_tof_4.qasm", "barenco_tof_4"),
                     ("circuit/nam_circs/barenco_tof_5.qasm", "barenco_tof_5"),
                     ("circuit/nam_circs/barenco_tof_10.qasm", "barenco_tof_10"),
@@ -140,6 +141,8 @@ def run_experiments():
         (OptimizationType.roqc_interval, (-1, 0, 1, "eccset/Nam_5_3_complete_ECC_set.json")),
         (OptimizationType.roqc_interval, (-1, 0, 1, "eccset/Nam_6_3_complete_ECC_set.json")),
         (OptimizationType.roqc_interval, (1, 1, 1, "eccset/Nam_6_3_complete_ECC_set.json")),
+        # (OptimizationType.roqc_interval, (0, 0)),
+        # (OptimizationType.roqc_interval, (1, 1, 0)),
         # (OptimizationType.roqc_interval, (5, 0)),
         # (OptimizationType.roqc_interval, (10, 0)),
         # (OptimizationType.roqc_interval, (50, 0)),
@@ -176,6 +179,42 @@ def run_experiments():
         (OptimizationType.qalm, (2, 2, 2, 1.5, 0, 0, 1, 1, 1, "eccset/Nam_5_3_complete_ECC_set.json")),
         (OptimizationType.qalm, (2, 2, 2, 1.5, 0, 0, 1, 1, 1, "eccset/Nam_6_3_complete_ECC_set.json")),
         (OptimizationType.qalm, (2, 2, 2, 1.5, 1, 0, 1, 1, 1, "eccset/Nam_6_3_complete_ECC_set.json")),
+        # (OptimizationType.qalm, (10, 10, 10, 1.5, 0, 1, 0, 0, 0)),
+        # (OptimizationType.qalm, (10, 10, 10, 1.5, 1, 1, 0, 0, 0)),
+        # (OptimizationType.qalm, (10, 10, 10, 1.5, 0, 1, 0, 1, 0)),
+        # (OptimizationType.qalm, (10, 10, 10, 1.5, 1, 1, 0, 1, 0)),
+        # (OptimizationType.qalm, (10, 10, 10, 1.5, 0, 1, 1, 0)),
+        # (OptimizationType.qalm, (10, 10, 10, 1.5, 1, 1, 1, 0)),
+        # (OptimizationType.qalm, (10, 10, 10, 1.5, 0, 1, 1, 1, 0)),
+        # (OptimizationType.qalm, (10, 10, 10, 1.5, 1, 1, 1, 1, 0)),
+        # (OptimizationType.qalm, (10, 10, 10, 1.5, 0, 0, 1, 0, 0)),
+        # (OptimizationType.qalm, (10, 10, 10, 1.5, 0, 0, 0, 1, 0)),
+        # (OptimizationType.qalm, (10, 10, 10, 1.5, 1, 0, 0, 1, 0)),
+        # (OptimizationType.qalm, (10, 10, 10, 1.5, 0, 0, 1, 1, 0)),
+        # (OptimizationType.qalm, (10, 10, 10, 1.5, 1, 0, 1, 1, 0)),
+
+        (OptimizationType.qalm, (1, 1, 1, 1.5, 0, 0, 0, 0, 1, "eccset/Nam_5_3_complete_ECC_set.json")),
+
+        (OptimizationType.qalm, (1, 1, 2, 1.5, 0, 0, 0, 0, 1, "eccset/Nam_5_3_complete_ECC_set.json")),
+        (OptimizationType.qalm, (1, 1, 3, 1.5, 0, 0, 0, 0, 1, "eccset/Nam_5_3_complete_ECC_set.json")),
+
+        (OptimizationType.qalm, (1, 2, 1, 1.5, 0, 0, 0, 0, 1, "eccset/Nam_5_3_complete_ECC_set.json")),
+        (OptimizationType.qalm, (1, 3, 1, 1.5, 0, 0, 0, 0, 1, "eccset/Nam_5_3_complete_ECC_set.json")),
+
+        (OptimizationType.qalm, (2, 1, 1, 1.5, 0, 0, 0, 0, 1, "eccset/Nam_5_3_complete_ECC_set.json")),
+        (OptimizationType.qalm, (3, 1, 1, 1.5, 0, 0, 0, 0, 1, "eccset/Nam_5_3_complete_ECC_set.json")),
+
+        (OptimizationType.qalm, (1, 1, 1, 1.5, 0, 0, 0, 0, 1, "eccset/Nam_6_3_complete_ECC_set.json")),
+
+        (OptimizationType.qalm, (1, 1, 2, 1.5, 0, 0, 0, 0, 1, "eccset/Nam_6_3_complete_ECC_set.json")),
+        (OptimizationType.qalm, (1, 1, 3, 1.5, 0, 0, 0, 0, 1, "eccset/Nam_6_3_complete_ECC_set.json")),
+
+        (OptimizationType.qalm, (1, 2, 1, 1.5, 0, 0, 0, 0, 1, "eccset/Nam_6_3_complete_ECC_set.json")),
+        (OptimizationType.qalm, (1, 3, 1, 1.5, 0, 0, 0, 0, 1, "eccset/Nam_6_3_complete_ECC_set.json")),
+
+        (OptimizationType.qalm, (2, 1, 1, 1.5, 0, 0, 0, 0, 1, "eccset/Nam_6_3_complete_ECC_set.json")),
+        (OptimizationType.qalm, (3, 1, 1, 1.5, 0, 0, 0, 0, 1, "eccset/Nam_6_3_complete_ECC_set.json")),
+
     ]
 
     graph_labels = [
@@ -185,6 +224,7 @@ def run_experiments():
         "Vanilla 5% (6,3) 2-way",
         # "Greedy+Roqc",
         "Greedy, Roqc interval = 1 (6,3) 2-way",
+        # "Greedy, Roqc interval = 1",
         # "Roqc interval = 5",
         # "Roqc interval = 10",
         # "Roqc interval = 50",
@@ -208,6 +248,11 @@ def run_experiments():
         # "Local, no_incr",
         # "Local, exp_incr+no_incr",
         # "Greedy, Init10, Gen10, Steps4, Rep_tol1.5, Local, no_incr",
+        # "Greedy, Init10, Gen10, Steps10, Rep_tol1.5, no_incr",
+        # "Greedy, Init10, Gen10, Steps10, Rep_tol1.5, exp_incr+no_incr",
+        # "Local, no_incr",
+        # "Local, exp_incr+no_incr",
+        # "Greedy, Local, no_incr",
         # "Greedy, Local, exp_incr+no_incr",
         # "Local",
         # "Greedy",
@@ -221,6 +266,24 @@ def run_experiments():
         "Greedy, Init2, Gen2, Steps2, Rep_tol1.5, Local, All xfers (5,3) 2-way",
         "Greedy, Init2, Gen2, Steps2, Rep_tol1.5, Local, All xfers (6,3) 2-way",
         "Greedy, Init2, Gen2, Steps2, Rep_tol1.5, Local, exp_incr+All xfers (6,3) 2-way",
+        # "Greedy, All xfers, Local",
+        # "Greedy, All xfers, Local, exp_incr",
+
+        "I1, G1, E1, ECC_5_3",
+        "I1, G1, E2, ECC_5_3",
+        "I1, G1, E3, ECC_5_3",
+        "I1, G2, E1, ECC_5_3",
+        "I1, G3, E1, ECC_5_3",
+        "I2, G1, E1, ECC_5_3",
+        "I3, G1, E1, ECC_5_3",
+
+        "I1, G1, E1, ECC_6_3",
+        "I1, G1, E2, ECC_6_3",
+        "I1, G1, E3, ECC_6_3",
+        "I1, G2, E1, ECC_6_3",
+        "I1, G3, E1, ECC_6_3",
+        "I2, G1, E1, ECC_6_3",
+        "I3, G1, E1, ECC_6_3",
     ]
 
     # voqc_avg = 0
@@ -247,7 +310,7 @@ def run_experiments():
 
 
         except:
-            with multiprocessing.Pool(8) as pool:
+            with multiprocessing.Pool(7) as pool:
                 results = pool.map(tester, arguments)
 
         if validate:
@@ -356,7 +419,6 @@ def run_experiments():
 
 def run_quartz(filename, circuit_name, timeout, roqc_interval, greedy_start, two_way_rm, eccset):
     result = subprocess.run(["./build/test_optimize", f"{filename}", f"{circuit_name}", f"{timeout}", f"{roqc_interval}", f"{greedy_start}", f"{two_way_rm}", f"{eccset}"], capture_output = True, text=True)
-    result_lines = result.stdout.splitlines()
     costs = []
     times = []
     circuit_found = False
