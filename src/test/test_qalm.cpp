@@ -12,8 +12,7 @@ int main(int argc, char **argv) {
   std::cout << kQuartzRootPath.string() << " " << input_fn << std::endl;
   std::string circuit_name = "adder_8";
   std::string output_fn;
-  std::string eqset_fn =
-      kQuartzRootPath.string() + "/";
+  std::string eqset_fn = kQuartzRootPath.string() + "/";
   eqset_fn = eqset_fn + argv[13];
 
   if (argc >= 2) {
@@ -40,12 +39,10 @@ int main(int argc, char **argv) {
   bool preprocess = std::stoi(argv[11]);
   bool two_way_rotation_merging = std::stoi(argv[12]);
 
-
-
-
   ParamInfo param_info;
   Context ctx({GateType::input_qubit, GateType::input_param, GateType::cx,
-               GateType::h, GateType::rz, GateType::x, GateType::add},
+               GateType::h, GateType::rz, GateType::x, GateType::rx,
+               GateType::ry, GateType::add},
               /*num_qubits=*/3, &param_info);
 
   EquivalenceSet eqs;
@@ -113,7 +110,27 @@ int main(int argc, char **argv) {
     std::cout << "number of xfers: " << xfers.size() << std::endl;
   }
 
-  auto graph = Graph::from_qasm_file(&ctx, input_fn);
+  std::shared_ptr<Graph> graph;
+  if (input_fn.find("nam-benchmarks") != input_fn.npos) {
+    Context src_ctx({GateType::h, GateType::ccz, GateType::x, GateType::cx,
+                     GateType::input_qubit, GateType::input_param},
+                    &param_info);
+    auto union_ctx = union_contexts(&src_ctx, &ctx);
+    auto xfer_pair = GraphXfer::ccz_cx_rz_xfer(&src_ctx, &ctx, &union_ctx);
+    // Load qasm file
+    QASMParser qasm_parser(&src_ctx);
+    CircuitSeq *dag = nullptr;
+    if (!qasm_parser.load_qasm(input_fn, dag)) {
+      std::cout << "Parser failed" << std::endl;
+    }
+    Graph g(&src_ctx, dag);
+
+    // Greedy toffoli flip
+    graph =
+        g.toffoli_flip_greedy(GateType::rz, xfer_pair.first, xfer_pair.second);
+  } else {
+    graph = Graph::from_qasm_file(&ctx, input_fn);
+  }
   std::cout << "Received circuit from qasm file" << std::endl;
   assert(graph);
 

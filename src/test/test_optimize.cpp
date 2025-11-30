@@ -35,7 +35,7 @@ int main(int argc, char **argv) {
 
   ParamInfo param_info;
   Context ctx({GateType::input_qubit, GateType::input_param, GateType::cx,
-               GateType::h, GateType::rz, GateType::x, GateType::add},
+               GateType::h, GateType::rz, GateType::x, GateType::rx, GateType::ry, GateType::add},
               /*num_qubits=*/3, &param_info);
 
   EquivalenceSet eqs;
@@ -57,7 +57,27 @@ int main(int argc, char **argv) {
   std::vector<GraphXfer *> xfers = GraphXfer::get_all_xfers_from_eqs(&ctx, eqs);
   std::cout << "number of xfers: " << xfers.size() << std::endl;
 
-  auto graph = Graph::from_qasm_file(&ctx, input_fn);
+  std::shared_ptr<Graph> graph;
+  if (input_fn.find("nam-benchmarks") != input_fn.npos) {
+    Context src_ctx({GateType::h, GateType::ccz, GateType::x, GateType::cx,
+                     GateType::input_qubit, GateType::input_param},
+                    &param_info);
+    auto union_ctx = union_contexts(&src_ctx, &ctx);
+    auto xfer_pair = GraphXfer::ccz_cx_rz_xfer(&src_ctx, &ctx, &union_ctx);
+    // Load qasm file
+    QASMParser qasm_parser(&src_ctx);
+    CircuitSeq *dag = nullptr;
+    if (!qasm_parser.load_qasm(input_fn, dag)) {
+      std::cout << "Parser failed" << std::endl;
+    }
+    Graph g(&src_ctx, dag);
+
+    // Greedy toffoli flip
+    graph =
+        g.toffoli_flip_greedy(GateType::rz, xfer_pair.first, xfer_pair.second);
+  } else {
+    graph = Graph::from_qasm_file(&ctx, input_fn);
+  }
   std::cout << "Circuit retrieved from qasm file" << std::endl;
   assert(graph);
 

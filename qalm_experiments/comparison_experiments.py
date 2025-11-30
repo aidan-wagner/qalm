@@ -29,7 +29,7 @@ def roqc_interval_tester(arguments):
     roqc_interval = arguments[3]
     greedy_start = arguments[4]
     two_way_rm = arguments[5]
-    eccset = arguments[6]
+    eccset = "eccset/RZ_RX_RY_H_CX_4_3_complete_ECC_set.json" if "../.." in circuit_name else arguments[6]
     return run_quartz(filename, circuit_name, timeout, roqc_interval, greedy_start, two_way_rm, eccset)
 
 def qalm_tester(arguments):
@@ -45,7 +45,7 @@ def qalm_tester(arguments):
     only_do_local_transformations = arguments[9]
     greedy_start = arguments[10]
     two_way_rm = arguments[11]
-    eccset = arguments[12]
+    eccset = "eccset/RZ_RX_RY_H_CX_4_3_complete_ECC_set.json" if "../.." in circuit_name else arguments[12]
     return run_qalm(filename, circuit_name, timeout, intial_pool_size, exploration_pool, exploration_steps, repeat_tolerance, exploration_increase, no_increase, only_do_local_transformations, greedy_start, two_way_rm, eccset)
 
 def run_experiments():
@@ -79,6 +79,8 @@ def run_experiments():
                     ("circuit/nam_circs/gf2^8_mult.qasm", "gf2^8_mult"),
                     ("circuit/nam_circs/gf2^9_mult.qasm", "gf2^9_mult"),
                     ("circuit/nam_circs/gf2^10_mult.qasm", "gf2^10_mult"),
+                    ("circuit/nam_circs/hwb6.qasm", "gf2^10_mult"),
+                    ("circuit/nam_circs/ham15-low.qasm", "gf2^10_mult"),
                     ("circuit/nam_circs/mod5_4.qasm", "mod5_4"),
                     ("circuit/nam_circs/mod_mult_55.qasm", "mod_mult_55"),
                     ("circuit/nam_circs/mod_red_21.qasm", "mod_red_21"),
@@ -91,8 +93,34 @@ def run_experiments():
                     ("circuit/nam_circs/tof_5.qasm", "tof_5"),
                     ("circuit/nam_circs/tof_10.qasm", "tof_10"),
                     ("circuit/nam_circs/vbe_adder_3.qasm", "vbe_adder_3"),
-                    # ("../../PycharmProjects/ucc-bench/benchmarks/circuits/ucc/prep_select_N10_ghz_basis_rz_rx_ry_h_cx.qasm", "ghz_10"),
-                    # ("../../PycharmProjects/ucc-bench/benchmarks/circuits/ucc/prep_select_N25_ghz_basis_rz_rx_ry_h_cx.qasm", "ghz_25"),
+                    # ("circuit/nam-benchmarks/adder_8.qasm", "adder_8_ccz"),
+                    # ("circuit/nam-benchmarks/barenco_tof_3.qasm", "barenco_tof_3_ccz"),
+                    # ("circuit/nam-benchmarks/barenco_tof_4.qasm", "barenco_tof_4_ccz"),
+                    # ("circuit/nam-benchmarks/barenco_tof_5.qasm", "barenco_tof_5_ccz"),
+                    # ("circuit/nam-benchmarks/barenco_tof_10.qasm", "barenco_tof_10_ccz"),
+                    # ("circuit/nam-benchmarks/csla_mux_3.qasm", "csla_mux_3_ccz"),
+                    # ("circuit/nam-benchmarks/csum_mux_9.qasm", "csum_mux_9_ccz"),
+                    # ("circuit/nam-benchmarks/gf2^4_mult.qasm", "gf2^4_mult_ccz"),
+                    # ("circuit/nam-benchmarks/gf2^5_mult.qasm", "gf2^5_mult_ccz"),
+                    # ("circuit/nam-benchmarks/gf2^6_mult.qasm", "gf2^6_mult_ccz"),
+                    # ("circuit/nam-benchmarks/gf2^7_mult.qasm", "gf2^7_mult_ccz"),
+                    # ("circuit/nam-benchmarks/gf2^8_mult.qasm", "gf2^8_mult_ccz"),
+                    # ("circuit/nam-benchmarks/gf2^9_mult.qasm", "gf2^9_mult_ccz"),
+                    # ("circuit/nam-benchmarks/gf2^10_mult.qasm", "gf2^10_mult_ccz"),
+                    # ("circuit/nam-benchmarks/hwb6.qasm", "gf2^10_mult_ccz"),
+                    # ("circuit/nam-benchmarks/ham15-low.qasm", "gf2^10_mult_ccz"),
+                    # ("circuit/nam-benchmarks/mod5_4.qasm", "mod5_4_ccz"),
+                    # ("circuit/nam-benchmarks/mod_mult_55.qasm", "mod_mult_55_ccz"),
+                    # ("circuit/nam-benchmarks/mod_red_21.qasm", "mod_red_21_ccz"),
+                    # ("circuit/nam-benchmarks/qcla_adder_10.qasm", "qcla_adder_10_ccz"),
+                    # ("circuit/nam-benchmarks/qcla_com_7.qasm", "qcla_com_7_ccz"),
+                    # ("circuit/nam-benchmarks/qcla_mod_7.qasm", "qcla_mod_7_ccz"),
+                    # ("circuit/nam-benchmarks/rc_adder_6.qasm", "rc_adder_6_ccz"),
+                    # ("circuit/nam-benchmarks/tof_3.qasm", "tof_3_ccz"),
+                    # ("circuit/nam-benchmarks/tof_4.qasm", "tof_4_ccz"),
+                    # ("circuit/nam-benchmarks/tof_5.qasm", "tof_5_ccz"),
+                    # ("circuit/nam-benchmarks/tof_10.qasm", "tof_10_ccz"),
+                    # ("circuit/nam-benchmarks/vbe_adder_3.qasm", "vbe_adder_3_ccz"),
                     # ("../../PycharmProjects/ucc-bench/benchmarks/circuits/ucc/qcnn_N10_4layers_basis_rz_rx_ry_h_cx.qasm", "qcnn_10"),
                     # ("../../PycharmProjects/ucc-bench/benchmarks/circuits/ucc/qcnn_N100_7layers_basis_rz_rx_ry_h_cx.qasm", "qcnn_100"),
                     # ("../../PycharmProjects/ucc-bench/benchmarks/circuits/benchpress/qaoa_barabasi_albert_N10_3reps_basis_rz_rx_ry_cx.qasm", "qaoa_10"),
@@ -111,7 +139,7 @@ def run_experiments():
         (OptimizationType.roqc_interval, (-1, 0, 0, "eccset/Nam_6_3_complete_ECC_set.json")),
         (OptimizationType.roqc_interval, (-1, 0, 1, "eccset/Nam_5_3_complete_ECC_set.json")),
         (OptimizationType.roqc_interval, (-1, 0, 1, "eccset/Nam_6_3_complete_ECC_set.json")),
-        (OptimizationType.roqc_interval, (1, 1, 0, "eccset/Nam_6_3_complete_ECC_set.json")),
+        (OptimizationType.roqc_interval, (1, 1, 1, "eccset/Nam_6_3_complete_ECC_set.json")),
         # (OptimizationType.roqc_interval, (5, 0)),
         # (OptimizationType.roqc_interval, (10, 0)),
         # (OptimizationType.roqc_interval, (50, 0)),
@@ -130,8 +158,8 @@ def run_experiments():
         # (OptimizationType.qalm, (10, 10, 10, 1.5, 1, 0, 0, 0)),
         # (OptimizationType.qalm, (10, 10, 10, 1.5, 0, 1, 0, 0)),
         # (OptimizationType.qalm, (10, 10, 10, 1.5, 1, 1, 0, 0)),
-        (OptimizationType.qalm, (1, 1, 3, 1.5, 0, 1, 0, 1, 1, "eccset/Nam_6_3_complete_ECC_set.json")),
-        (OptimizationType.qalm, (1, 1, 3, 1.5, 1, 1, 0, 1, 1, "eccset/Nam_6_3_complete_ECC_set.json")),
+        (OptimizationType.qalm, (2, 2, 2, 1.5, 0, 1, 0, 1, 1, "eccset/Nam_6_3_complete_ECC_set.json")),
+        (OptimizationType.qalm, (2, 2, 2, 1.5, 1, 1, 0, 1, 1, "eccset/Nam_6_3_complete_ECC_set.json")),
         # (OptimizationType.qalm, (10, 10, 10, 1.5, 0, 1, 1, 0)),
         # (OptimizationType.qalm, (10, 10, 10, 1.5, 1, 1, 1, 0)),
         # (OptimizationType.qalm, (10, 10, 4, 1.5, 0, 1, 1, 1, 0)),
@@ -143,20 +171,20 @@ def run_experiments():
         # (OptimizationType.qalm, (10, 10, 10, 1.5, 1, 0, 1, 1)),
         # (OptimizationType.qalm, (10, 10, 3, 1.5, 0, 0, 1, 1, 0)),
         # (OptimizationType.qalm, (10, 10, 3, 1.5, 1, 0, 1, 1, 0)),
-        (OptimizationType.qalm, (3, 3, 3, 1.5, 0, 0, 1, 1, 0, "eccset/Nam_5_3_complete_ECC_set.json")),
-        (OptimizationType.qalm, (3, 3, 3, 1.5, 0, 0, 1, 1, 0, "eccset/Nam_6_3_complete_ECC_set.json")),
-        (OptimizationType.qalm, (3, 3, 3, 1.5, 0, 0, 1, 1, 1, "eccset/Nam_5_3_complete_ECC_set.json")),
-        (OptimizationType.qalm, (3, 3, 3, 1.5, 0, 0, 1, 1, 1, "eccset/Nam_6_3_complete_ECC_set.json")),
-        (OptimizationType.qalm, (3, 3, 3, 1.5, 1, 0, 1, 1, 1, "eccset/Nam_6_3_complete_ECC_set.json")),
+        (OptimizationType.qalm, (2, 2, 2, 1.5, 0, 0, 1, 1, 0, "eccset/Nam_5_3_complete_ECC_set.json")),
+        (OptimizationType.qalm, (2, 2, 2, 1.5, 0, 0, 1, 1, 0, "eccset/Nam_6_3_complete_ECC_set.json")),
+        (OptimizationType.qalm, (2, 2, 2, 1.5, 0, 0, 1, 1, 1, "eccset/Nam_5_3_complete_ECC_set.json")),
+        (OptimizationType.qalm, (2, 2, 2, 1.5, 0, 0, 1, 1, 1, "eccset/Nam_6_3_complete_ECC_set.json")),
+        (OptimizationType.qalm, (2, 2, 2, 1.5, 1, 0, 1, 1, 1, "eccset/Nam_6_3_complete_ECC_set.json")),
     ]
 
     graph_labels = [
-        "Vanilla (5,3)",
-        "Vanilla (6,3)",
-        "Vanilla (5,3) 2-way",
-        "Vanilla (6,3) 2-way",
+        "Vanilla 5% (5,3)",
+        "Vanilla 5% (6,3)",
+        "Vanilla 5% (5,3) 2-way",
+        "Vanilla 5% (6,3) 2-way",
         # "Greedy+Roqc",
-        "Greedy, Roqc interval = 1 (6,3)",
+        "Greedy, Roqc interval = 1 (6,3) 2-way",
         # "Roqc interval = 5",
         # "Roqc interval = 10",
         # "Roqc interval = 50",
@@ -175,8 +203,8 @@ def run_experiments():
         # "Init10, Gen10, Steps10, Rep_tol1.5, exp_incr",
         # "Init10, Gen10, Steps10, Rep_tol1.5, no_incr",
         # "Init10, Gen10, Steps10, Rep_tol1.5, exp_incr+no_incr",
-        "Greedy, Init1, Gen1, Steps3, Rep_tol1.5, no_incr (6,3) 2-way",
-        "Greedy, Init1, Gen1, Steps3, Rep_tol1.5, exp_incr+no_incr (6,3) 2-way",
+        "Greedy, Init2, Gen2, Steps2, Rep_tol1.5, no_incr (6,3) 2-way",
+        "Greedy, Init2, Gen2, Steps2, Rep_tol1.5, exp_incr+no_incr (6,3) 2-way",
         # "Local, no_incr",
         # "Local, exp_incr+no_incr",
         # "Greedy, Init10, Gen10, Steps4, Rep_tol1.5, Local, no_incr",
@@ -188,11 +216,11 @@ def run_experiments():
         # "Greedy, All xfers, Local, exp_incr",
         # "Greedy, Init10, Gen10, Steps3, Rep_tol1.5, Local, All xfers",
         # "Greedy, Init10, Gen10, Steps3, Rep_tol1.5, Local, exp_incr+All xfers",
-        "Greedy, Init3, Gen3, Steps3, Rep_tol1.5, Local, All xfers (5,3)",
-        "Greedy, Init3, Gen3, Steps3, Rep_tol1.5, Local, All xfers (6,3)",
-        "Greedy, Init3, Gen3, Steps3, Rep_tol1.5, Local, All xfers (5,3) 2-way",
-        "Greedy, Init3, Gen3, Steps3, Rep_tol1.5, Local, All xfers (6,3) 2-way",
-        "Greedy, Init3, Gen3, Steps3, Rep_tol1.5, Local, exp_incr+All xfers (6,3) 2-way",
+        "Greedy, Init2, Gen2, Steps2, Rep_tol1.5, Local, All xfers (5,3)",
+        "Greedy, Init2, Gen2, Steps2, Rep_tol1.5, Local, All xfers (6,3)",
+        "Greedy, Init2, Gen2, Steps2, Rep_tol1.5, Local, All xfers (5,3) 2-way",
+        "Greedy, Init2, Gen2, Steps2, Rep_tol1.5, Local, All xfers (6,3) 2-way",
+        "Greedy, Init2, Gen2, Steps2, Rep_tol1.5, Local, exp_incr+All xfers (6,3) 2-way",
     ]
 
     # voqc_avg = 0
@@ -219,7 +247,7 @@ def run_experiments():
 
 
         except:
-            with multiprocessing.Pool(8) as pool:
+            with multiprocessing.Pool(4) as pool:
                 results = pool.map(tester, arguments)
 
         if validate:
