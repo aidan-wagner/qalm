@@ -1,6 +1,7 @@
 import json
 import csv
 from qiskit import QuantumCircuit
+import matplotlib.pyplot as plt
 
 def process_results():
     circuit_list = []
@@ -60,26 +61,60 @@ def process_results():
         csv_writer.writerow(original_lengths)
         csv_writer.writerows(all_data)
 
+    graph_circuit_comparisons(circuit_list, total_results, original_lengths[1:])
+
+def graph_circuit_comparisons(circuit_list, total_results, initial_lengths):
+    # (circuit_name best_qalm, best_other)
+    circuit_bests = []
+    qalm_args_list = []
+    benchmark_list = []
+
+    for a in total_results.keys():
+        if "600" in a:
+            qalm_args_list.append(a)
+        elif "initial" != a:
+            benchmark_list.append(a)
+
+    for circuit_index in range(len(circuit_list)):
+
+        # Find best qalm result
+        best_qalm_args = qalm_args_list[0]
+        for args in qalm_args_list:
+            if total_results[args][circuit_index] < total_results[best_qalm_args][circuit_index]:
+                best_qalm_args = args
+
+        # Find best benchmark result
+        best_bench = benchmark_list[0]
+        for bench in benchmark_list:
+            if total_results[bench][circuit_index] < total_results[best_bench][circuit_index]:
+                best_bench = bench
+
+        circuit_bests.append((circuit_list[circuit_index], (float(total_results[best_bench][circuit_index]) -  float(total_results[best_qalm_args][circuit_index])) / float(initial_lengths[circuit_index])))
+
+    circuit_bests.sort(key= lambda result: result[1])
+
+    # plt.plot(circuit_bests)
+    plt.plot(list(zip(*circuit_bests))[0], list(zip(*circuit_bests))[1])
+    plt.xticks(rotation=90)
+    plt.title("Difference in circuit length reduction")
+    plt.ylabel("QALM % - Comparison %")
+    plt.tight_layout()
+    plt.show()
+
+
+
+
 
 # These results come from own experiments
 def parse_qalm(circuit_name):
     prefixes = [
-        "interval_0",
-        "interval_1",
-        "interval_5",
-        "interval_10",
-        "interval_50",
-        "600_1_10_10_1.5_0_0_0",
-        "600_1_20_20_1.5_0_0_0",
-        "600_1_50_50_1.5_0_0_0",
-        "600_1_100_100_1.5_0_0_0",
-        "600_1_10_20_1.5_0_0_0",
-        "600_1_20_10_1.5_0_0_0",
-        "600_5_10_10_1.5_0_0_0",
-        "600_10_10_10_1.5_0_0_0",
-        "600_10_10_10_1.5_1_0_0",
-        "600_10_10_10_1.5_0_1_0",
-        "600_10_10_10_1.5_1_1_0",
+        # "600_1_1_1_1.5_0_0_0_0",
+        # "600_1_1_2_1.5_0_0_0_0",
+        # "600_1_1_3_1.5_0_0_0_0",
+        # "600_1_2_1_1.5_0_0_0_0",
+        # "600_1_3_1_1.5_0_0_0_0",
+        # "600_2_1_1_1.5_0_0_0_0",
+        "600_3_1_1_1.5_0_0_0_0",
     ]
     for prefix in prefixes:
         c = QuantumCircuit.from_qasm_file(f"fresh_results/qalm_bench/nam/qalm/{circuit_name}/{prefix}_result.qasm")

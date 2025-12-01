@@ -63,11 +63,10 @@ def run_experiments():
     explore_time = 0.0
     pool_gen_time = 0.0
 
-    timeout = 60
+    timeout = 60 * 10
     validate = False
     circuit_list = [("circuit/nam_circs/adder_8.qasm", "adder_8"),
                     ("circuit/nam_circs/barenco_tof_3.qasm", "barenco_tof_3"),
-<<<<<<< HEAD
                     ("circuit/nam_circs/barenco_tof_4.qasm", "barenco_tof_4"),
                     ("circuit/nam_circs/barenco_tof_5.qasm", "barenco_tof_5"),
                     ("circuit/nam_circs/barenco_tof_10.qasm", "barenco_tof_10"),
@@ -136,11 +135,11 @@ def run_experiments():
 
     experiments = [
         # Roqc interval:
-        (OptimizationType.roqc_interval, (-1, 0, 0, "eccset/Nam_5_3_complete_ECC_set.json")),
-        (OptimizationType.roqc_interval, (-1, 0, 0, "eccset/Nam_6_3_complete_ECC_set.json")),
-        (OptimizationType.roqc_interval, (-1, 0, 1, "eccset/Nam_5_3_complete_ECC_set.json")),
-        (OptimizationType.roqc_interval, (-1, 0, 1, "eccset/Nam_6_3_complete_ECC_set.json")),
-        (OptimizationType.roqc_interval, (1, 1, 1, "eccset/Nam_6_3_complete_ECC_set.json")),
+        # (OptimizationType.roqc_interval, (-1, 0, 0, "eccset/Nam_5_3_complete_ECC_set.json")),
+        # (OptimizationType.roqc_interval, (-1, 0, 0, "eccset/Nam_6_3_complete_ECC_set.json")),
+        # (OptimizationType.roqc_interval, (-1, 0, 1, "eccset/Nam_5_3_complete_ECC_set.json")),
+        # (OptimizationType.roqc_interval, (-1, 0, 1, "eccset/Nam_6_3_complete_ECC_set.json")),
+        # (OptimizationType.roqc_interval, (1, 1, 1, "eccset/Nam_6_3_complete_ECC_set.json")),
         # (OptimizationType.roqc_interval, (0, 0)),
         # (OptimizationType.roqc_interval, (1, 1, 0)),
         # (OptimizationType.roqc_interval, (5, 0)),
@@ -161,8 +160,8 @@ def run_experiments():
         # (OptimizationType.qalm, (10, 10, 10, 1.5, 1, 0, 0, 0)),
         # (OptimizationType.qalm, (10, 10, 10, 1.5, 0, 1, 0, 0)),
         # (OptimizationType.qalm, (10, 10, 10, 1.5, 1, 1, 0, 0)),
-        (OptimizationType.qalm, (2, 2, 2, 1.5, 0, 1, 0, 1, 1, "eccset/Nam_6_3_complete_ECC_set.json")),
-        (OptimizationType.qalm, (2, 2, 2, 1.5, 1, 1, 0, 1, 1, "eccset/Nam_6_3_complete_ECC_set.json")),
+        # (OptimizationType.qalm, (2, 2, 2, 1.5, 0, 1, 0, 1, 1, "eccset/Nam_6_3_complete_ECC_set.json")),
+        # (OptimizationType.qalm, (2, 2, 2, 1.5, 1, 1, 0, 1, 1, "eccset/Nam_6_3_complete_ECC_set.json")),
         # (OptimizationType.qalm, (10, 10, 10, 1.5, 0, 1, 1, 0)),
         # (OptimizationType.qalm, (10, 10, 10, 1.5, 1, 1, 1, 0)),
         # (OptimizationType.qalm, (10, 10, 4, 1.5, 0, 1, 1, 1, 0)),
@@ -174,11 +173,11 @@ def run_experiments():
         # (OptimizationType.qalm, (10, 10, 10, 1.5, 1, 0, 1, 1)),
         # (OptimizationType.qalm, (10, 10, 3, 1.5, 0, 0, 1, 1, 0)),
         # (OptimizationType.qalm, (10, 10, 3, 1.5, 1, 0, 1, 1, 0)),
-        (OptimizationType.qalm, (2, 2, 2, 1.5, 0, 0, 1, 1, 0, "eccset/Nam_5_3_complete_ECC_set.json")),
-        (OptimizationType.qalm, (2, 2, 2, 1.5, 0, 0, 1, 1, 0, "eccset/Nam_6_3_complete_ECC_set.json")),
-        (OptimizationType.qalm, (2, 2, 2, 1.5, 0, 0, 1, 1, 1, "eccset/Nam_5_3_complete_ECC_set.json")),
-        (OptimizationType.qalm, (2, 2, 2, 1.5, 0, 0, 1, 1, 1, "eccset/Nam_6_3_complete_ECC_set.json")),
-        (OptimizationType.qalm, (2, 2, 2, 1.5, 1, 0, 1, 1, 1, "eccset/Nam_6_3_complete_ECC_set.json")),
+        # (OptimizationType.qalm, (2, 2, 2, 1.5, 0, 0, 1, 1, 0, "eccset/Nam_5_3_complete_ECC_set.json")),
+        # (OptimizationType.qalm, (2, 2, 2, 1.5, 0, 0, 1, 1, 0, "eccset/Nam_6_3_complete_ECC_set.json")),
+        # (OptimizationType.qalm, (2, 2, 2, 1.5, 0, 0, 1, 1, 1, "eccset/Nam_5_3_complete_ECC_set.json")),
+        # (OptimizationType.qalm, (2, 2, 2, 1.5, 0, 0, 1, 1, 1, "eccset/Nam_6_3_complete_ECC_set.json")),
+        # (OptimizationType.qalm, (2, 2, 2, 1.5, 1, 0, 1, 1, 1, "eccset/Nam_6_3_complete_ECC_set.json")),
         # (OptimizationType.qalm, (10, 10, 10, 1.5, 0, 1, 0, 0, 0)),
         # (OptimizationType.qalm, (10, 10, 10, 1.5, 1, 1, 0, 0, 0)),
         # (OptimizationType.qalm, (10, 10, 10, 1.5, 0, 1, 0, 1, 0)),
@@ -193,37 +192,70 @@ def run_experiments():
         # (OptimizationType.qalm, (10, 10, 10, 1.5, 0, 0, 1, 1, 0)),
         # (OptimizationType.qalm, (10, 10, 10, 1.5, 1, 0, 1, 1, 0)),
 
-        (OptimizationType.qalm, (1, 1, 1, 1.5, 0, 0, 0, 0, 1, "eccset/Nam_5_3_complete_ECC_set.json")),
+        # (OptimizationType.qalm, (1, 1, 1, 1.5, 0, 0, 0, 0, 1, "eccset/Nam_5_3_complete_ECC_set.json")),
 
-        (OptimizationType.qalm, (1, 1, 2, 1.5, 0, 0, 0, 0, 1, "eccset/Nam_5_3_complete_ECC_set.json")),
-        (OptimizationType.qalm, (1, 1, 3, 1.5, 0, 0, 0, 0, 1, "eccset/Nam_5_3_complete_ECC_set.json")),
+        # (OptimizationType.qalm, (1, 1, 2, 1.5, 0, 0, 0, 0, 1, "eccset/Nam_5_3_complete_ECC_set.json")),
+        # (OptimizationType.qalm, (1, 1, 3, 1.5, 0, 0, 0, 0, 1, "eccset/Nam_5_3_complete_ECC_set.json")),
 
-        (OptimizationType.qalm, (1, 2, 1, 1.5, 0, 0, 0, 0, 1, "eccset/Nam_5_3_complete_ECC_set.json")),
-        (OptimizationType.qalm, (1, 3, 1, 1.5, 0, 0, 0, 0, 1, "eccset/Nam_5_3_complete_ECC_set.json")),
+        # (OptimizationType.qalm, (1, 2, 1, 1.5, 0, 0, 0, 0, 1, "eccset/Nam_5_3_complete_ECC_set.json")),
+        # (OptimizationType.qalm, (1, 3, 1, 1.5, 0, 0, 0, 0, 1, "eccset/Nam_5_3_complete_ECC_set.json")),
 
-        (OptimizationType.qalm, (2, 1, 1, 1.5, 0, 0, 0, 0, 1, "eccset/Nam_5_3_complete_ECC_set.json")),
-        (OptimizationType.qalm, (3, 1, 1, 1.5, 0, 0, 0, 0, 1, "eccset/Nam_5_3_complete_ECC_set.json")),
+        # (OptimizationType.qalm, (2, 1, 1, 1.5, 0, 0, 0, 0, 1, "eccset/Nam_5_3_complete_ECC_set.json")),
+        # (OptimizationType.qalm, (3, 1, 1, 1.5, 0, 0, 0, 0, 1, "eccset/Nam_5_3_complete_ECC_set.json")),
 
-        (OptimizationType.qalm, (1, 1, 1, 1.5, 0, 0, 0, 0, 1, "eccset/Nam_6_3_complete_ECC_set.json")),
+        # (OptimizationType.qalm, (1, 1, 1, 1.5, 0, 0, 0, 0, 1, "eccset/Nam_6_3_complete_ECC_set.json")),
 
-        (OptimizationType.qalm, (1, 1, 2, 1.5, 0, 0, 0, 0, 1, "eccset/Nam_6_3_complete_ECC_set.json")),
-        (OptimizationType.qalm, (1, 1, 3, 1.5, 0, 0, 0, 0, 1, "eccset/Nam_6_3_complete_ECC_set.json")),
+        # (OptimizationType.qalm, (1, 1, 2, 1.5, 0, 0, 0, 0, 1, "eccset/Nam_6_3_complete_ECC_set.json")),
+        # (OptimizationType.qalm, (1, 1, 3, 1.5, 0, 0, 0, 0, 1, "eccset/Nam_6_3_complete_ECC_set.json")),
 
-        (OptimizationType.qalm, (1, 2, 1, 1.5, 0, 0, 0, 0, 1, "eccset/Nam_6_3_complete_ECC_set.json")),
-        (OptimizationType.qalm, (1, 3, 1, 1.5, 0, 0, 0, 0, 1, "eccset/Nam_6_3_complete_ECC_set.json")),
+        # (OptimizationType.qalm, (1, 2, 1, 1.5, 0, 0, 0, 0, 1, "eccset/Nam_6_3_complete_ECC_set.json")),
+        # (OptimizationType.qalm, (1, 3, 1, 1.5, 0, 0, 0, 0, 1, "eccset/Nam_6_3_complete_ECC_set.json")),
 
-        (OptimizationType.qalm, (2, 1, 1, 1.5, 0, 0, 0, 0, 1, "eccset/Nam_6_3_complete_ECC_set.json")),
-        (OptimizationType.qalm, (3, 1, 1, 1.5, 0, 0, 0, 0, 1, "eccset/Nam_6_3_complete_ECC_set.json")),
+        # (OptimizationType.qalm, (2, 1, 1, 1.5, 0, 0, 0, 0, 1, "eccset/Nam_6_3_complete_ECC_set.json")),
+        (OptimizationType.qalm, (1, 1, 1, 1.5, 0, 0, 1, 1, 0, "eccset/Nam_5_3_complete_ECC_set.json")),
+        (OptimizationType.qalm, (1, 1, 2, 1.5, 0, 0, 1, 1, 0, "eccset/Nam_5_3_complete_ECC_set.json")),
+        (OptimizationType.qalm, (1, 1, 3, 1.5, 0, 0, 1, 1, 0, "eccset/Nam_5_3_complete_ECC_set.json")),
+        (OptimizationType.qalm, (1, 2, 1, 1.5, 0, 0, 1, 1, 0, "eccset/Nam_5_3_complete_ECC_set.json")),
+        (OptimizationType.qalm, (1, 2, 2, 1.5, 0, 0, 1, 1, 0, "eccset/Nam_5_3_complete_ECC_set.json")),
+        (OptimizationType.qalm, (1, 2, 3, 1.5, 0, 0, 1, 1, 0, "eccset/Nam_5_3_complete_ECC_set.json")),
+        (OptimizationType.qalm, (1, 3, 1, 1.5, 0, 0, 1, 1, 0, "eccset/Nam_5_3_complete_ECC_set.json")),
+        (OptimizationType.qalm, (1, 3, 2, 1.5, 0, 0, 1, 1, 0, "eccset/Nam_5_3_complete_ECC_set.json")),
+        (OptimizationType.qalm, (1, 3, 3, 1.5, 0, 0, 1, 1, 0, "eccset/Nam_5_3_complete_ECC_set.json")),
+
+        (OptimizationType.qalm, (2, 1, 1, 1.5, 0, 0, 1, 1, 0, "eccset/Nam_5_3_complete_ECC_set.json")),
+        (OptimizationType.qalm, (2, 1, 2, 1.5, 0, 0, 1, 1, 0, "eccset/Nam_5_3_complete_ECC_set.json")),
+        (OptimizationType.qalm, (2, 1, 3, 1.5, 0, 0, 1, 1, 0, "eccset/Nam_5_3_complete_ECC_set.json")),
+        (OptimizationType.qalm, (2, 2, 1, 1.5, 0, 0, 1, 1, 0, "eccset/Nam_5_3_complete_ECC_set.json")),
+        (OptimizationType.qalm, (2, 2, 2, 1.5, 0, 0, 1, 1, 0, "eccset/Nam_5_3_complete_ECC_set.json")),
+        (OptimizationType.qalm, (2, 2, 3, 1.5, 0, 0, 1, 1, 0, "eccset/Nam_5_3_complete_ECC_set.json")),
+        (OptimizationType.qalm, (2, 3, 1, 1.5, 0, 0, 1, 1, 0, "eccset/Nam_5_3_complete_ECC_set.json")),
+        (OptimizationType.qalm, (2, 3, 2, 1.5, 0, 0, 1, 1, 0, "eccset/Nam_5_3_complete_ECC_set.json")),
+        (OptimizationType.qalm, (2, 3, 3, 1.5, 0, 0, 1, 1, 0, "eccset/Nam_5_3_complete_ECC_set.json")),
+
+        (OptimizationType.qalm, (3, 1, 1, 1.5, 0, 0, 1, 1, 0, "eccset/Nam_5_3_complete_ECC_set.json")),
+        (OptimizationType.qalm, (3, 1, 2, 1.5, 0, 0, 1, 1, 0, "eccset/Nam_5_3_complete_ECC_set.json")),
+        (OptimizationType.qalm, (3, 1, 3, 1.5, 0, 0, 1, 1, 0, "eccset/Nam_5_3_complete_ECC_set.json")),
+        (OptimizationType.qalm, (3, 2, 1, 1.5, 0, 0, 1, 1, 0, "eccset/Nam_5_3_complete_ECC_set.json")),
+        (OptimizationType.qalm, (3, 2, 2, 1.5, 0, 0, 1, 1, 0, "eccset/Nam_5_3_complete_ECC_set.json")),
+        (OptimizationType.qalm, (3, 2, 3, 1.5, 0, 0, 1, 1, 0, "eccset/Nam_5_3_complete_ECC_set.json")),
+        (OptimizationType.qalm, (3, 3, 1, 1.5, 0, 0, 1, 1, 0, "eccset/Nam_5_3_complete_ECC_set.json")),
+        (OptimizationType.qalm, (3, 3, 2, 1.5, 0, 0, 1, 1, 0, "eccset/Nam_5_3_complete_ECC_set.json")),
+        (OptimizationType.qalm, (3, 3, 3, 1.5, 0, 0, 1, 1, 0, "eccset/Nam_5_3_complete_ECC_set.json")),
+
+
+        (OptimizationType.qalm, (3, 3, 3, 1.5, 0, 0, 1, 1, 0, "eccset/Nam_6_3_complete_ECC_set.json")),
+        (OptimizationType.qalm, (3, 3, 3, 1.5, 0, 0, 1, 1, 1, "eccset/Nam_5_3_complete_ECC_set.json")),
+        (OptimizationType.qalm, (3, 3, 3, 1.5, 0, 0, 1, 1, 1, "eccset/Nam_6_3_complete_ECC_set.json")),
 
     ]
 
     graph_labels = [
-        "Vanilla 5% (5,3)",
-        "Vanilla 5% (6,3)",
-        "Vanilla 5% (5,3) 2-way",
-        "Vanilla 5% (6,3) 2-way",
+        # "Vanilla 5% (5,3)",
+        # "Vanilla 5% (6,3)",
+        # "Vanilla 5% (5,3) 2-way",
+        # "Vanilla 5% (6,3) 2-way",
         # "Greedy+Roqc",
-        "Greedy, Roqc interval = 1 (6,3) 2-way",
+        # "Greedy, Roqc interval = 1 (6,3) 2-way",
         # "Greedy, Roqc interval = 1",
         # "Roqc interval = 5",
         # "Roqc interval = 10",
@@ -243,8 +275,8 @@ def run_experiments():
         # "Init10, Gen10, Steps10, Rep_tol1.5, exp_incr",
         # "Init10, Gen10, Steps10, Rep_tol1.5, no_incr",
         # "Init10, Gen10, Steps10, Rep_tol1.5, exp_incr+no_incr",
-        "Greedy, Init2, Gen2, Steps2, Rep_tol1.5, no_incr (6,3) 2-way",
-        "Greedy, Init2, Gen2, Steps2, Rep_tol1.5, exp_incr+no_incr (6,3) 2-way",
+        # "Greedy, Init2, Gen2, Steps2, Rep_tol1.5, no_incr (6,3) 2-way",
+        # "Greedy, Init2, Gen2, Steps2, Rep_tol1.5, exp_incr+no_incr (6,3) 2-way",
         # "Local, no_incr",
         # "Local, exp_incr+no_incr",
         # "Greedy, Init10, Gen10, Steps4, Rep_tol1.5, Local, no_incr",
@@ -261,29 +293,47 @@ def run_experiments():
         # "Greedy, All xfers, Local, exp_incr",
         # "Greedy, Init10, Gen10, Steps3, Rep_tol1.5, Local, All xfers",
         # "Greedy, Init10, Gen10, Steps3, Rep_tol1.5, Local, exp_incr+All xfers",
-        "Greedy, Init2, Gen2, Steps2, Rep_tol1.5, Local, All xfers (5,3)",
-        "Greedy, Init2, Gen2, Steps2, Rep_tol1.5, Local, All xfers (6,3)",
-        "Greedy, Init2, Gen2, Steps2, Rep_tol1.5, Local, All xfers (5,3) 2-way",
-        "Greedy, Init2, Gen2, Steps2, Rep_tol1.5, Local, All xfers (6,3) 2-way",
-        "Greedy, Init2, Gen2, Steps2, Rep_tol1.5, Local, exp_incr+All xfers (6,3) 2-way",
+        # "Greedy, Init2, Gen2, Steps2, Rep_tol1.5, Local, All xfers (5,3)",
+        # "Greedy, Init2, Gen2, Steps2, Rep_tol1.5, Local, All xfers (6,3)",
+        # "Greedy, Init2, Gen2, Steps2, Rep_tol1.5, Local, All xfers (5,3) 2-way",
+        # "Greedy, Init2, Gen2, Steps2, Rep_tol1.5, Local, All xfers (6,3) 2-way",
+        # "Greedy, Init2, Gen2, Steps2, Rep_tol1.5, Local, exp_incr+All xfers (6,3) 2-way",
         # "Greedy, All xfers, Local",
         # "Greedy, All xfers, Local, exp_incr",
 
-        "I1, G1, E1, ECC_5_3",
-        "I1, G1, E2, ECC_5_3",
-        "I1, G1, E3, ECC_5_3",
-        "I1, G2, E1, ECC_5_3",
-        "I1, G3, E1, ECC_5_3",
-        "I2, G1, E1, ECC_5_3",
-        "I3, G1, E1, ECC_5_3",
+        "I1, G1, E1, ECC_5_3, all_xfers, local, greedy, 5_3",
+        "I1, G1, E2, ECC_5_3, all_xfers, local, greedy, 5_3",
+        "I1, G1, E3, ECC_5_3, all_xfers, local, greedy, 5_3",
+        "I1, G2, E1, ECC_5_3, all_xfers, local, greedy, 5_3",
+        "I1, G2, E2, ECC_5_3, all_xfers, local, greedy, 5_3",
+        "I1, G2, E3, ECC_5_3, all_xfers, local, greedy, 5_3",
+        "I1, G3, E1, ECC_5_3, all_xfers, local, greedy, 5_3",
+        "I1, G3, E2, ECC_5_3, all_xfers, local, greedy, 5_3",
+        "I1, G3, E3, ECC_5_3, all_xfers, local, greedy, 5_3",
 
-        "I1, G1, E1, ECC_6_3",
-        "I1, G1, E2, ECC_6_3",
-        "I1, G1, E3, ECC_6_3",
-        "I1, G2, E1, ECC_6_3",
-        "I1, G3, E1, ECC_6_3",
-        "I2, G1, E1, ECC_6_3",
-        "I3, G1, E1, ECC_6_3",
+        "I2, G1, E1, ECC_5_3, all_xfers, local, greedy, 5_3",
+        "I2, G1, E2, ECC_5_3, all_xfers, local, greedy, 5_3",
+        "I2, G1, E3, ECC_5_3, all_xfers, local, greedy, 5_3",
+        "I2, G2, E1, ECC_5_3, all_xfers, local, greedy, 5_3",
+        "I2, G2, E2, ECC_5_3, all_xfers, local, greedy, 5_3",
+        "I2, G2, E3, ECC_5_3, all_xfers, local, greedy, 5_3",
+        "I2, G3, E1, ECC_5_3, all_xfers, local, greedy, 5_3",
+        "I2, G3, E2, ECC_5_3, all_xfers, local, greedy, 5_3",
+        "I2, G3, E3, ECC_5_3, all_xfers, local, greedy, 5_3",
+
+        "I3, G1, E1, ECC_5_3, all_xfers, local, greedy, 5_3",
+        "I3, G1, E2, ECC_5_3, all_xfers, local, greedy, 5_3",
+        "I3, G1, E3, ECC_5_3, all_xfers, local, greedy, 5_3",
+        "I3, G2, E1, ECC_5_3, all_xfers, local, greedy, 5_3",
+        "I3, G2, E2, ECC_5_3, all_xfers, local, greedy, 5_3",
+        "I3, G2, E3, ECC_5_3, all_xfers, local, greedy, 5_3",
+        "I3, G3, E1, ECC_5_3, all_xfers, local, greedy, 5_3",
+        "I3, G3, E2, ECC_5_3, all_xfers, local, greedy, 5_3",
+        "I3, G3, E3, ECC_5_3, all_xfers, local, greedy, 5_3",
+
+        "I3, G3, E3, ECC_5_3, all_xfers, local, greedy, 6_3",
+        "I3, G3, E3, ECC_5_3, all_xfers, local, greedy, two_way, 5_3",
+        "I3, G3, E3, ECC_5_3, all_xfers, local, greedy, two_way, 6_3",
     ]
 
     # voqc_avg = 0
@@ -300,17 +350,17 @@ def run_experiments():
         try:
             with open(f"pickled_results/{circuit[1]}_{timeout}_results.pkl", "rb") as f:
                 results = pickle.load(f)
-            for experiment in experiments[5:]:
-                p = experiment[1]
-                with open(f"pickled_results/{circuit[1]}_{timeout}_{p[0]}_{p[1]}_{p[2]}_{p[3]}_{p[4]}_{p[5]}_{p[6]}_{p[7]}_time_benchmark.pkl", "rb") as f:
-                    circuit_roqc_time, circuit_explore_time, circuit_pool_gen_time = pickle.load(f)
-                    roqc_time += circuit_roqc_time
-                    explore_time += circuit_explore_time
-                    pool_gen_time += circuit_pool_gen_time
+            # for experiment in experiments[5:]:
+            #     p = experiment[1]
+            #     with open(f"pickled_results/{circuit[1]}_{timeout}_{p[0]}_{p[1]}_{p[2]}_{p[3]}_{p[4]}_{p[5]}_{p[6]}_{p[7]}_time_benchmark.pkl", "rb") as f:
+            #         circuit_roqc_time, circuit_explore_time, circuit_pool_gen_time = pickle.load(f)
+            #         roqc_time += circuit_roqc_time
+            #         explore_time += circuit_explore_time
+            #         pool_gen_time += circuit_pool_gen_time
 
 
         except:
-            with multiprocessing.Pool(7) as pool:
+            with multiprocessing.Pool(32) as pool:
                 results = pool.map(tester, arguments)
 
         if validate:
@@ -438,7 +488,7 @@ def run_quartz(filename, circuit_name, timeout, roqc_interval, greedy_start, two
 
     final_results = (times, costs)
 
-    with open(f"comparison_results/{circuit_name}/interval_{roqc_interval}_result.qasm", 'w') as f:
+    with open(f"comparison_results/{circuit_name}/interval_{roqc_interval}_{greedy_start}_{two_way_rm}_{eccset}_result.qasm", 'w') as f:
         f.truncate(0)
         f.write(circuit_string)
 
@@ -483,12 +533,12 @@ def run_qalm(filename, circuit_name, timeout, initial_pool_size, exploration_poo
 
     final_results = (times, costs)
 
-    with open(f"pickled_results/{circuit_name}_{timeout}_{initial_pool_size}_{exploration_pool_size}_{exploration_steps}_{repeat_tolerance}_{exploration_increase}_{no_increase}_{only_do_local_transformations}_{greedy_start}_time_benchmark.pkl", 'wb') as f:
+    with open(f"pickled_results/{circuit_name}_{timeout}_{initial_pool_size}_{exploration_pool_size}_{exploration_steps}_{repeat_tolerance}_{exploration_increase}_{no_increase}_{only_do_local_transformations}_{greedy_start}_{two_way_rm}_{eccset}_time_benchmark.pkl", 'wb') as f:
         f.truncate(0)
         pickle.dump((circuit_roqc_time, circuit_explore_time, circuit_pool_gen_time), f)
 
 
-    with open(f"comparison_results/{circuit_name}/{timeout}_{initial_pool_size}_{exploration_pool_size}_{exploration_steps}_{repeat_tolerance}_{exploration_increase}_{no_increase}_{only_do_local_transformations}_{greedy_start}_result.qasm", 'w') as f:
+    with open(f"comparison_results/{circuit_name}/{timeout}_{initial_pool_size}_{exploration_pool_size}_{exploration_steps}_{repeat_tolerance}_{exploration_increase}_{no_increase}_{only_do_local_transformations}_{greedy_start}_{two_way_rm}_{eccset}_result.qasm", 'w') as f:
         f.truncate(0)
         f.write(circuit_string)
 
