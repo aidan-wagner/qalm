@@ -2,6 +2,7 @@ import json
 import csv
 from qiskit import QuantumCircuit
 import matplotlib.pyplot as plt
+import os
 
 def process_results():
     circuit_list = []
@@ -61,9 +62,9 @@ def process_results():
         csv_writer.writerow(original_lengths)
         csv_writer.writerows(all_data)
 
-    graph_circuit_comparisons(circuit_list, total_results, original_lengths[1:])
+    graph_guoq_queso_comparison(circuit_list, total_results, original_lengths[1:])
 
-def graph_circuit_comparisons(circuit_list, total_results, initial_lengths):
+def graph_best_comparisons(circuit_list, total_results, initial_lengths):
     # (circuit_name best_qalm, best_other)
     circuit_bests = []
     qalm_args_list = []
@@ -89,33 +90,75 @@ def graph_circuit_comparisons(circuit_list, total_results, initial_lengths):
             if total_results[bench][circuit_index] < total_results[best_bench][circuit_index]:
                 best_bench = bench
 
-        circuit_bests.append((circuit_list[circuit_index], (float(total_results[best_bench][circuit_index]) -  float(total_results[best_qalm_args][circuit_index])) / float(initial_lengths[circuit_index])))
+        circuit_bests.append((circuit_list[circuit_index], float(total_results[best_bench][circuit_index]) /  float(total_results[best_qalm_args][circuit_index])))
 
     circuit_bests.sort(key= lambda result: result[1])
 
     # plt.plot(circuit_bests)
-    plt.plot(list(zip(*circuit_bests))[0], list(zip(*circuit_bests))[1])
+    plt.plot(list(zip(*circuit_bests))[0], list(zip(*circuit_bests))[1], label="QALM gate count divided by best other method gate count")
+    plt.plot(list(zip(*circuit_bests))[0], [1] * len(circuit_bests), label="1.00")
     plt.xticks(rotation=90)
     plt.title("Difference in circuit length reduction")
-    plt.ylabel("QALM % - Comparison %")
     plt.tight_layout()
+    plt.legend()
     plt.show()
 
 
+def graph_guoq_queso_comparison(circuit_list, total_results, initial_lengths):
+    experiment_wins = {}
+    for experiment in total_results.keys():
+        if "600" not in experiment:
+            continue
 
+        experiment_wins[experiment] = 0
+
+        for circuit_index in range(len(circuit_list)):
+            if total_results[experiment][circuit_index] < total_results["queso_results"][circuit_index]:
+                experiment_wins[experiment] = experiment_wins[experiment] + 1
+            if total_results[experiment][circuit_index] < total_results["guoq_results"][circuit_index]:
+                experiment_wins[experiment] = experiment_wins[experiment] + 1
+
+    best_experiment = ""
+    best_wins = -1
+
+    for experiment in total_results.keys():
+        if "600" not in experiment:
+            continue
+
+        if experiment_wins[experiment] > best_wins:
+            best_experiment = experiment
+            best_wins = experiment_wins[experiment]
+    print("Best experiment is: ", best_experiment)
+
+    queso_comp = [(circuit_list[i], float(total_results["queso_results"][i]) / float(total_results[best_experiment][i])) for i in range(len(circuit_list))]
+    guoq_comp = [(circuit_list[i], float(total_results["guoq_results"][i]) / float(total_results[best_experiment][i])) for i in range(len(circuit_list))]
+
+    queso_comp.sort(key= lambda result: result[1])
+    guoq_comp.sort(key= lambda result: result[1])
+
+    # plt.plot(circuit_bests)
+    plt.plot(list(zip(*queso_comp))[0], list(zip(*queso_comp))[1], label="QALM gate count divided by QUESO gate count")
+    plt.plot(list(zip(*queso_comp))[0], [1] * len(queso_comp), label="1.00")
+    plt.xticks(rotation=90)
+    plt.title("Difference in circuit length reduction")
+    plt.tight_layout()
+    plt.legend()
+    plt.savefig("queso_comp.pdf", format="pdf")
+
+    plt.clf()
+
+    plt.plot(list(zip(*guoq_comp))[0], list(zip(*guoq_comp))[1], label="QALM gate count divided by GUOQ gate count")
+    plt.plot(list(zip(*guoq_comp))[0], [1] * len(guoq_comp), label="1.00")
+    plt.xticks(rotation=90)
+    plt.title("Difference in circuit length reduction")
+    plt.tight_layout()
+    plt.legend()
+    plt.savefig("guoq_comp.pdf", format="pdf")
 
 
 # These results come from own experiments
 def parse_qalm(circuit_name):
-    prefixes = [
-        # "600_1_1_1_1.5_0_0_0_0",
-        # "600_1_1_2_1.5_0_0_0_0",
-        # "600_1_1_3_1.5_0_0_0_0",
-        # "600_1_2_1_1.5_0_0_0_0",
-        # "600_1_3_1_1.5_0_0_0_0",
-        # "600_2_1_1_1.5_0_0_0_0",
-        "600_3_1_1_1.5_0_0_0_0",
-    ]
+    prefixes = [file[:-12] for file in os.listdir("fresh_results/qalm_bench/nam/qalm/adder_8")]
     for prefix in prefixes:
         c = QuantumCircuit.from_qasm_file(f"fresh_results/qalm_bench/nam/qalm/{circuit_name}/{prefix}_result.qasm")
         yield (prefix, str(c.size()))
