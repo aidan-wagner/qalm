@@ -111,23 +111,28 @@ int main(int argc, char **argv) {
   }
 
   std::shared_ptr<Graph> graph;
-  if (input_fn.find("nam-benchmarks") != input_fn.npos) {
-    Context src_ctx({GateType::h, GateType::ccz, GateType::x, GateType::cx,
-                     GateType::input_qubit, GateType::input_param},
-                    &param_info);
-    auto union_ctx = union_contexts(&src_ctx, &ctx);
-    auto xfer_pair = GraphXfer::ccz_cx_rz_xfer(&src_ctx, &ctx, &union_ctx);
+  std::shared_ptr<Graph> g;
+  std::unique_ptr<Context> src_ctx;
+  std::unique_ptr<Context> union_ctx;
+  if (input_fn.find(std::string("nam-benchmarks")) != input_fn.npos) {
+    src_ctx = std::make_unique<Context>(
+        Context({GateType::h, GateType::ccz, GateType::x, GateType::cx,
+                 GateType::input_qubit, GateType::input_param},
+                &param_info));
+    union_ctx = std::make_unique<Context>(union_contexts(src_ctx.get(), &ctx));
+    auto xfer_pair =
+        GraphXfer::ccz_cx_rz_xfer(src_ctx.get(), &ctx, union_ctx.get());
     // Load qasm file
-    QASMParser qasm_parser(&src_ctx);
+    QASMParser qasm_parser(src_ctx.get());
     CircuitSeq *dag = nullptr;
     if (!qasm_parser.load_qasm(input_fn, dag)) {
       std::cout << "Parser failed" << std::endl;
     }
-    Graph g(&src_ctx, dag);
+    g = std::make_shared<Graph>(src_ctx.get(), dag);
 
     // Greedy toffoli flip
     graph =
-        g.toffoli_flip_greedy(GateType::rz, xfer_pair.first, xfer_pair.second);
+        g->toffoli_flip_greedy(GateType::rz, xfer_pair.first, xfer_pair.second);
   } else {
     graph = Graph::from_qasm_file(&ctx, input_fn);
   }
