@@ -56,10 +56,10 @@ def validate_results():
     for circuit in circuit_list:
         all_files = os.listdir(circuit_prefix + circuit[1])
         for file in all_files:
-            if file[-5:] == ".qasm":
+            if file[-5:] == ".qasm" and "600_1_1_2_1.5_0_0_1_1_0_Nam_5_3" in file:
                 arguments.append((circuit_prefix + circuit[1] + "/" + file, circuit))
 
-    with multiprocessing.Pool(8) as pool:
+    with multiprocessing.Pool(4) as pool:
         pool.map(tester, arguments)
 
 if __name__ == '__main__':
