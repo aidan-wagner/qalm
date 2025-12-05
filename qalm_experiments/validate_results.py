@@ -4,7 +4,7 @@ import os
 import signal
 
 def timeout_handler(signum, frame):
-    print("Timeout occured")
+    raise Exception("Timeout")
 
 def tester(arguments):
 
@@ -13,14 +13,12 @@ def tester(arguments):
     circuit_name = arguments[1][1]
     new_circuit_path = arguments[0]
     original_circuit_path = "~/Quantum/qalm/" + arguments[1][0]
-    signal.alarm(60*10)
-    try:
-        if monte_carlo_compare_by_filename(original_circuit_path, new_circuit_path):
-            print(f"Test Passed for {circuit_name} on {new_circuit_path}")
-        else:
-            print(f"!!!!!!!!!!!!!!!! FAILURE for {circuit_name} on {new_circuit_path} !!!!!!!!!!!!!!!!!!!!!")
-    except:
-        pass
+    print(f"Testing result for {circuit_name}")
+    signal.alarm(60*60)
+    if monte_carlo_compare_by_filename(original_circuit_path, new_circuit_path):
+        print(f"Test Passed for {circuit_name} on {new_circuit_path}")
+    else:
+        print(f"!!!!!!!!!!!!!!!! FAILURE for {circuit_name} on {new_circuit_path} !!!!!!!!!!!!!!!!!!!!!")
 
 def validate_results():
     circuit_list = [("circuit/nam_circs/adder_8.qasm", "adder_8"),
@@ -58,9 +56,14 @@ def validate_results():
         for file in all_files:
             if file[-5:] == ".qasm" and "600_1_1_2_1.5_0_0_1_1_0_Nam_5_3" in file:
                 arguments.append((circuit_prefix + circuit[1] + "/" + file, circuit))
+    for argument in arguments:
+        try:
+            tester(argument)
+        except:
+            print(f"Timeout for {argument}")
 
-    with multiprocessing.Pool(4) as pool:
-        pool.map(tester, arguments)
+    # with multiprocessing.Pool(4) as pool:
+     #    pool.map(tester, arguments)
 
 if __name__ == '__main__':
     validate_results()

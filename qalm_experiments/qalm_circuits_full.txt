@@ -4,6 +4,7 @@ circuit/nam_circs/barenco_tof_4.qasm
 circuit/nam_circs/barenco_tof_5.qasm
 circuit/nam_circs/barenco_tof_10.qasm
 circuit/nam_circs/csla_mux_3.qasm
+circuit/nam_circs/csum_mux_9.qasm
 circuit/nam_circs/gf2^4_mult.qasm
 circuit/nam_circs/gf2^5_mult.qasm
 circuit/nam_circs/gf2^6_mult.qasm
