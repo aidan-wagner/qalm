@@ -315,6 +315,15 @@ class Graph {
            const int roqc_interval = 0,
            const bool two_way_rotation_merging = false);
 
+  std::shared_ptr<Graph>
+  optimize_original(const std::vector<GraphXfer *> &xfers, double cost_upper_bound,
+           const std::string &circuit_name, const std::string &log_file_name,
+           bool print_message,
+           std::function<float(Graph *)> cost_function = nullptr,
+           double timeout = 3600 /*1 hour*/,
+           const std::string &store_all_steps_file_prefix = std::string(),
+           bool continue_storing_all_steps = false);
+
   std::shared_ptr<Graph> optimize_qalm(
       const std::vector<GraphXfer *> &xfers, double cost_upper_bound,
       const std::string &circuit_name, const std::string &log_file_name,

@@ -173,17 +173,7 @@ int main(int argc, char **argv) {
 
   auto graph_optimized = graph->optimize_qalm(
       xfers, graph->gate_count() * 1.05, circuit_name, "", true, nullptr,
-      timeout,
-      kQuartzRootPath.string() + "/benchmark-logs/" + circuit_name +
-          "_timeout_" + std::to_string(timeout) + "_init_pool_" +
-          std::to_string(initial_pool_size) + "_exp_pool_" +
-          std::to_string(exploration_pool_size) + "_exp_steps_" +
-          std::to_string(exploration_steps) + "_exp_increase_" +
-          std::to_string(exploration_increase) + "_no_increase_" +
-          std::to_string(strictly_reducing_rules) +
-          "_only_do_local_transformations_" +
-          std::to_string(only_do_local_transformations) + "_",
-      preprocess, start, initial_pool_size, exploration_pool_size,
+      timeout, "", preprocess, start, initial_pool_size, exploration_pool_size,
       exploration_steps, repeat_tolerance, exploration_increase,
       only_do_local_transformations, two_way_rotation_merging);
   std::cout << "Optimized graph:" << std::endl;

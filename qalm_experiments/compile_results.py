@@ -14,9 +14,9 @@ def process_results():
     # total_results["voqc_results"] = []
     # total_results["qiskit_results"] = []
     total_results["guoq_results"] = []
-    total_results["queso_results"] = []
+    # total_results["queso_results"] = []
     total_2q["guoq_results"] = []
-    total_2q["queso_results"] = []
+    # total_2q["queso_results"] = []
     # total_results["repeated_roqc_results"] = []
 
     with open("../qalm/qalm_experiments/qalm_circuits_full.txt", "r") as f:
@@ -26,9 +26,13 @@ def process_results():
     results_file_2q = "10_min_qalm_bench_results_2q.csv"
 
     original_lengths = []
+    original_2q = []
 
     for circuit in circuit_list:
+        print(circuit)
         original_lengths.append(str(QuantumCircuit.from_qasm_file(f"../qalm/circuit/nam_circs/{circuit}.qasm").size()))
+        original_2q.append(str(QuantumCircuit.from_qasm_file(f"../qalm/circuit/nam_circs/{circuit}.qasm").count_ops()["cx"]))
+
 
         for res in parse_qalm(circuit):
             if ((res[0] + "_results") not in total_results.keys()):
@@ -37,7 +41,7 @@ def process_results():
             total_results[res[0] + "_results"].append(res[1])
             total_2q[res[0] + "_results"].append(res[2])
 
-        r_queso = parse_queso(circuit)
+        # r_queso = parse_queso(circuit)
         r_guoq = parse_guoq(circuit)
         # r_qiskit = parse_qiskit(circuit)
         # r_voqc = parse_voqc(circuit)
@@ -45,9 +49,9 @@ def process_results():
 
         # total_results["qiskit_results"].append(r_qiskit)
         total_results["guoq_results"].append(r_guoq[0])
-        total_results["queso_results"].append(r_queso[0])
+        # total_results["queso_results"].append(r_queso[0])
         total_2q["guoq_results"].append(r_guoq[1])
-        total_2q["queso_results"].append(r_queso[1])
+        # total_2q["queso_results"].append(r_queso[1])
         # total_results["voqc_results"].append(r_voqc)
         # total_results["repeated_roqc_results"].append(r_repeated_roqc)
 
@@ -58,6 +62,9 @@ def process_results():
 
     # Put original gate count in:
     original_lengths = ["initial"] + original_lengths
+    original_2q = ["initial"] + original_2q
+    print(original_lengths)
+    print(original_2q)
 
     for opt_method in opt_order:
         opt_data = [opt_method]
@@ -82,10 +89,10 @@ def process_results():
     with open(results_file_2q, 'w') as r_out:
         csv_writer = csv.writer(r_out)
         csv_writer.writerow(fields)
-        csv_writer.writerow(original_lengths)
+        csv_writer.writerow(original_2q)
         csv_writer.writerows(all_data)
 
-    graph_guoq_queso_comparison(circuit_list, total_results, original_lengths[1:])
+    # graph_guoq_queso_comparison(circuit_list, total_results, original_lengths[1:])
     graph_guoq_queso_comparison_2q(circuit_list, total_2q, original_lengths[1:])
 
 def graph_best_comparisons(circuit_list, total_results, initial_lengths):
@@ -190,7 +197,7 @@ def graph_guoq_queso_comparison_2q(circuit_list, total_results, initial_lengths)
         experiment_wins[experiment] = 0
 
         for circuit_index in range(len(circuit_list)):
-            if total_results[experiment][circuit_index] < total_results["queso_results"][circuit_index]:
+            if total_results[experiment][circuit_index] < total_results["guoq_results"][circuit_index]:
                 experiment_wins[experiment] = experiment_wins[experiment] + 1
             if total_results[experiment][circuit_index] < total_results["guoq_results"][circuit_index]:
                 experiment_wins[experiment] = experiment_wins[experiment] + 1
@@ -207,7 +214,7 @@ def graph_guoq_queso_comparison_2q(circuit_list, total_results, initial_lengths)
             best_wins = experiment_wins[experiment]
     print("Best experiment is: ", best_experiment)
 
-    queso_comp = [(circuit_list[i], float(total_results["queso_results"][i]) / float(total_results[best_experiment][i])) for i in range(len(circuit_list))]
+    queso_comp = [(circuit_list[i], float(total_results["guoq_results"][i]) / float(total_results[best_experiment][i])) for i in range(len(circuit_list))]
     guoq_comp = [(circuit_list[i], float(total_results["guoq_results"][i]) / float(total_results[best_experiment][i])) for i in range(len(circuit_list))]
 
     queso_comp.sort(key= lambda result: result[1])

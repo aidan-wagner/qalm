@@ -12,6 +12,7 @@ import equiv_verification
 class OptimizationType(Enum):
     roqc_interval = 1
     qalm = 2
+    quartz = 3
 
 def tester(arguments):
     opt_type = arguments[0]
@@ -19,8 +20,16 @@ def tester(arguments):
         return roqc_interval_tester(arguments[1])
     elif opt_type == OptimizationType.qalm:
         return qalm_tester(arguments[1])
+    elif opt_type == OptimizationType.quartz:
+        return quartz_tester(arguments[1])
     else:
         print("whoops")
+
+def quartz_tester(arguments):
+    filename = arguments[0]
+    circuit_name = arguments[1]
+    timeout = arguments[2]
+    return run_original(filename, circuit_name, timeout)
 
 def roqc_interval_tester(arguments):
     filename = arguments[0]
@@ -30,7 +39,7 @@ def roqc_interval_tester(arguments):
     greedy_start = arguments[4]
     two_way_rm = arguments[5]
     eccset = "eccset/RZ_RX_RY_H_CX_4_3_complete_ECC_set.json" if "../.." in circuit_name else arguments[6]
-    return run_quartz(filename, circuit_name, timeout, roqc_interval, greedy_start, two_way_rm, eccset)
+    return run_interval(filename, circuit_name, timeout, roqc_interval, greedy_start, two_way_rm, eccset)
 
 def qalm_tester(arguments):
     filename = arguments[0]
@@ -63,7 +72,7 @@ def run_experiments():
     explore_time = 0.0
     pool_gen_time = 0.0
 
-    timeout = 60 * 1
+    timeout = 60 * 60
     circuit_list = [("circuit/nam_circs/adder_8.qasm", "adder_8"),
                     ("circuit/nam_circs/barenco_tof_3.qasm", "barenco_tof_3"),
                     ("circuit/nam_circs/barenco_tof_4.qasm", "barenco_tof_4"),
@@ -105,25 +114,21 @@ def run_experiments():
                     ]
 
     experiments = [
-        (OptimizationType.qalm, (1, 1, 2, 1.5, 0, 0, 1, 1, 0, "eccset/Nam_5_3_complete_ECC_set.json")),
-        # (OptimizationType.qalm, (1, 1, 3, 1.5, 0, 0, 1, 1, 0, "eccset/Nam_5_3_complete_ECC_set.json")),
-        # (OptimizationType.qalm, (1, 2, 2, 1.5, 0, 0, 1, 1, 0, "eccset/Nam_5_3_complete_ECC_set.json")),
-        # (OptimizationType.qalm, (1, 3, 2, 1.5, 0, 0, 1, 1, 0, "eccset/Nam_5_3_complete_ECC_set.json")),
-        # (OptimizationType.qalm, (2, 1, 2, 1.5, 0, 0, 1, 1, 0, "eccset/Nam_5_3_complete_ECC_set.json")),
-        # (OptimizationType.qalm, (3, 1, 2, 1.5, 0, 0, 1, 1, 0, "eccset/Nam_5_3_complete_ECC_set.json")),
-        # (OptimizationType.qalm, (2, 2, 2, 1.5, 0, 0, 1, 1, 0, "eccset/Nam_5_3_complete_ECC_set.json")),
-        # (OptimizationType.qalm, (3, 3, 3, 1.5, 0, 0, 1, 1, 0, "eccset/Nam_5_3_complete_ECC_set.json")),
+        (OptimizationType.quartz, (0,)),
+        (OptimizationType.qalm, (1, 1, 2, 1.5, 0, 0, 1, 1, 1, "eccset/Nam_5_3_complete_ECC_set.json")),
+        (OptimizationType.qalm, (2, 1, 2, 1.5, 0, 0, 1, 1, 1, "eccset/Nam_5_3_complete_ECC_set.json")),
+        (OptimizationType.qalm, (3, 1, 2, 1.5, 0, 0, 1, 1, 1, "eccset/Nam_5_3_complete_ECC_set.json")),
+        (OptimizationType.qalm, (1, 2, 2, 1.5, 0, 0, 1, 1, 1, "eccset/Nam_5_3_complete_ECC_set.json")),
+        (OptimizationType.qalm, (1, 3, 2, 1.5, 0, 0, 1, 1, 1, "eccset/Nam_5_3_complete_ECC_set.json")),
     ]
 
     graph_labels = [
-        "I1, G1, E2, ECC_5_3, all_xfers, local, greedy, 5_3",
-        # "I1, G1, E3, ECC_5_3, all_xfers, local, greedy, 5_3",
-        # "I1, G2, E2, ECC_5_3, all_xfers, local, greedy, 5_3",
-        # "I1, G3, E2, ECC_5_3, all_xfers, local, greedy, 5_3",
-        # "I2, G1, E2, ECC_5_3, all_xfers, local, greedy, 5_3",
-        # "I3, G1, E2, ECC_5_3, all_xfers, local, greedy, 5_3",
-        # "I2, G2, E2, ECC_5_3, all_xfers, local, greedy, 5_3",
-        # "I3, G3, E3, ECC_5_3, all_xfers, local, greedy, 5_3",
+        "Quartz",
+        "I1, G1, E2, ECC_5_3, all_xfers, local, greedy, two_way, 5_3",
+        "I2, G1, E2, ECC_5_3, all_xfers, local, greedy, two_way, 5_3",
+        "I3, G1, E2, ECC_5_3, all_xfers, local, greedy, two_way, 5_3",
+        "I1, G2, E2, ECC_5_3, all_xfers, local, greedy, two_way, 5_3",
+        "I1, G3, E2, ECC_5_3, all_xfers, local, greedy, two_way, 5_3",
     ]
 
     # voqc_avg = 0
@@ -140,12 +145,18 @@ def run_experiments():
 
         arguments += [(experiment[0], (circuit[0], circuit[1], timeout) + experiment[1]) for experiment in experiments]
 
-    with multiprocessing.Pool(14) as pool:
+    with multiprocessing.Pool(32) as pool:
         raw_results = pool.map(tester, arguments)
 
     with open("pickled_results/raw_results.pkl", 'wb') as f:
         f.truncate(0)
         pickle.dump(raw_results, f)
+    with open("pickled_results/exp_params.pkl", 'wb') as f:
+        f.truncate(0)
+        pickle.dump(experiments, f)
+    with open("pickled_results/graph_labels.pkl", 'wb') as f:
+        f.truncate(0)
+        pickle.dump(graph_labels, f)
 
 
 
@@ -248,9 +259,10 @@ def run_experiments():
     print("Percentage of time spent in Explore phase:", explore_time/total_runs)
     print("Percentage of time spent in Pool Gen phase:", pool_gen_time/total_runs)
 
-def run_quartz(filename, circuit_name, timeout, roqc_interval, greedy_start, two_way_rm, eccset):
+def run_interval(filename, circuit_name, timeout, roqc_interval, greedy_start, two_way_rm, eccset):
     ecc_name = eccset.split("/")[-1]
     result = subprocess.run(["./build/test_optimize", f"{filename}", f"{circuit_name}", f"{timeout}", f"{roqc_interval}", f"{greedy_start}", f"{two_way_rm}", f"{eccset}"], capture_output = True, text=True)
+    result_lines = result.stdout.splitlines()
     costs = []
     times = []
     circuit_found = False
@@ -271,6 +283,34 @@ def run_quartz(filename, circuit_name, timeout, roqc_interval, greedy_start, two
     final_results = (times, costs)
 
     with open(f"comparison_results/{circuit_name}/interval_{roqc_interval}_{greedy_start}_{two_way_rm}_{ecc_name}_result.qasm", 'w') as f:
+        f.truncate(0)
+        f.write(circuit_string)
+
+    return final_results
+
+def run_original(filename, circuit_name, timeout):
+    result = subprocess.run(["./build/test_original", f"{filename}", f"{circuit_name}", f"{timeout}"], capture_output = True, text=True)
+    result_lines = result.stdout.splitlines()
+    costs = []
+    times = []
+    circuit_found = False
+    circuit_string = ""
+    for line in result_lines:
+        words = line.split()
+        if words[0] == f"[{circuit_name}]":
+            best_cost = float(words[3])
+            time = float(words[8])
+            costs.append(best_cost)
+            times.append(time)
+
+        if words[0] == "OPENQASM":
+            circuit_found = True
+        if circuit_found:
+            circuit_string += (line + '\n')
+
+    final_results = (times, costs)
+
+    with open(f"comparison_results/{circuit_name}/quartz_result.qasm", 'w') as f:
         f.truncate(0)
         f.write(circuit_string)
 

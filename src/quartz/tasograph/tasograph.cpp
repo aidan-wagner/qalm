@@ -2684,6 +2684,192 @@ Graph::optimize(const std::vector<GraphXfer *> &xfers, double cost_upper_bound,
   return best_graph;
 }
 
+std::shared_ptr<Graph>
+Graph::optimize_original(const std::vector<GraphXfer *> &xfers, double cost_upper_bound,
+                const std::string &circuit_name,
+                const std::string &log_file_name, bool print_message,
+                std::function<float(Graph *)> cost_function, double timeout,
+                const std::string &store_all_steps_file_prefix,
+                bool continue_storing_all_steps) {
+  if (cost_function == nullptr) {
+    cost_function = [](Graph *graph) { return graph->total_cost(); };
+  }
+  auto start = std::chrono::steady_clock::now();
+  std::priority_queue<std::shared_ptr<Graph>,
+                      std::vector<std::shared_ptr<Graph>>, GraphCompare>
+      candidates((GraphCompare(cost_function)));
+  std::set<size_t> hashmap;
+  std::shared_ptr<Graph> best_graph(new Graph(*this));
+  auto best_cost = cost_function(this);
+
+  candidates.push(best_graph);
+  hashmap.insert(hash());
+
+  int invoke_cnt = 0;
+
+  FILE *fout = nullptr;
+  if (print_message) {
+    if (!log_file_name.empty()) {
+      fout = fopen(log_file_name.c_str(), "w");
+      assert(fout);
+    } else {
+      fout = stdout;
+    }
+  }
+
+  // Information necessary to store each step
+  std::unordered_map<Graph *, std::shared_ptr<Graph>> previous_graph;
+  int step_count = 0;
+  if (!store_all_steps_file_prefix.empty()) {
+    if (continue_storing_all_steps) {
+      std::ifstream fin(store_all_steps_file_prefix + ".txt");
+      assert(fin.is_open());
+      fin >> step_count;
+      fin.close();
+    } else {
+      to_qasm(store_all_steps_file_prefix + "0.qasm", /*print_result=*/false,
+              /*print_guid=*/false);
+    }
+  }
+
+  // TODO: make these numbers configurable
+  constexpr int kMaxNumCandidates = 2000;
+  constexpr int kShrinkToNumCandidates = 1000;
+
+  auto shrink_candidates = [&]() {
+    if (print_message) {
+      fprintf(fout, "%s: shrink the priority queue with %d candidates.\n",
+              circuit_name.c_str(), (int)candidates.size());
+    }
+    auto shrink_start = std::chrono::steady_clock::now();
+    std::priority_queue<std::shared_ptr<Graph>,
+                        std::vector<std::shared_ptr<Graph>>, GraphCompare>
+        new_candidates((GraphCompare(cost_function)));
+    std::map<float, int> cost_count;
+    while (!candidates.empty()) {
+      auto candidate = candidates.top();
+      cost_count[cost_function(candidate.get())]++;
+      if (new_candidates.size() < kShrinkToNumCandidates) {
+        new_candidates.push(candidate);
+      } else {
+        if (!store_all_steps_file_prefix.empty()) {
+          // no need to record history of removed graphs
+          previous_graph.erase(candidate.get());
+        }
+      }
+      candidates.pop();
+    }
+    std::swap(candidates, new_candidates);
+    auto shrink_end = std::chrono::steady_clock::now();
+    if (print_message) {
+      fprintf(
+          fout,
+          "%s: shrank the priority queue to %d candidates in %.3f seconds.\n",
+          circuit_name.c_str(), (int)candidates.size(),
+          (double)std::chrono::duration_cast<std::chrono::milliseconds>(
+              shrink_end - shrink_start)
+                  .count() /
+              1000.0);
+      for (auto &it : cost_count) {
+        fprintf(fout, "%d circuits have cost %.2f\n", it.second, it.first);
+      }
+      fflush(fout);
+    }
+  };
+
+  bool hit_timeout = false;
+  while (!candidates.empty()) {
+    auto graph = candidates.top();
+    candidates.pop();
+    std::vector<Op> all_nodes;
+    graph->topology_order_ops(all_nodes);
+    for (auto xfer : xfers) {
+      for (auto const &node : all_nodes) {
+        invoke_cnt++;
+        auto new_graph =
+            graph->apply_xfer(xfer, node, context->has_parameterized_gate());
+        auto end = std::chrono::steady_clock::now();
+        if ((double)std::chrono::duration_cast<std::chrono::milliseconds>(end -
+                                                                          start)
+                    .count() /
+                1000.0 >
+            timeout) {
+          std::cout << "Timeout. Program terminated. Best cost is " << best_cost
+                    << std::endl;
+          hit_timeout = true;
+          break;
+        }
+        if (new_graph == nullptr)
+          continue;
+
+        auto new_hash = new_graph->hash();
+        auto new_cost = cost_function(new_graph.get());
+        if (new_cost > cost_upper_bound)
+          continue;
+        if (hashmap.find(new_hash) != hashmap.end()) {
+          continue;
+        }
+        hashmap.insert(new_hash);
+        candidates.push(new_graph);
+        if (!store_all_steps_file_prefix.empty()) {
+          // record history
+          previous_graph[new_graph.get()] = graph;
+        }
+        if (candidates.size() > kMaxNumCandidates) {
+          shrink_candidates();
+        }
+        if (new_cost < best_cost) {
+          best_cost = new_cost;
+          best_graph = new_graph;
+        }
+      }
+      if (hit_timeout) {
+        break;
+      }
+    }
+    if (hit_timeout) {
+      break;
+    }
+
+    auto end = std::chrono::steady_clock::now();
+    if (print_message) {
+      fprintf(
+          fout,
+          "[%s] Best cost: %f\tcandidate number: %zu\tafter %.3f seconds.\n",
+          circuit_name.c_str(), best_cost, candidates.size(),
+          (double)std::chrono::duration_cast<std::chrono::milliseconds>(end -
+                                                                        start)
+                  .count() /
+              1000.0);
+      fflush(fout);
+    }
+  }
+
+  if (!store_all_steps_file_prefix.empty()) {
+    std::vector<Graph *> steps(1, best_graph.get());
+    while (previous_graph.count(steps.back()) > 0) {
+      // there is a previous graph
+      steps.push_back(previous_graph[steps.back()].get());
+    }
+    // no need to save the initial graph again
+    for (int i = (int)steps.size() - 2; i >= 0; i--) {
+      step_count++;
+      steps[i]->to_qasm(store_all_steps_file_prefix +
+                            std::to_string(step_count) + ".qasm",
+                        /*print_result=*/false,
+                        /*print_guid=*/false);
+    }
+
+    // Store the number of steps.
+    std::ofstream fout_step(store_all_steps_file_prefix + ".txt");
+    fout_step << step_count << std::endl;
+    fout_step.close();
+  }
+
+  return best_graph;
+}
+
+
 std::shared_ptr<Graph> Graph::optimize_qalm(
     const std::vector<GraphXfer *> &xfers, double cost_upper_bound,
     const std::string &circuit_name, const std::string &log_file_name,
@@ -3059,8 +3245,6 @@ std::shared_ptr<Graph> Graph::optimize_qalm(
         auto pre_roqc_graph = curr_graph;
         // curr_graph = curr_graph->->from_qasm_str(curr_graph->context,
         // run_roqc(curr_graph->to_qasm().c_str()));
-        curr_graph = curr_graph->from_qasm_str(
-            curr_graph->context, run_roqc_two_way_rotation_merge(curr_graph->to_qasm().c_str()));
         if (two_way_rotation_merging) {
           curr_graph = curr_graph->from_qasm_str(
               curr_graph->context, run_roqc_two_way_rotation_merge(curr_graph->to_qasm().c_str()));
