@@ -73,34 +73,34 @@ def run_experiments():
     pool_gen_time = 0.0
 
     timeout = 60 * 60
-    circuit_list = [("circuit/nam_circs/adder_8.qasm", "adder_8"),
-                    ("circuit/nam_circs/barenco_tof_3.qasm", "barenco_tof_3"),
-                    ("circuit/nam_circs/barenco_tof_4.qasm", "barenco_tof_4"),
-                    ("circuit/nam_circs/barenco_tof_5.qasm", "barenco_tof_5"),
-                    ("circuit/nam_circs/barenco_tof_10.qasm", "barenco_tof_10"),
-                    ("circuit/nam_circs/csla_mux_3.qasm", "csla_mux_3"),
-                    ("circuit/nam_circs/csum_mux_9.qasm", "csum_mux_9"),
-                    ("circuit/nam_circs/gf2^4_mult.qasm", "gf2^4_mult"),
-                    ("circuit/nam_circs/gf2^5_mult.qasm", "gf2^5_mult"),
-                    ("circuit/nam_circs/gf2^6_mult.qasm", "gf2^6_mult"),
-                    ("circuit/nam_circs/gf2^7_mult.qasm", "gf2^7_mult"),
-                    ("circuit/nam_circs/gf2^8_mult.qasm", "gf2^8_mult"),
-                    ("circuit/nam_circs/gf2^9_mult.qasm", "gf2^9_mult"),
-                    ("circuit/nam_circs/gf2^10_mult.qasm", "gf2^10_mult"),
-                    ("circuit/nam_circs/hwb6.qasm", "hwb6"),
-                    ("circuit/nam_circs/ham15-low.qasm", "ham15-low"),
-                    ("circuit/nam_circs/mod5_4.qasm", "mod5_4"),
-                    ("circuit/nam_circs/mod_mult_55.qasm", "mod_mult_55"),
-                    ("circuit/nam_circs/mod_red_21.qasm", "mod_red_21"),
-                    ("circuit/nam_circs/qcla_adder_10.qasm", "qcla_adder_10"),
-                    ("circuit/nam_circs/qcla_com_7.qasm", "qcla_com_7"),
-                    ("circuit/nam_circs/qcla_mod_7.qasm", "qcla_mod_7"),
-                    ("circuit/nam_circs/rc_adder_6.qasm", "rc_adder_6"),
-                    ("circuit/nam_circs/tof_3.qasm", "tof_3"),
-                    ("circuit/nam_circs/tof_4.qasm", "tof_4"),
-                    ("circuit/nam_circs/tof_5.qasm", "tof_5"),
-                    ("circuit/nam_circs/tof_10.qasm", "tof_10"),
-                    ("circuit/nam_circs/vbe_adder_3.qasm", "vbe_adder_3"),
+    circuit_list = [("circuit/nam_rm_circs/adder_8.qasm", "adder_8"),
+                    ("circuit/nam_rm_circs/barenco_tof_3.qasm", "barenco_tof_3"),
+                    ("circuit/nam_rm_circs/barenco_tof_4.qasm", "barenco_tof_4"),
+                    ("circuit/nam_rm_circs/barenco_tof_5.qasm", "barenco_tof_5"),
+                    ("circuit/nam_rm_circs/barenco_tof_10.qasm", "barenco_tof_10"),
+                    ("circuit/nam_rm_circs/csla_mux_3.qasm", "csla_mux_3"),
+                    ("circuit/nam_rm_circs/csum_mux_9.qasm", "csum_mux_9"),
+                    ("circuit/nam_rm_circs/gf2^4_mult.qasm", "gf2^4_mult"),
+                    ("circuit/nam_rm_circs/gf2^5_mult.qasm", "gf2^5_mult"),
+                    ("circuit/nam_rm_circs/gf2^6_mult.qasm", "gf2^6_mult"),
+                    ("circuit/nam_rm_circs/gf2^7_mult.qasm", "gf2^7_mult"),
+                    ("circuit/nam_rm_circs/gf2^8_mult.qasm", "gf2^8_mult"),
+                    ("circuit/nam_rm_circs/gf2^9_mult.qasm", "gf2^9_mult"),
+                    ("circuit/nam_rm_circs/gf2^10_mult.qasm", "gf2^10_mult"),
+                    ("circuit/nam_rm_circs/hwb6.qasm", "hwb6"),
+                    ("circuit/nam_rm_circs/ham15-low.qasm", "ham15-low"),
+                    ("circuit/nam_rm_circs/mod5_4.qasm", "mod5_4"),
+                    ("circuit/nam_rm_circs/mod_mult_55.qasm", "mod_mult_55"),
+                    ("circuit/nam_rm_circs/mod_red_21.qasm", "mod_red_21"),
+                    ("circuit/nam_rm_circs/qcla_adder_10.qasm", "qcla_adder_10"),
+                    ("circuit/nam_rm_circs/qcla_com_7.qasm", "qcla_com_7"),
+                    ("circuit/nam_rm_circs/qcla_mod_7.qasm", "qcla_mod_7"),
+                    ("circuit/nam_rm_circs/rc_adder_6.qasm", "rc_adder_6"),
+                    ("circuit/nam_rm_circs/tof_3.qasm", "tof_3"),
+                    ("circuit/nam_rm_circs/tof_4.qasm", "tof_4"),
+                    ("circuit/nam_rm_circs/tof_5.qasm", "tof_5"),
+                    ("circuit/nam_rm_circs/tof_10.qasm", "tof_10"),
+                    ("circuit/nam_rm_circs/vbe_adder_3.qasm", "vbe_adder_3"),
                     # ("../../PycharmProjects/ucc-bench/benchmarks/circuits/ucc/qcnn_N10_4layers_basis_rz_rx_ry_h_cx.qasm", "qcnn_10"),
                     # ("../../PycharmProjects/ucc-bench/benchmarks/circuits/ucc/qcnn_N100_7layers_basis_rz_rx_ry_h_cx.qasm", "qcnn_100"),
                     # ("../../PycharmProjects/ucc-bench/benchmarks/circuits/benchpress/qaoa_barabasi_albert_N10_3reps_basis_rz_rx_ry_cx.qasm", "qaoa_10"),
@@ -115,20 +115,20 @@ def run_experiments():
 
     experiments = [
         (OptimizationType.quartz, (0,)),
-        (OptimizationType.qalm, (1, 1, 2, 1.5, 0, 0, 1, 1, 1, "eccset/Nam_5_3_complete_ECC_set.json")),
-        (OptimizationType.qalm, (2, 1, 2, 1.5, 0, 0, 1, 1, 1, "eccset/Nam_5_3_complete_ECC_set.json")),
-        (OptimizationType.qalm, (3, 1, 2, 1.5, 0, 0, 1, 1, 1, "eccset/Nam_5_3_complete_ECC_set.json")),
-        (OptimizationType.qalm, (1, 2, 2, 1.5, 0, 0, 1, 1, 1, "eccset/Nam_5_3_complete_ECC_set.json")),
-        (OptimizationType.qalm, (1, 3, 2, 1.5, 0, 0, 1, 1, 1, "eccset/Nam_5_3_complete_ECC_set.json")),
+        # (OptimizationType.qalm, (1, 1, 2, 1.5, 0, 0, 1, 1, 1, "eccset/Nam_5_3_complete_ECC_set.json")),
+        # (OptimizationType.qalm, (2, 1, 2, 1.5, 0, 0, 1, 1, 1, "eccset/Nam_5_3_complete_ECC_set.json")),
+        # (OptimizationType.qalm, (3, 1, 2, 1.5, 0, 0, 1, 1, 1, "eccset/Nam_5_3_complete_ECC_set.json")),
+        # (OptimizationType.qalm, (1, 2, 2, 1.5, 0, 0, 1, 1, 1, "eccset/Nam_5_3_complete_ECC_set.json")),
+        # (OptimizationType.qalm, (1, 3, 2, 1.5, 0, 0, 1, 1, 1, "eccset/Nam_5_3_complete_ECC_set.json")),
     ]
 
     graph_labels = [
-        "Quartz",
-        "I1, G1, E2, ECC_5_3, all_xfers, local, greedy, two_way, 5_3",
-        "I2, G1, E2, ECC_5_3, all_xfers, local, greedy, two_way, 5_3",
-        "I3, G1, E2, ECC_5_3, all_xfers, local, greedy, two_way, 5_3",
-        "I1, G2, E2, ECC_5_3, all_xfers, local, greedy, two_way, 5_3",
-        "I1, G3, E2, ECC_5_3, all_xfers, local, greedy, two_way, 5_3",
+        "Quartz - with preprocessing",
+        # "I1, G1, E2, ECC_5_3, all_xfers, local, greedy, two_way, 5_3",
+        # "I2, G1, E2, ECC_5_3, all_xfers, local, greedy, two_way, 5_3",
+        # "I3, G1, E2, ECC_5_3, all_xfers, local, greedy, two_way, 5_3",
+        # "I1, G2, E2, ECC_5_3, all_xfers, local, greedy, two_way, 5_3",
+        # "I1, G3, E2, ECC_5_3, all_xfers, local, greedy, two_way, 5_3",
     ]
 
     # voqc_avg = 0
@@ -148,13 +148,13 @@ def run_experiments():
     with multiprocessing.Pool(32) as pool:
         raw_results = pool.map(tester, arguments)
 
-    with open("pickled_results/raw_results.pkl", 'wb') as f:
+    with open("pickled_results/combined_raw_results.pkl", 'wb') as f:
         f.truncate(0)
         pickle.dump(raw_results, f)
-    with open("pickled_results/exp_params.pkl", 'wb') as f:
+    with open("pickled_results/combined_exp_params.pkl", 'wb') as f:
         f.truncate(0)
         pickle.dump(experiments, f)
-    with open("pickled_results/graph_labels.pkl", 'wb') as f:
+    with open("pickled_results/combined_graph_labels.pkl", 'wb') as f:
         f.truncate(0)
         pickle.dump(graph_labels, f)
 

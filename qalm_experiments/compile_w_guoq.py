@@ -13,9 +13,9 @@ def process_results():
 
     total_results["voqc_results"] = []
     # total_results["qiskit_results"] = []
-    # total_results["guoq_results"] = []
+    total_results["guoq_results"] = []
     total_results["queso_results"] = []
-    # total_2q["guoq_results"] = []
+    total_2q["guoq_results"] = []
     total_2q["queso_results"] = []
     total_2q["voqc_results"] = []
     # total_results["repeated_roqc_results"] = []
@@ -43,15 +43,15 @@ def process_results():
             total_2q[res[0] + "_results"].append(res[2])
 
         r_queso = parse_queso(circuit)
-        # r_guoq = parse_guoq(circuit)
+        r_guoq = parse_guoq(circuit)
         # r_qiskit = parse_qiskit(circuit)
         r_voqc = parse_voqc(circuit)
         # r_repeated_roqc = parse_repeated_roqc(circuit)
 
         # total_results["qiskit_results"].append(r_qiskit)
-        # total_results["guoq_results"].append(r_guoq[0])
+        total_results["guoq_results"].append(r_guoq[0])
         total_results["queso_results"].append(r_queso[0])
-        # total_2q["guoq_results"].append(r_guoq[1])
+        total_2q["guoq_results"].append(r_guoq[1])
         total_2q["queso_results"].append(r_queso[1])
         total_results["voqc_results"].append(r_voqc[0])
         total_2q["voqc_results"].append(r_voqc[1])
@@ -65,8 +65,8 @@ def process_results():
     # Put original gate count in:
     original_lengths = ["initial"] + original_lengths
     original_2q = ["initial"] + original_2q
-    # print(original_lengths)
-    # print(original_2q)
+    print(original_lengths)
+    print(original_2q)
 
     for opt_method in opt_order:
         opt_data = [opt_method]
@@ -94,8 +94,8 @@ def process_results():
         csv_writer.writerow(original_2q)
         csv_writer.writerows(all_data)
 
-    # graph_guoq_queso_comparison(circuit_list, total_results, original_lengths[1:])
-    # graph_guoq_queso_comparison_2q(circuit_list, total_2q, original_lengths[1:])
+    graph_guoq_queso_comparison(circuit_list, total_results, original_lengths[1:])
+    graph_guoq_queso_comparison_2q(circuit_list, total_2q, original_lengths[1:])
 
 def graph_best_comparisons(circuit_list, total_results, initial_lengths):
     # (circuit_name best_qalm, best_other)
@@ -139,6 +139,15 @@ def graph_best_comparisons(circuit_list, total_results, initial_lengths):
 
 def graph_guoq_queso_comparison(circuit_list, total_results, initial_lengths):
     experiment_wins = {}
+
+    initial_dict = {}
+
+    assert(len(circuit_list) == len(initial_lengths))
+    for i in range(len(circuit_list)):
+        print(circuit_list[i])
+        initial_dict[circuit_list[i]] = int(initial_lengths[i])
+        print(initial_lengths[i], type(initial_lengths[i]))
+
     for experiment in total_results.keys():
         if "600" not in experiment:
             continue
@@ -166,8 +175,10 @@ def graph_guoq_queso_comparison(circuit_list, total_results, initial_lengths):
     queso_comp = [(circuit_list[i], float(total_results["queso_results"][i]) / float(total_results[best_experiment][i])) for i in range(len(circuit_list))]
     guoq_comp = [(circuit_list[i], float(total_results["guoq_results"][i]) / float(total_results[best_experiment][i])) for i in range(len(circuit_list))]
 
-    queso_comp.sort(key= lambda result: result[1])
-    guoq_comp.sort(key= lambda result: result[1])
+    # queso_comp.sort(key= lambda result: result[1])
+    # guoq_comp.sort(key= lambda result: result[1])
+    queso_comp.sort(key= lambda result: initial_dict[result[0]])
+    guoq_comp.sort(key= lambda result: initial_dict[result[0]])
 
     # plt.plot(circuit_bests)
     plt.plot(list(zip(*queso_comp))[0], list(zip(*queso_comp))[1], label="QALM gate count divided by QUESO gate count")
@@ -261,10 +272,10 @@ def parse_guoq(circuit_name):
     return (result_dict["best_circuit_size"], result_dict["best_size_2q"])
 
 def parse_queso(circuit_name):
-    result_file = f"fresh_results/qalm_bench/nam/queso/results_{circuit_name}/latest_sol_none_none_{circuit_name}.qasm"
+    result_file = f"fresh_results/qalm_bench/nam/queso/results_{circuit_name}/results_none_none.json"
     with open(result_file, "r") as f:
-        c = QuantumCircuit.from_qasm_file(result_file)
-    return (str(c.size()), str(c.count_ops()["cx"]))
+        result_dict = json.load(f)
+    return (result_dict["best_circuit_size"], result_dict["best_size_2q"])
 
 
 def parse_voqc(circuit_name):

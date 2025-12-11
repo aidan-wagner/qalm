@@ -54,7 +54,13 @@ def validate_results():
     for circuit in circuit_list:
         all_files = os.listdir(circuit_prefix + circuit[1])
         for file in all_files:
-            if file[-5:] == ".qasm" and "600_1_1_2_1.5_0_0_1_1_0_Nam_5_3" in file:
+            if file[-5:] == ".qasm" and "3600_1_2_2_1.5_0_0_1_1_1_Nam_5_3" in file:
+                arguments.append((circuit_prefix + circuit[1] + "/" + file, circuit))
+            if file[-5:] == ".qasm" and "3600_1_3_2_1.5_0_0_1_1_1_Nam_5_3" in file:
+                arguments.append((circuit_prefix + circuit[1] + "/" + file, circuit))
+            if file[-5:] == ".qasm" and "3600_2_1_2_1.5_0_0_1_1_1_Nam_5_3" in file:
+                arguments.append((circuit_prefix + circuit[1] + "/" + file, circuit))
+            if file[-5:] == ".qasm" and "3600_3_1_2_1.5_0_0_1_1_1_Nam_5_3" in file:
                 arguments.append((circuit_prefix + circuit[1] + "/" + file, circuit))
     for argument in arguments:
         try:

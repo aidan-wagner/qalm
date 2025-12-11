@@ -29,12 +29,12 @@ echo "Running experiments on qalm circuits with Nam gate set:"
 
 for i in $(seq 1 $num_guoq_trials); do
     echo "Running GUOQ trial $i out of $num_guoq_trials on $benchmark..."
-    guoq_args="-g!NAM!-opt!TOTAL!--rules-dir!/home/queso_rules/!--resynth-weight!180"
+    guoq_args="-g!NAM!-opt!TWO_Q!--rules-dir!/home/queso_rules/!--resynth-weight!180"
     run_guoq $BENCHMARK_DIR/$benchmark $timeout $guoq_args $i "--bqskit"
 done
 mv results_$name fresh_results_$timeout/qalm_bench/nam/guoq
 
-run_queso $BENCHMARK_DIR/$benchmark $timeout "-g!NAM!-opt!TOTAL!--rules-dir!/home/queso_rules/!-search!BEAM!-temp!0!-q!8000!-resynth!NONE"
+run_queso $BENCHMARK_DIR/$benchmark $timeout "-g!NAM!-opt!TWO_Q!--rules-dir!/home/queso_rules/!-search!BEAM!-temp!0!-q!8000!-resynth!NONE"
 mv results_$name fresh_results_$timeout/qalm_bench/nam/queso
 
 
