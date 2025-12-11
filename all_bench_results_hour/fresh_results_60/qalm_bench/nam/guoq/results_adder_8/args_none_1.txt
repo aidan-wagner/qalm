@@ -1,0 +1,15 @@
+-g
+NAM
+-opt
+TOTAL
+--rules-dir
+/home/queso_rules/
+--resynth-weight
+180
+-job
+none_1
+-out
+results_adder_8
+--verbosity
+2
+qalm/circuit/nam_circs/adder_8.qasm
