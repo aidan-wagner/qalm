@@ -718,7 +718,7 @@ def find_equivalences(
             f"Processed {len(output_dict)} hash values that had only 1 circuit sequence, now processing the remaining {len(data) - len(output_dict)} ones with 2 or more circuit sequences..."
         )
         # now process hashtags with >1 DAGs
-        with mp.Pool() as pool:
+        with mp.Pool(8) as pool:
             for (
                 hashtag,
                 output_dict_,

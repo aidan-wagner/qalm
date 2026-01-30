@@ -1,3 +1,7 @@
 [submodule "external/HiGHS"]
 	path = external/HiGHS
 	url = https://github.com/ERGO-Code/HiGHS.git
+[submodule "roqc"]
+	path = roqc
+	url = git@github.com:UmutAcarLab/roqc.git
+	branch = quartz_integration

@@ -2,9 +2,15 @@
 
 #include "quartz/math/bitset.h"
 #include "substitution.h"
+#include "verifier/verifier.h"
 
 #include <cassert>
 #include <iomanip>
+#include <random>
+
+extern "C" const char* run_roqc(const char *circuit_string);
+extern "C" const char* run_roqc_internal(const char *circuit_string);
+extern "C" const char* run_roqc_two_way_rotation_merge(const char *circuit_string);
 
 namespace quartz {
 
@@ -490,6 +496,21 @@ float Graph::total_cost(void) const {
   for (const auto &it : inEdges) {
     if (it.first.ptr->is_quantum_gate())
       cnt++;
+  }
+  return (float)cnt;
+}
+
+float Graph::hadamard_reduction_cost(void) const {
+  // Uncomment to use circuit depth as the cost
+  // return circuit_depth();
+  size_t cnt = 0;
+  for (const auto &it : inEdges) {
+    if (it.first.ptr->is_quantum_gate()) {
+      cnt++;
+      if (it.first.ptr->tp == GateType::h) {
+        cnt--;
+      }
+    }
   }
   return (float)cnt;
 }
@@ -1713,6 +1734,377 @@ Graph::greedy_optimize(Context *ctx, const EquivalenceSet &eqs,
   return optimized_graph;
 }
 
+std::shared_ptr<Graph> Graph::greedy_optimize_with_roqc(
+    Context *ctx, const std::vector<GraphXfer *> &xfers,
+    const std::string &circuit_name, const std::string &log_file_name,
+    bool print_message, std::function<float(Graph *)> cost_function,
+    double timeout, const std::string &store_all_steps_file_prefix,
+    std::chrono::time_point<std::chrono::steady_clock> time_start) {
+  if (cost_function == nullptr) {
+    cost_function = [](Graph *graph) { return graph->total_cost(); };
+  }
+  auto start =
+      time_start == std::chrono::time_point<std::chrono::steady_clock>::min()
+          ? std::chrono::steady_clock::now()
+          : time_start;
+
+  FILE *fout = nullptr;
+  if (print_message) {
+    if (!log_file_name.empty()) {
+      fout = fopen(log_file_name.c_str(), "w");
+      assert(fout);
+    } else {
+      fout = stdout;
+    }
+  }
+
+  std::shared_ptr<Graph> optimized_graph = std::make_shared<Graph>(*this);
+  auto current_cost = cost_function(this);
+  const auto original_cost = current_cost;
+  //  bool optimized_in_this_iteration;
+  std::vector<Op> all_nodes;
+  optimized_graph->topology_order_ops(all_nodes);
+  int step_count = 0;
+  if (!store_all_steps_file_prefix.empty()) {
+    to_qasm(store_all_steps_file_prefix + "0.qasm", /*print_result=*/false,
+            /*print_guid=*/false);
+  }
+  // look back this many nodes after each optimization
+  const int kNumLookBackNodes = 5;
+  int last_node_id = 0;
+  bool hit_timeout = false;
+  //  do {
+  //    optimized_in_this_iteration = false;
+  for (auto &xfer : xfers) {
+    bool optimized_this_xfer;
+    do {
+      optimized_this_xfer = false;
+      for (int node_diff = 0; node_diff < (int)all_nodes.size(); node_diff++) {
+        int current_node_id =
+            (last_node_id + node_diff) % (int)all_nodes.size();
+        const auto &node = all_nodes[current_node_id];
+        auto graph_before_roqc = optimized_graph->apply_xfer(
+            xfer, node, context->has_parameterized_gate());
+        if (!graph_before_roqc) {
+          continue;
+        }
+        auto new_graph = graph_before_roqc->from_qasm_str(
+            graph_before_roqc->context,
+            run_roqc(graph_before_roqc->to_qasm().c_str()));
+        auto new_cost = cost_function(new_graph.get());
+        if (new_cost < current_cost) {
+          optimized_graph.swap(new_graph);
+          current_cost = new_cost;
+          // Update the wires after applying a transformation.
+          all_nodes.clear();
+          optimized_graph->topology_order_ops(all_nodes);
+          optimized_this_xfer = true;
+          //            optimized_in_this_iteration = true;
+          // Look back kNumLookBackNodes nodes.
+          last_node_id =
+              std::max(0, (last_node_id + node_diff) % (int)all_nodes.size() -
+                              kNumLookBackNodes);
+          if (!store_all_steps_file_prefix.empty()) {
+            step_count++;
+            graph_before_roqc->to_qasm(store_all_steps_file_prefix +
+                                           std::to_string(step_count) + ".qasm",
+                                       /*print_result=*/false,
+                                       /*print_guid=*/false);
+            step_count++;
+            optimized_graph->to_qasm(store_all_steps_file_prefix +
+                                         std::to_string(step_count) + ".qasm",
+                                     /*print_result=*/false,
+                                     /*print_guid=*/false);
+          }
+          if (print_message) {
+            std::cout << "Found improvement in greedy with ROQC, ["
+                      << (&xfer - xfers.data()) << "] " << xfer->src_str()
+                      << " --> " << xfer->dst_str() << " at ("
+                      << current_node_id << ")" << std::endl;
+            auto end = std::chrono::steady_clock::now();
+            fprintf(
+                fout,
+                "[%s] Best cost: %f\tcandidate number: 1\tafter %.3f "
+                "seconds.\n",
+                circuit_name.c_str(), current_cost,
+                (double)std::chrono::duration_cast<std::chrono::milliseconds>(
+                    end - start)
+                        .count() /
+                    1000.0);
+            fflush(fout);
+          }
+          // Since |all_nodes| has changed, we cannot continue this loop.
+          break;
+        }
+        auto end = std::chrono::steady_clock::now();
+        if ((double)std::chrono::duration_cast<std::chrono::milliseconds>(end -
+                                                                          start)
+                    .count() /
+                1000.0 >
+            timeout) {
+          std::cout
+              << "Timeout in greedy phase. Program terminated. Best cost is "
+              << current_cost << std::endl;
+          hit_timeout = true;
+          break;
+        }
+      }
+      if (hit_timeout) {
+        break;
+      }
+    } while (optimized_this_xfer);
+    if (hit_timeout) {
+      break;
+    }
+  }
+  //    if (hit_timeout) {
+  //      break;
+  //    }
+  //  } while (optimized_in_this_iteration);
+
+  auto optimized_cost = cost_function(optimized_graph.get());
+
+  if (print_message) {
+    auto end = std::chrono::steady_clock::now();
+    std::cout << "greedy_optimize_with_roqc(): cost optimized from "
+              << original_cost << " to " << optimized_cost << " after "
+              << (double)std::chrono::duration_cast<std::chrono::milliseconds>(
+                     end - start)
+                         .count() /
+                     1000.0
+              << " seconds." << std::endl;
+  }
+
+  if (!store_all_steps_file_prefix.empty()) {
+    // Store the number of steps.
+    std::ofstream fout(store_all_steps_file_prefix + ".txt");
+    assert(fout.is_open());
+    fout << step_count << std::endl;
+    fout.close();
+  }
+
+  return optimized_graph;
+}
+
+std::shared_ptr<Graph> Graph::greedy_optimize_with_local_search(
+    Context *ctx, const std::vector<GraphXfer *> &xfers,
+    const std::string &circuit_name, const std::string &log_file_name,
+    bool print_message, std::function<float(Graph *)> cost_function,
+    double timeout, const std::string &store_all_steps_file_prefix,
+    bool continue_storing_all_steps,
+    std::chrono::time_point<std::chrono::steady_clock> time_start) {
+  if (cost_function == nullptr) {
+    cost_function = [](Graph *graph) { return graph->total_cost(); };
+  }
+  auto start =
+      time_start == std::chrono::time_point<std::chrono::steady_clock>::min()
+          ? std::chrono::steady_clock::now()
+          : time_start;
+
+  FILE *fout = nullptr;
+  if (print_message) {
+    if (!log_file_name.empty()) {
+      fout = fopen(log_file_name.c_str(), "w");
+      assert(fout);
+    } else {
+      fout = stdout;
+    }
+  }
+
+  // Run ROQC once at the beginning
+  std::shared_ptr<Graph> optimized_graph =
+      from_qasm_str(context, run_roqc(to_qasm().c_str()));
+  auto current_cost = cost_function(optimized_graph.get());
+  const auto original_cost = cost_function(this);
+  //  bool optimized_in_this_iteration;
+  std::vector<Op> all_nodes;
+  optimized_graph->topology_order_ops(all_nodes);
+  int step_count = 0;
+  if (!store_all_steps_file_prefix.empty()) {
+    if (continue_storing_all_steps) {
+      std::ifstream fin(store_all_steps_file_prefix + ".txt");
+      assert(fin.is_open());
+      fin >> step_count;
+      fin.close();
+    } else {
+      to_qasm(store_all_steps_file_prefix + "0.qasm", /*print_result=*/false,
+              /*print_guid=*/false);
+    }
+  }
+  // look back/forward this many nodes for local search
+  const int kNumLookBackNodes = 5;
+  int last_node_id = 0;
+  bool hit_timeout = false;
+  //  do {
+  //    optimized_in_this_iteration = false;
+  for (auto &xfer : xfers) {
+    bool optimized_this_xfer;
+    do {
+      optimized_this_xfer = false;
+      for (int node_diff = 0; node_diff < (int)all_nodes.size(); node_diff++) {
+        int current_node_id =
+            (last_node_id + node_diff) % (int)all_nodes.size();
+        const auto &node = all_nodes[current_node_id];
+
+        // Record cost before any transformation
+        float cost_before_xfer = cost_function(optimized_graph.get());
+        // Step 1: Apply one Quartz transformation
+        auto candidate_graph = optimized_graph->apply_xfer(
+            xfer, node, context->has_parameterized_gate());
+        if (!candidate_graph) {
+          continue;
+        }
+        // std::cout << "Cost before xfer: " << cost_before_xfer << std::endl;
+
+        // Step 2: Local search around the transformed region (fixed window)
+        std::vector<Op> candidate_nodes;
+        const int num_target_nodes = xfer->dstOps.size() + 0;
+        candidate_nodes.reserve(num_target_nodes);
+        // Conduct a local BFS around the transformed region
+        std::queue<OpX *> to_visit;
+        std::unordered_set<OpX *> visited;
+        for (auto &dstOp : xfer->dstOps) {
+          candidate_nodes.push_back(dstOp->mapOp);
+          visited.insert(dstOp);
+          to_visit.push(dstOp);
+        }
+        /*while (!to_visit.empty() &&
+               candidate_nodes.size() < num_target_nodes) {
+          auto opX = to_visit.front();
+          to_visit.pop();
+          // Only search to the left
+          for (auto &tensorX : opX->inputs) {
+            if (tensorX.op != nullptr && visited.count(tensorX.op) == 0) {
+              visited.insert(tensorX.op);
+              to_visit.push(tensorX.op);
+              candidate_nodes.push_back(tensorX.op->mapOp);
+            }
+          }
+        }*/
+
+        bool found_improvement = false;
+        // Try all xfers in the local window
+        GraphXfer *local_xfer_used;
+        int local_xfer_id;
+        int local_node_id;
+        for (const auto &local_node : candidate_nodes) {
+          for (auto &local_xfer : xfers) {
+            auto local_graph = candidate_graph->apply_xfer(
+                local_xfer, local_node, context->has_parameterized_gate());
+            if (!local_graph) {
+              continue;
+            }
+            local_graph = local_graph->from_qasm_str(
+                local_graph->context, run_roqc(local_graph->to_qasm().c_str()));
+            auto local_cost = cost_function(local_graph.get());
+            // std::cout << "Local cost: " << local_cost << std::endl;
+            // Only compare with the original cost before any xfer
+            if (local_cost < cost_before_xfer) {
+              candidate_graph.swap(local_graph);
+              found_improvement = true;
+              local_xfer_used = local_xfer;
+              local_xfer_id = &local_xfer - xfers.data();
+              local_node_id = &local_node - candidate_nodes.data();
+              break;  // Found improvement, use this
+            }
+          }
+          if (found_improvement) {
+            break;
+          }
+        }
+
+        // Step 3: Keep if we found improvement in local search
+        if (found_improvement) {
+          std::cout << "Found improvement in local search, ["
+                    << (&xfer - xfers.data()) << "] " << xfer->src_str()
+                    << " --> " << xfer->dst_str() << " at (" << current_node_id
+                    << ") then [" << local_xfer_id << "] "
+                    << local_xfer_used->src_str() << " --> "
+                    << local_xfer_used->dst_str() << " at (local "
+                    << local_node_id << ")" << std::endl;
+          auto final_cost = cost_function(candidate_graph.get());
+          optimized_graph.swap(candidate_graph);
+          current_cost = final_cost;
+          // Update the wires after applying a transformation.
+          all_nodes.clear();
+          optimized_graph->topology_order_ops(all_nodes);
+          optimized_this_xfer = true;
+          //          optimized_in_this_iteration = true;
+          // Look back kNumLookBackNodes nodes from current position
+          last_node_id = std::max(0, current_node_id - kNumLookBackNodes);
+          if (!store_all_steps_file_prefix.empty()) {
+            step_count++;
+            optimized_graph->to_qasm(store_all_steps_file_prefix +
+                                         std::to_string(step_count) + ".qasm",
+                                     /*print_result=*/false,
+                                     /*print_guid=*/false);
+          }
+          if (print_message) {
+            auto end = std::chrono::steady_clock::now();
+            fprintf(
+                fout,
+                "[%s] Best cost: %f\tcandidate number: 1\tafter %.3f "
+                "seconds.\n",
+                circuit_name.c_str(), current_cost,
+                (double)std::chrono::duration_cast<std::chrono::milliseconds>(
+                    end - start)
+                        .count() /
+                    1000.0);
+            fflush(fout);
+          }
+          // Since |all_nodes| has changed, we cannot continue this loop.
+          break;
+        }
+        auto end = std::chrono::steady_clock::now();
+        if ((double)std::chrono::duration_cast<std::chrono::milliseconds>(end -
+                                                                          start)
+                    .count() /
+                1000.0 >
+            timeout) {
+          std::cout
+              << "Timeout in greedy phase. Program terminated. Best cost is "
+              << current_cost << std::endl;
+          hit_timeout = true;
+          break;
+        }
+      }
+      if (hit_timeout) {
+        break;
+      }
+    } while (optimized_this_xfer);
+    if (hit_timeout) {
+      break;
+    }
+  }
+  //    if (hit_timeout) {
+  //      break;
+  //    }
+  //  } while (optimized_in_this_iteration);
+
+  auto optimized_cost = cost_function(optimized_graph.get());
+
+  if (print_message) {
+    auto end = std::chrono::steady_clock::now();
+    std::cout << "greedy_optimize_with_local_search(): cost optimized from "
+              << original_cost << " to " << optimized_cost << " after "
+              << (double)std::chrono::duration_cast<std::chrono::milliseconds>(
+                     end - start)
+                         .count() /
+                     1000.0
+              << " seconds." << std::endl;
+  }
+
+  if (!store_all_steps_file_prefix.empty()) {
+    // Store the number of steps.
+    std::ofstream fout(store_all_steps_file_prefix + ".txt");
+    assert(fout.is_open());
+    fout << step_count << std::endl;
+    fout.close();
+  }
+
+  return optimized_graph;
+}
+
 std::shared_ptr<Graph> Graph::optimize_legacy(
     float alpha, int budget, bool print_subst, Context *ctx,
     const std::string &equiv_file_name, bool use_simulated_annealing,
@@ -2000,6 +2392,304 @@ Graph::optimize(const std::vector<GraphXfer *> &xfers, double cost_upper_bound,
                 const std::string &log_file_name, bool print_message,
                 std::function<float(Graph *)> cost_function, double timeout,
                 const std::string &store_all_steps_file_prefix,
+                bool continue_storing_all_steps,
+                std::chrono::time_point<std::chrono::steady_clock> time_start,
+                const int roqc_interval, const bool two_way_rotation_merging) {
+  std::cout << "ROQC Interval: " << roqc_interval << std::endl;
+  std::cout << "Two Way Rotation Merging: " << two_way_rotation_merging << std::endl;
+  if (cost_function == nullptr) {
+    cost_function = [](Graph *graph) { return graph->total_cost(); };
+    // cost_function = [](Graph *graph) {return
+    // graph->hadamard_reduction_cost(); };
+  }
+  auto start =
+      time_start == std::chrono::time_point<std::chrono::steady_clock>::min()
+          ? std::chrono::steady_clock::now()
+          : time_start;
+  std::priority_queue<std::shared_ptr<Graph>,
+                      std::vector<std::shared_ptr<Graph>>, GraphCompare>
+      candidates((GraphCompare(cost_function)));
+  std::set<size_t> hashmap;
+  std::shared_ptr<Graph> best_graph(new Graph(*this));
+  auto best_cost = cost_function(this);
+
+  candidates.push(best_graph);
+  hashmap.insert(hash());
+
+  int invoke_cnt = 0;
+
+  FILE *fout = nullptr;
+  if (print_message) {
+    if (!log_file_name.empty()) {
+      fout = fopen(log_file_name.c_str(), "w");
+      assert(fout);
+    } else {
+      fout = stdout;
+    }
+  }
+
+  // Information necessary to store each step
+  std::unordered_map<Graph *, std::shared_ptr<Graph>> previous_graph;
+  int step_count = 0;
+  if (!store_all_steps_file_prefix.empty()) {
+    if (continue_storing_all_steps) {
+      std::ifstream fin(store_all_steps_file_prefix + ".txt");
+      assert(fin.is_open());
+      fin >> step_count;
+      fin.close();
+    } else {
+      to_qasm(store_all_steps_file_prefix + "0.qasm", /*print_result=*/false,
+              /*print_guid=*/false);
+    }
+  }
+
+  // TODO: make these numbers configurable
+  constexpr int kMaxNumCandidates = 2000;
+  constexpr int kShrinkToNumCandidates = 1000;
+
+  auto shrink_candidates = [&]() {
+    if (print_message) {
+      fprintf(fout, "%s: shrink the priority queue with %d candidates.\n",
+              circuit_name.c_str(), (int)candidates.size());
+    }
+    auto shrink_start = std::chrono::steady_clock::now();
+    std::priority_queue<std::shared_ptr<Graph>,
+                        std::vector<std::shared_ptr<Graph>>, GraphCompare>
+        new_candidates((GraphCompare(cost_function)));
+    std::map<float, int> cost_count;
+    while (!candidates.empty()) {
+      auto candidate = candidates.top();
+      cost_count[cost_function(candidate.get())]++;
+      if (new_candidates.size() < kShrinkToNumCandidates) {
+        new_candidates.push(candidate);
+      } else {
+        if (!store_all_steps_file_prefix.empty()) {
+          // no need to record history of removed graphs
+          previous_graph.erase(candidate.get());
+        }
+      }
+      candidates.pop();
+    }
+    std::swap(candidates, new_candidates);
+    auto shrink_end = std::chrono::steady_clock::now();
+    if (print_message) {
+      fprintf(
+          fout,
+          "%s: shrank the priority queue to %d candidates in %.3f seconds.\n",
+          circuit_name.c_str(), (int)candidates.size(),
+          (double)std::chrono::duration_cast<std::chrono::milliseconds>(
+              shrink_end - shrink_start)
+                  .count() /
+              1000.0);
+      for (auto &it : cost_count) {
+        fprintf(fout, "%d circuits have cost %.2f\n", it.second, it.first);
+      }
+      fflush(fout);
+    }
+  };
+
+  bool hit_timeout = false;
+  while (!candidates.empty()) {
+    auto graph = candidates.top();
+    candidates.pop();
+    auto current_cost = cost_function(graph.get());
+    bool found_better_graph_if_greedy_only = false;
+    // std::cout << "size of current circuit " << current_cost << std::endl;
+    std::vector<Op> all_nodes;
+    graph->topology_order_ops(all_nodes);
+    for (auto xfer : xfers) {
+      for (auto const &node : all_nodes) {
+        invoke_cnt++;
+        auto new_graph =
+            graph->apply_xfer(xfer, node, context->has_parameterized_gate());
+        auto end = std::chrono::steady_clock::now();
+        if ((double)std::chrono::duration_cast<std::chrono::milliseconds>(end -
+                                                                          start)
+                    .count() /
+                1000.0 >
+            timeout) {
+          std::cout << "Timeout. Program terminated. Best cost is " << best_cost
+                    << std::endl;
+          hit_timeout = true;
+          break;
+        }
+        if (new_graph == nullptr)
+          continue;
+
+        if (roqc_interval == -1) {
+          // special case: vanilla 5% roqc
+          static std::uniform_real_distribution<double> dist(0, 1);
+          static std::mt19937 random_engine;
+          if (dist(random_engine) < 0.05) {
+            float pre_roqc_cost{cost_function(new_graph.get())};
+            auto pre_roqc_graph = new_graph;
+            if (two_way_rotation_merging) {
+              new_graph = new_graph->from_qasm_str(
+                  new_graph->context, run_roqc_two_way_rotation_merge(new_graph->to_qasm().c_str()));
+            }
+            else {
+              new_graph = new_graph->from_qasm_str(
+                  new_graph->context, run_roqc(new_graph->to_qasm().c_str()));
+            }
+            new_graph->roqc_gates_reduction =
+                pre_roqc_cost - cost_function(new_graph.get());
+            new_graph->roqc_countdown = 0;
+            new_graph->pre_roqc_graph = pre_roqc_graph;
+          }
+        } else if (roqc_interval == 0) {
+          // special case: do greedy only
+          float pre_roqc_cost{cost_function(new_graph.get())};
+          auto pre_roqc_graph = new_graph;
+          if (two_way_rotation_merging) {
+            new_graph = new_graph->from_qasm_str(
+                new_graph->context, run_roqc_two_way_rotation_merge(new_graph->to_qasm().c_str()));
+          }
+          else {
+            new_graph = new_graph->from_qasm_str(
+                new_graph->context, run_roqc(new_graph->to_qasm().c_str()));
+          }
+          // std::cout << Verifier::difference_str(pre_roqc_graph.get(), new_graph.get()) << std::endl;
+          if (cost_function(new_graph.get()) >= current_cost) {
+            // throw new_graph away
+            continue;
+          }
+          // new_graph is better, keep new_graph only
+          new_graph->roqc_gates_reduction =
+              pre_roqc_cost - cost_function(new_graph.get());
+          std::cout << "Previous cost=" << current_cost
+                    << ", after Quartz cost=" << pre_roqc_cost
+                    << ", ROQC reduction=" << new_graph->roqc_gates_reduction
+                    << " xfer: " << xfer->src_str() << " --> "
+                    << xfer->dst_str() << std::endl;
+          new_graph->roqc_countdown = 0;
+          new_graph->pre_roqc_graph = pre_roqc_graph;
+          found_better_graph_if_greedy_only = true;
+        } else if (new_graph->roqc_countdown == roqc_interval) {
+          // If a certain number of iterations have occured, then run roqc
+          float pre_roqc_cost{cost_function(new_graph.get())};
+          auto pre_roqc_graph = new_graph;
+          if (two_way_rotation_merging) {
+            new_graph = new_graph->from_qasm_str(
+                new_graph->context, run_roqc_two_way_rotation_merge(new_graph->to_qasm().c_str()));
+          }
+          else {
+            new_graph = new_graph->from_qasm_str(
+                new_graph->context, run_roqc(new_graph->to_qasm().c_str()));
+          }
+          new_graph->roqc_gates_reduction =
+              pre_roqc_cost - cost_function(new_graph.get());
+          new_graph->roqc_countdown = 0;
+          new_graph->pre_roqc_graph = pre_roqc_graph;
+          // std::cout << "costs: " << pre_roqc_cost << " <> " <<
+          // new_graph->roqc_gates_reduction << " <> " <<
+          // cost_function(new_graph.get()) << std::endl;
+        }
+
+        auto new_hash = new_graph->hash();
+        auto new_cost = cost_function(new_graph.get());
+        if (new_cost > cost_upper_bound)
+          continue;
+        if (hashmap.find(new_hash) != hashmap.end()) {
+          continue;
+        }
+        hashmap.insert(new_hash);
+        candidates.push(new_graph);
+        if (!store_all_steps_file_prefix.empty()) {
+          // record history
+          previous_graph[new_graph.get()] = graph;
+        }
+        if (candidates.size() > kMaxNumCandidates) {
+          shrink_candidates();
+        }
+        if (new_cost < best_cost) {
+          best_cost = new_cost;
+          best_graph = new_graph;
+        }
+        if (found_better_graph_if_greedy_only) {
+          break;
+        }
+      }
+      if (found_better_graph_if_greedy_only) {
+        break;
+      }
+      if (hit_timeout) {
+        break;
+      }
+    }
+    if (hit_timeout) {
+      break;
+    }
+
+    auto end = std::chrono::steady_clock::now();
+    if (print_message) {
+      fprintf(
+          fout,
+          "[%s] Best cost: %f\tcandidate number: %zu\tafter %.3f seconds.\n",
+          circuit_name.c_str(), best_cost, candidates.size(),
+          (double)std::chrono::duration_cast<std::chrono::milliseconds>(end -
+                                                                        start)
+                  .count() /
+              1000.0);
+      fflush(fout);
+    }
+  }
+
+  if (!store_all_steps_file_prefix.empty()) {
+    std::cout << "writing" << std::endl;
+    std::vector<Graph *> steps(1, best_graph.get());
+    while (previous_graph.count(steps.back()) > 0) {
+      // there is a previous graph
+      steps.push_back(previous_graph[steps.back()].get());
+    }
+    // no need to save the initial graph again
+    float total_roqc_reduction{0.0};
+    float initial_cost{cost_function(steps.back())};
+    std::cout << "initial cost: " << initial_cost << std::endl;
+    for (int i = (int)steps.size() - 2; i >= 0; i--) {
+      step_count++;
+      steps[i]->to_qasm(store_all_steps_file_prefix +
+                            std::to_string(step_count) + ".qasm",
+                        /*print_result=*/false,
+                        /*print_guid=*/false);
+      if (steps[i]->roqc_gates_reduction > 0) {
+        total_roqc_reduction += steps[i]->roqc_gates_reduction;
+        std::ofstream roqc_out(store_all_steps_file_prefix +
+                               std::to_string(step_count) +
+                               "_roqc_reduction.txt");
+        roqc_out << steps[i]->roqc_gates_reduction << " at step " << step_count
+                 << std::endl;
+        roqc_out.close();
+      }
+
+      // If a graph has a pre_roqc_graph, then we want to write this as well for
+      // tracing the circuit transformation steps
+
+      if (steps[i]->pre_roqc_graph != nullptr) {
+        steps[i]->pre_roqc_graph->to_qasm(store_all_steps_file_prefix +
+                                              std::to_string(step_count) +
+                                              "_pre_roqc_graph.qasm",
+                                          false, false);
+      }
+    }
+
+    // Store the number of steps.
+    std::ofstream fout_step(store_all_steps_file_prefix + ".txt");
+    std::cout << initial_cost << " " << best_cost << std::endl;
+    fout_step << "total roqc reduction: " << total_roqc_reduction << std::endl;
+    fout_step << "total reduction: " << initial_cost - best_cost << std::endl;
+    fout_step << step_count << std::endl;
+    fout_step.close();
+  }
+
+  return best_graph;
+}
+
+std::shared_ptr<Graph>
+Graph::optimize_original(const std::vector<GraphXfer *> &xfers, double cost_upper_bound,
+                const std::string &circuit_name,
+                const std::string &log_file_name, bool print_message,
+                std::function<float(Graph *)> cost_function, double timeout,
+                const std::string &store_all_steps_file_prefix,
                 bool continue_storing_all_steps) {
   if (cost_function == nullptr) {
     cost_function = [](Graph *graph) { return graph->total_cost(); };
@@ -2175,6 +2865,507 @@ Graph::optimize(const std::vector<GraphXfer *> &xfers, double cost_upper_bound,
     fout_step << step_count << std::endl;
     fout_step.close();
   }
+
+  return best_graph;
+}
+
+
+std::shared_ptr<Graph> Graph::optimize_qalm(
+    const std::vector<GraphXfer *> &xfers, double cost_upper_bound,
+    const std::string &circuit_name, const std::string &log_file_name,
+    bool print_message, std::function<float(Graph *)> cost_function,
+    double timeout, const std::string &store_all_steps_file_prefix,
+    bool continue_storing_all_steps,
+    std::chrono::time_point<std::chrono::steady_clock> time_start,
+    const size_t initial_pool_size, const size_t exploration_pool_size,
+    size_t exploration_steps, const float repeat_tolerance,
+    const bool exploration_increase, const bool only_do_local_transformations,
+    const bool two_way_rotation_merging) {
+  auto rand_engine = std::default_random_engine{};
+  std::mt19937 gen(rand_engine());  // mersenne_twister_engine
+  if (cost_function == nullptr) {
+    cost_function = [](Graph *graph) { return graph->total_cost(); };
+    // cost_function = [](Graph *graph) {return
+    // graph->hadamard_reduction_cost(); };
+  }
+
+  std::cout << "Intial Pool Size: " << initial_pool_size << std::endl;
+  std::cout << "Exploration Pool Size: " << exploration_pool_size << std::endl;
+  std::cout << "Exploration Steps: " << exploration_steps << std::endl;
+  std::cout << "Repeat Tolerance: " << repeat_tolerance << std::endl;
+  std::cout << "Exploration Increase: " << exploration_increase << std::endl;
+  std::cout << "Only Do Local Transformations: "
+            << only_do_local_transformations << std::endl;
+  std::cout << "Two Way Rotation Merging: " << two_way_rotation_merging << std::endl;
+
+  const bool time_benchmark = true;
+
+  std::clock_t start_bench = std::clock();
+  std::clock_t end_bench = std::clock();
+  auto roqc_time = end_bench - start_bench;
+  auto pool_gen_time = end_bench - start_bench;
+  auto shrink_time = end_bench - start_bench;
+  auto explore_time = end_bench - start_bench;
+
+  auto start =
+      time_start == std::chrono::time_point<std::chrono::steady_clock>::min()
+          ? std::chrono::steady_clock::now()
+          : time_start;
+  std::priority_queue<std::shared_ptr<Graph>,
+                      std::vector<std::shared_ptr<Graph>>, GraphCompare>
+      candidates((GraphCompare(cost_function)));
+  std::set<size_t> hashmap;
+  std::shared_ptr<Graph> best_graph(new Graph(*this));
+  auto best_cost = cost_function(this);
+
+  // best_graph = best_graph->from_qasm_str(best_graph->context, run_roqc(best_graph->to_qasm().c_str()));
+
+  candidates.push(best_graph);
+  hashmap.insert(hash());
+
+  int invoke_cnt = 0;
+
+  FILE *fout = nullptr;
+  if (print_message) {
+    if (!log_file_name.empty()) {
+      fout = fopen(log_file_name.c_str(), "w");
+      assert(fout);
+    } else {
+      fout = stdout;
+    }
+  }
+
+  // Information necessary to store each step
+  std::unordered_map<Graph *, std::shared_ptr<Graph>> previous_graph;
+  int step_count = 0;
+  if (!store_all_steps_file_prefix.empty()) {
+    if (continue_storing_all_steps) {
+      std::ifstream fin(store_all_steps_file_prefix + ".txt");
+      assert(fin.is_open());
+      fin >> step_count;
+      fin.close();
+    } else {
+      to_qasm(store_all_steps_file_prefix + "0.qasm", /*print_result=*/false,
+              /*print_guid=*/false);
+    }
+  }
+
+  // TODO: make these numbers configurable
+  constexpr int kMaxNumCandidates = 2000;
+  constexpr int kShrinkToNumCandidates = 1000;
+
+  // I think this just a function that reduces the number of candidates
+
+  auto shrink_candidates = [&]() {
+    if (print_message) {
+      fprintf(fout, "%s: shrink the priority queue with %d candidates.\n",
+              circuit_name.c_str(), (int)candidates.size());
+    }
+    auto shrink_start = std::chrono::steady_clock::now();
+    std::priority_queue<std::shared_ptr<Graph>,
+                        std::vector<std::shared_ptr<Graph>>, GraphCompare>
+        new_candidates((GraphCompare(cost_function)));
+    std::map<float, int> cost_count;
+    while (!candidates.empty()) {
+      auto candidate = candidates.top();
+      // Count maps cost to number of candidates with that cost
+      cost_count[cost_function(candidate.get())]++;
+      if (new_candidates.size() < kShrinkToNumCandidates) {
+        new_candidates.push(candidate);
+      } else {
+        if (!store_all_steps_file_prefix.empty()) {
+          // no need to record history of removed graphs
+          previous_graph.erase(candidate.get());
+        }
+      }
+      candidates.pop();
+    }
+    std::swap(candidates, new_candidates);
+    auto shrink_end = std::chrono::steady_clock::now();
+
+    if (print_message) {
+      fprintf(
+          fout,
+          "%s: shrank the priority queue to %d candidates in %.3f seconds.\n",
+          circuit_name.c_str(), (int)candidates.size(),
+          (double)std::chrono::duration_cast<std::chrono::milliseconds>(
+              shrink_end - shrink_start)
+                  .count() /
+              1000.0);
+      for (auto &it : cost_count) {
+        fprintf(fout, "%d circuits have cost %.2f\n", it.second, it.first);
+      }
+      fflush(fout);
+    }
+  };
+
+  // ######## Start of the main optimization loop ##########
+
+  bool hit_timeout = false;
+  size_t rounds_since_reduction = 0;
+
+  // std::cout << "Starting optimization loop" << std::endl;
+  while (!candidates.empty()) {
+    if (time_benchmark) {
+      start_bench = std::clock();
+    }
+
+    if (rounds_since_reduction >= 100 && exploration_increase) {
+      exploration_steps++;
+      rounds_since_reduction = 0;
+    }
+
+    // We want to pull the first 10 graphs out of priority queue to explore
+
+    // Top candidates to explore
+    std::cout << "Starting initial pool creation" << std::endl;
+
+    std::vector<std::shared_ptr<Graph>> top_candidates;
+
+    for (int candidate_number = 0; candidate_number < initial_pool_size;
+         candidate_number++) {
+      top_candidates.push_back(candidates.top());
+      candidates.pop();
+      if (candidates.empty()) {
+        break;
+      }
+    }
+
+    std::cout << "Made starting pool, cost =";
+    for (const auto &candidate : top_candidates) {
+      std::cout << " " << cost_function(candidate.get());
+    }
+    std::cout << std::endl;
+
+    for (const auto &candidate : top_candidates) {
+      const auto &graph = candidate;
+      std::vector<Op> all_nodes;
+      graph->topology_order_ops(all_nodes);
+
+      std::uniform_int_distribution<> xfers_dist(0, (int)xfers.size() - 1);
+      std::uniform_int_distribution<> node_dist(0, (int)all_nodes.size() - 1);
+
+      // Apply transformations randomly until you have a certain number of new
+      // circuits
+      std::vector<std::shared_ptr<Graph>> found_circuits;
+      std::vector<std::vector<Op>> local_nodes;
+
+      int xfer_count = 0;
+      while (found_circuits.size() < exploration_pool_size) {
+        if (xfer_count >
+            (double)xfers.size() * all_nodes.size() * repeat_tolerance) {
+          break;
+        }
+        xfer_count++;
+        auto xfer = xfers[xfers_dist(gen)];
+        auto node = all_nodes[node_dist(gen)];
+        invoke_cnt++;
+        auto new_graph =
+            graph->apply_xfer(xfer, node, context->has_parameterized_gate());
+        auto end = std::chrono::steady_clock::now();
+        if ((double)std::chrono::duration_cast<std::chrono::milliseconds>(end -
+                                                                          start)
+                    .count() /
+                1000.0 >
+            timeout) {
+          std::cout
+              << "Timeout in generation. Program terminated. Best cost is "
+              << best_cost << std::endl;
+          hit_timeout = true;
+          break;
+        }
+        if (new_graph == nullptr)
+          continue;
+
+        auto new_hash = new_graph->hash();
+        auto new_cost = cost_function(new_graph.get());
+        if (new_cost > cost_upper_bound)
+          continue;
+        if (hashmap.find(new_hash) != hashmap.end()) {
+          continue;
+        }
+        hashmap.insert(new_hash);
+        if (only_do_local_transformations) {
+          local_nodes.emplace_back();
+          local_nodes.back().reserve(xfer->dstOps.size());
+          for (auto &opX : xfer->dstOps) {
+            local_nodes.back().push_back(opX->mapOp);
+          }
+        }
+
+        found_circuits.push_back(new_graph);
+        candidates.push(new_graph);
+
+        if (!store_all_steps_file_prefix.empty()) {
+          // record history
+          previous_graph[new_graph.get()] = graph;
+        }
+
+        if (new_cost < best_cost) {
+          best_cost = new_cost;
+          best_graph = new_graph;
+          rounds_since_reduction = 0;
+        } else {
+          rounds_since_reduction++;
+        }
+
+        if (hit_timeout) {
+          break;
+        }
+      }
+
+      if (time_benchmark) {
+        end_bench = std::clock();
+        pool_gen_time += end_bench - start_bench;
+      }
+
+      // Allow each circuit to take <exploration_steps> steps, no branching
+
+      if (time_benchmark) {
+        start_bench = std::clock();
+      }
+
+      for (int circuit_index = 0; circuit_index < found_circuits.size();
+           circuit_index++) {
+        for (int i = 0; i < exploration_steps; i++) {
+          // std::cout << "Evolution on circuit " << circuit_index << std::endl;
+          // We can't use const auto& because found_circuits[circuit_index]
+          // is changing.
+          const auto graph = found_circuits[circuit_index];
+
+          if (!only_do_local_transformations) {
+            // Regenerate possible transformations
+            all_nodes.clear();
+            graph->topology_order_ops(all_nodes);
+          } else if (i == 0) {
+            // Get local nodes from poolgen
+            all_nodes = local_nodes[circuit_index];
+          }
+          if (all_nodes.empty()) {
+            // Can't apply any transformation now. Restart!
+            all_nodes.clear();
+            graph->topology_order_ops(all_nodes);
+          }
+          std::uniform_int_distribution<> node_dist(0,
+                                                    (int)all_nodes.size() - 1);
+
+          // Try random transformations until one succees
+
+          bool found_new_circuit = false;
+          int xfer_count = 0;
+          while (!found_new_circuit) {
+            if (xfer_count >
+                (double)xfers.size() * all_nodes.size() * repeat_tolerance) {
+              break;
+            }
+            xfer_count++;
+            auto xfer = xfers[xfers_dist(gen)];
+            auto node = all_nodes[node_dist(gen)];
+            invoke_cnt++;
+            auto new_graph = graph->apply_xfer(
+                xfer, node, context->has_parameterized_gate());
+            auto end = std::chrono::steady_clock::now();
+            if ((double)std::chrono::duration_cast<std::chrono::milliseconds>(
+                    end - start)
+                        .count() /
+                    1000.0 >
+                timeout) {
+              std::cout
+                  << "Timeout in evolution. Program terminated. Best cost is "
+                  << best_cost << std::endl;
+              hit_timeout = true;
+              break;
+            }
+            if (new_graph == nullptr)
+              continue;
+
+            auto new_hash = new_graph->hash();
+            auto new_cost = cost_function(new_graph.get());
+            if (new_cost > cost_upper_bound)
+              continue;
+            if (hashmap.find(new_hash) != hashmap.end()) {
+              continue;
+            }
+            if (only_do_local_transformations) {
+              all_nodes.clear();
+              all_nodes.reserve(xfer->dstOps.size());
+              for (auto &opX : xfer->dstOps) {
+                all_nodes.push_back(opX->mapOp);
+              }
+            }
+
+            found_circuits[circuit_index] = new_graph;
+            candidates.push(new_graph);
+            found_new_circuit = true;
+
+            if (!store_all_steps_file_prefix.empty()) {
+              // record history
+              previous_graph[new_graph.get()] = graph;
+            }
+
+            if (new_cost < best_cost) {
+              best_cost = new_cost;
+              best_graph = new_graph;
+            }
+          }
+          if (hit_timeout) {
+            break;
+          }
+        }
+
+        if (hit_timeout) {
+          break;
+        }
+      }
+
+      if (time_benchmark) {
+        end_bench = std::clock();
+        explore_time += end_bench - start_bench;
+      }
+
+      // std::cout << "Circuit pool size after development: " <<
+      // found_circuits.size() << std::endl;
+
+      if (hit_timeout) {
+        break;
+      }
+
+      // Run roqc on all current circuits
+
+      if (time_benchmark) {
+        start_bench = std::clock();
+      }
+
+      for (int circuit_index = 0; circuit_index < found_circuits.size();
+           circuit_index++) {
+        // std::cout << "Running ROQC on circuit " << circuit_index <<
+        // std::endl;
+        auto curr_graph = found_circuits[circuit_index];
+        float pre_roqc_cost{cost_function(curr_graph.get())};
+        auto pre_roqc_graph = curr_graph;
+        // curr_graph = curr_graph->->from_qasm_str(curr_graph->context,
+        // run_roqc(curr_graph->to_qasm().c_str()));
+        if (two_way_rotation_merging) {
+          curr_graph = curr_graph->from_qasm_str(
+              curr_graph->context, run_roqc_two_way_rotation_merge(curr_graph->to_qasm().c_str()));
+        }
+        else {
+          curr_graph = curr_graph->from_qasm_str(
+              curr_graph->context, run_roqc(curr_graph->to_qasm().c_str()));
+        }
+        curr_graph->roqc_gates_reduction =
+            pre_roqc_cost - cost_function(curr_graph.get());
+        curr_graph->roqc_countdown = 0;
+        curr_graph->pre_roqc_graph = pre_roqc_graph;
+
+        auto new_hash = curr_graph->hash();
+        auto new_cost = cost_function(curr_graph.get());
+        // std::cout << "cost is: " << new_cost << " with hash: " << new_hash <<
+        // std::endl;
+        if (new_cost > cost_upper_bound)
+          continue;
+        if (hashmap.find(new_hash) != hashmap.end()) {
+          continue;
+        }
+
+        // std::cout << "adding new candidate" << std::endl;
+
+        candidates.push(curr_graph);
+        if (new_cost < best_cost) {
+          best_cost = new_cost;
+          best_graph = curr_graph;
+        }
+
+        if (candidates.size() > kMaxNumCandidates) {
+          shrink_candidates();
+        }
+      }
+
+      if (time_benchmark) {
+        end_bench = std::clock();
+        roqc_time += end_bench - start_bench;
+      }
+
+      auto end = std::chrono::steady_clock::now();
+      if (print_message) {
+        fprintf(
+            fout,
+            "[%s] Best cost: %f\tcandidate number: %zu\tafter %.3f seconds.\n",
+            circuit_name.c_str(), best_cost, candidates.size(),
+            (double)std::chrono::duration_cast<std::chrono::milliseconds>(end -
+                                                                          start)
+                    .count() /
+                1000.0);
+        fflush(fout);
+      }
+    }
+
+    if (hit_timeout) {
+      break;
+    }
+  }
+
+  // std::cout << "Finished optimization loop" << std::endl;
+
+  if (!store_all_steps_file_prefix.empty()) {
+    std::cout << "writing" << std::endl;
+    std::vector<Graph *> steps(1, best_graph.get());
+    while (previous_graph.count(steps.back()) > 0) {
+      // there is a previous graph
+      steps.push_back(previous_graph[steps.back()].get());
+    }
+    // no need to save the initial graph again
+    float total_roqc_reduction{0.0};
+    float initial_cost{cost_function(steps.back())};
+    std::cout << "initial cost: " << initial_cost << std::endl;
+    for (int i = (int)steps.size() - 2; i >= 0; i--) {
+      step_count++;
+      steps[i]->to_qasm(store_all_steps_file_prefix +
+                            std::to_string(step_count) + ".qasm",
+                        /*print_result=*/false,
+                        /*print_guid=*/false);
+      if (steps[i]->roqc_gates_reduction > 0) {
+        total_roqc_reduction += steps[i]->roqc_gates_reduction;
+        std::ofstream roqc_out(store_all_steps_file_prefix +
+                               std::to_string(step_count) +
+                               "_roqc_reduction.txt");
+        roqc_out << steps[i]->roqc_gates_reduction << " at step " << step_count
+                 << std::endl;
+        roqc_out.close();
+      }
+
+      // If a graph has a pre_roqc_graph, then we want to write this as well for
+      // tracing the circuit transformation steps
+
+      if (steps[i]->pre_roqc_graph != nullptr) {
+        steps[i]->pre_roqc_graph->to_qasm(store_all_steps_file_prefix +
+                                              std::to_string(step_count) +
+                                              "_pre_roqc_graph.qasm",
+                                          false, false);
+      }
+    }
+
+    // Store the number of steps.
+    std::ofstream fout_step(store_all_steps_file_prefix + ".txt");
+    std::cout << initial_cost << " " << best_cost << std::endl;
+    fout_step << "total roqc reduction: " << total_roqc_reduction << std::endl;
+    fout_step << "total reduction: " << initial_cost - best_cost << std::endl;
+    fout_step << step_count << std::endl;
+    fout_step.close();
+  }
+
+  if (time_benchmark) {
+    float total_time = roqc_time + explore_time + pool_gen_time + shrink_time;
+    std::cout << "ROQC time: " << (float)roqc_time / total_time << std::endl;
+    std::cout << "Explore time: " << (float)explore_time / total_time
+              << std::endl;
+    std::cout << "Pool Gen time: " << (float)pool_gen_time / total_time
+              << std::endl;
+    std::cout << "Shrink time: " << (float)shrink_time / total_time
+              << std::endl;
+  }
+
+  // End of main optimization loop
 
   return best_graph;
 }
@@ -2534,6 +3725,10 @@ std::shared_ptr<Graph> Graph::apply_xfer(GraphXfer *xfer, Op op,
     // If failed, the unmatch is already done in _pattern_matching.
     // Return nullptr.
     return new_graph;
+  //  for (auto &it : matched_opx_op_pairs_dq) {
+  //    std::cout << gate_type_name(it.second.ptr->tp) << " ";
+  //  }
+  //  std::cout << std::endl;
 
   if (success) {
     new_graph = xfer->create_new_graph(this);
@@ -2546,6 +3741,7 @@ std::shared_ptr<Graph> Graph::apply_xfer(GraphXfer *xfer, Op op,
   if (success) {
     if (eliminate_rotation) {
       new_graph->constant_and_rotation_elimination();
+      new_graph->roqc_countdown = this->roqc_countdown + 1;
     }
   }
   // Pattern matching succeed, unmatch mapped nodes.

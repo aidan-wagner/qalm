@@ -1,0 +1,15 @@
+-g
+NAM
+-opt
+TOTAL
+--rules-dir
+/home/queso_rules/
+--resynth-weight
+180
+-job
+none_1
+-out
+results_gf2^7_mult
+--verbosity
+2
+qalm/circuit/nam_circs/gf2^7_mult.qasm

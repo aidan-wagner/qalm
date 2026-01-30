@@ -1,0 +1,15 @@
+-g
+NAM
+-opt
+TWO_Q
+--rules-dir
+/home/queso_rules/
+--resynth-weight
+180
+-job
+none_1
+-out
+results_qcla_adder_10
+--verbosity
+2
+qalm/circuit/nam_circs/qcla_adder_10.qasm

@@ -196,6 +196,7 @@ class Graph {
   bool check_correctness();
   [[nodiscard]] int specific_gate_count(GateType gate_type) const;
   [[nodiscard]] float total_cost() const;
+  [[nodiscard]] float hadamard_reduction_cost() const;
   [[nodiscard]] int gate_count() const;
   [[nodiscard]] int circuit_depth() const;
   std::size_t get_next_special_op_guid();
@@ -219,6 +220,39 @@ class Graph {
       Context *ctx, const EquivalenceSet &eqs, bool print_message,
       std::function<float(Graph *)> cost_function = nullptr,
       const std::string &store_all_steps_file_prefix = std::string());
+  /**
+   * Greedily apply transformations+ROQC towards lower cost.
+   * @param ctx The context variable.
+   * @param xfers The circuit transformations.
+   * @param circuit_name The circuit name shown in the log.
+   * @param log_file_name The file name to output the log. If empty, the log
+   * will be outputted to the screen.
+   * @param print_message To output the log to the screen or not.
+   * @param cost_function The cost function.
+   * @param timeout Timeout in seconds.
+   * @param store_all_steps_file_prefix If not empty, store each circuit
+   * transformation step in a file with the corresponding file prefix.
+   * @param time_start If specified, calculate timeout based on this starting
+   * time.
+   * @return The optimized circuit.
+   */
+  std::shared_ptr<Graph> greedy_optimize_with_roqc(
+      Context *ctx, const std::vector<GraphXfer *> &xfers,
+      const std::string &circuit_name, const std::string &log_file_name,
+      bool print_message, std::function<float(Graph *)> cost_function = nullptr,
+      double timeout = 3600 /*1 hour*/,
+      const std::string &store_all_steps_file_prefix = std::string(),
+      std::chrono::time_point<std::chrono::steady_clock> time_start =
+          std::chrono::time_point<std::chrono::steady_clock>::min());
+  std::shared_ptr<Graph> greedy_optimize_with_local_search(
+      Context *ctx, const std::vector<GraphXfer *> &xfers,
+      const std::string &circuit_name, const std::string &log_file_name,
+      bool print_message, std::function<float(Graph *)> cost_function = nullptr,
+      double timeout = 3600 /*1 hour*/,
+      const std::string &store_all_steps_file_prefix = std::string(),
+      bool continue_storing_all_steps = false,
+      std::chrono::time_point<std::chrono::steady_clock> time_start =
+          std::chrono::time_point<std::chrono::steady_clock>::min());
   std::shared_ptr<Graph>
   optimize_legacy(float alpha, int budget, bool print_subst, Context *ctx,
                   const std::string &equiv_file_name,
@@ -264,6 +298,8 @@ class Graph {
    * @param continue_storing_all_steps If true, there was a greedy phase
    * before calling this function with the same |store_all_steps_file_prefix|.
    * We should continue the numbering in this case.
+   * @param time_start If specified, calculate timeout based on this starting
+   * time.
    * @return The optimized circuit.
    */
   std::shared_ptr<Graph>
@@ -273,7 +309,36 @@ class Graph {
            std::function<float(Graph *)> cost_function = nullptr,
            double timeout = 3600 /*1 hour*/,
            const std::string &store_all_steps_file_prefix = std::string(),
+           bool continue_storing_all_steps = false,
+           std::chrono::time_point<std::chrono::steady_clock> time_start =
+               std::chrono::time_point<std::chrono::steady_clock>::min(),
+           const int roqc_interval = 0,
+           const bool two_way_rotation_merging = false);
+
+  std::shared_ptr<Graph>
+  optimize_original(const std::vector<GraphXfer *> &xfers, double cost_upper_bound,
+           const std::string &circuit_name, const std::string &log_file_name,
+           bool print_message,
+           std::function<float(Graph *)> cost_function = nullptr,
+           double timeout = 3600 /*1 hour*/,
+           const std::string &store_all_steps_file_prefix = std::string(),
            bool continue_storing_all_steps = false);
+
+  std::shared_ptr<Graph> optimize_qalm(
+      const std::vector<GraphXfer *> &xfers, double cost_upper_bound,
+      const std::string &circuit_name, const std::string &log_file_name,
+      bool print_message, std::function<float(Graph *)> cost_function = nullptr,
+      double timeout = 3600 /*1 hour*/,
+      const std::string &store_all_steps_file_prefix = std::string(),
+      bool continue_storing_all_steps = false,
+      std::chrono::time_point<std::chrono::steady_clock> time_start =
+          std::chrono::time_point<std::chrono::steady_clock>::min(),
+      const size_t intial_pool_size = 1,
+      const size_t exploration_pool_size = 10, size_t exploration_steps = 10,
+      const float repeat_tolerance = 1.5,
+      const bool exploration_increase = false,
+      const bool only_do_local_transformations = false,
+      const bool two_way_rotation_merging = false);
   void constant_and_rotation_elimination();
   void rotation_merging(GateType target_rotation);
   [[nodiscard]] std::string to_qasm(bool print_result = false,
@@ -377,6 +442,10 @@ class Graph {
   std::unordered_map<Op, int, OpHash> input_qubit_op_2_qubit_idx;
   std::unordered_map<Pos, int, PosHash> pos_2_logical_qubit;
   std::unordered_map<Op, int, OpHash> param_idx;
+  size_t roqc_countdown{0};
+  float roqc_gates_reduction{0};
+
+  std::shared_ptr<Graph> pre_roqc_graph{nullptr};
 };
 
 }  // namespace quartz
