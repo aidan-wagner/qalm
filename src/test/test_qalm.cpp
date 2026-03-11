@@ -6,6 +6,7 @@
 using namespace quartz;
 
 int main(int argc, char **argv) {
+  std::cout << "starting" << std::endl;
   std::string input_fn =
       kQuartzRootPath.string() + "/circuit/nam_circs/adder_8.qasm";
 
@@ -27,6 +28,7 @@ int main(int argc, char **argv) {
   assert(argv[3] != nullptr);
   assert(argv[4] != nullptr);
 
+  std::cout << "starting rest of parse" << std::endl;
   std::size_t timeout = std::stoi(argv[3]);
   std::size_t initial_pool_size = std::stoi(argv[4]);
   std::size_t exploration_pool_size = std::stoi(argv[5]);
@@ -39,6 +41,8 @@ int main(int argc, char **argv) {
   bool preprocess = std::stoi(argv[11]);
   bool two_way_rotation_merging = std::stoi(argv[12]);
 
+  std::cout << "Making context" << std::endl;
+
   ParamInfo param_info;
   Context ctx({GateType::input_qubit, GateType::input_param, GateType::cx,
                GateType::h, GateType::rz, GateType::x, GateType::rx,
@@ -47,6 +51,7 @@ int main(int argc, char **argv) {
 
   EquivalenceSet eqs;
   // Load ECC set from file
+  std::cout << "loading json" << std::endl;
   if (!eqs.load_json(&ctx, eqset_fn,
                      /*from_verifier=*/false)) {
     // generate ECC set
@@ -109,6 +114,8 @@ int main(int argc, char **argv) {
     xfers = GraphXfer::get_all_xfers_from_eqs(&ctx, eqs);
     std::cout << "number of xfers: " << xfers.size() << std::endl;
   }
+
+  std::cout << "making graph" << std::endl;
 
   std::shared_ptr<Graph> graph;
   std::shared_ptr<Graph> g;

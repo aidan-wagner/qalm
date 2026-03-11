@@ -1,4 +1,0 @@
-127.0.0.1 - - [04/Dec/2025 23:48:43] "GET / HTTP/1.1" 200 -
-Resynthesis server is ready
-127.0.0.1 - - [04/Dec/2025 23:49:05] "POST /bqskit HTTP/1.1" 200 -
-ERROR conda.cli.main_run:execute(124): `conda run python resynth.py --bqskit --bqskit_auto_workers` failed. (See above for error)
