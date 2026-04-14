@@ -253,6 +253,15 @@ class Graph {
       bool continue_storing_all_steps = false,
       std::chrono::time_point<std::chrono::steady_clock> time_start =
           std::chrono::time_point<std::chrono::steady_clock>::min());
+  std::shared_ptr<Graph> greedy_optimize_with_deeper_local_search(
+      Context *ctx, const std::vector<GraphXfer *> &xfers,
+      const std::string &circuit_name, const std::string &log_file_name,
+      bool print_message, std::function<float(Graph *)> cost_function = nullptr,
+      double timeout = 3600 /*1 hour*/,
+      const std::string &store_all_steps_file_prefix = std::string(),
+      bool continue_storing_all_steps = false,
+      std::chrono::time_point<std::chrono::steady_clock> time_start =
+          std::chrono::time_point<std::chrono::steady_clock>::min());
   std::shared_ptr<Graph>
   optimize_legacy(float alpha, int budget, bool print_subst, Context *ctx,
                   const std::string &equiv_file_name,
@@ -339,6 +348,29 @@ class Graph {
       const bool exploration_increase = false,
       const bool only_do_local_transformations = false,
       const bool two_way_rotation_merging = false);
+
+  // Adaptive variant: same search loop but escalates N_pool, N_branch, and k
+  // in round-robin order whenever no improvement is found for stall_window_seconds.
+  // All other parameters (existing experiments) are unchanged.
+  std::shared_ptr<Graph> optimize_qalm_adaptive(
+      const std::vector<GraphXfer *> &xfers, double cost_upper_bound,
+      const std::string &circuit_name, const std::string &log_file_name,
+      bool print_message, std::function<float(Graph *)> cost_function = nullptr,
+      double timeout = 3600 /*1 hour*/,
+      const std::string &store_all_steps_file_prefix = std::string(),
+      bool continue_storing_all_steps = false,
+      std::chrono::time_point<std::chrono::steady_clock> time_start =
+          std::chrono::time_point<std::chrono::steady_clock>::min(),
+      size_t initial_pool_size = 1,
+      size_t exploration_pool_size = 1, size_t exploration_steps = 3,
+      float repeat_tolerance = 1.5,
+      bool only_do_local_transformations = false,
+      bool two_way_rotation_merging = false,
+      double stall_window_seconds = 60.0,
+      size_t max_pool_size = 5,
+      size_t max_branch_size = 5,
+      size_t max_steps = 5);
+
   void constant_and_rotation_elimination();
   void rotation_merging(GateType target_rotation);
   [[nodiscard]] std::string to_qasm(bool print_result = false,
