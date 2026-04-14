@@ -22,6 +22,9 @@
  *   argv[12] ECC set path (relative to repo root)
  *   argv[13] (optional) fixed_k — if >0, run QALM with this fixed
  *            exploration depth (no k-advancement).  0 or omitted = advancing.
+ *   argv[14] (optional) enqueue_intermediate — 0 to skip enqueuing
+ *            intermediate exploration results (only enqueue after ROQC).
+ *            1 or omitted = enqueue all (default).
  */
 
 #include "quartz/tasograph/substitution.h"
@@ -52,6 +55,12 @@ int main(int argc, char **argv) {
   int fixed_k = 0;
   if (argc >= 14) {
     fixed_k = std::stoi(argv[13]);
+  }
+
+  // Optional: enqueue intermediate exploration results (default true)
+  bool enqueue_intermediate = true;
+  if (argc >= 15) {
+    enqueue_intermediate = std::stoi(argv[14]);
   }
 
   // QALM starts exploration at greedy_k+1 (unless fixed_k overrides)
@@ -159,14 +168,8 @@ int main(int argc, char **argv) {
         &ctx, greedy_xfers, circuit_name, "", /*print_message=*/true,
         nullptr, timeout, "", /*continue_storing_all_steps=*/false, start);
   }
-  if (greedy_k >= 3) {
-    std::cout
-        << "Running greedy(k=3): greedy_optimize_with_deeper_local_search"
-        << std::endl;
-    graph = graph->greedy_optimize_with_deeper_local_search(
-        &ctx, greedy_xfers, circuit_name, "", /*print_message=*/true,
-        nullptr, timeout, "", /*continue_storing_all_steps=*/false, start);
-  }
+  // greedy_k >= 3 is not yet implemented
+  // (greedy_optimize_with_deeper_local_search does not exist)
 
   // QALM phase.
   // fixed_k > 0  → run once with that exploration depth, then stop.
@@ -185,7 +188,8 @@ int main(int argc, char **argv) {
         /*print_message=*/true, nullptr, timeout, "",
         /*continue_storing_all_steps=*/false, start, initial_pool_size,
         exploration_pool_size, k, repeat_tolerance, exploration_increase,
-        only_do_local_transformations, two_way_rotation_merging);
+        only_do_local_transformations, two_way_rotation_merging,
+        enqueue_intermediate);
   } else {
     std::size_t k = exploration_steps;
     while (true) {
@@ -207,7 +211,8 @@ int main(int argc, char **argv) {
           /*print_message=*/true, nullptr, timeout, "",
           /*continue_storing_all_steps=*/false, start, initial_pool_size,
           exploration_pool_size, k, repeat_tolerance, exploration_increase,
-          only_do_local_transformations, two_way_rotation_merging);
+          only_do_local_transformations, two_way_rotation_merging,
+          enqueue_intermediate);
       graph = new_graph;
       k++;
     }

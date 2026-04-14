@@ -3083,7 +3083,7 @@ std::shared_ptr<Graph> Graph::optimize_qalm(
     const size_t initial_pool_size, const size_t exploration_pool_size,
     size_t exploration_steps, const float repeat_tolerance,
     const bool exploration_increase, const bool only_do_local_transformations,
-    const bool two_way_rotation_merging) {
+    const bool two_way_rotation_merging, const bool enqueue_intermediate) {
   auto rand_engine = std::default_random_engine{};
   std::mt19937 gen(rand_engine());  // mersenne_twister_engine
   if (cost_function == nullptr) {
@@ -3100,6 +3100,7 @@ std::shared_ptr<Graph> Graph::optimize_qalm(
   std::cout << "Only Do Local Transformations: "
             << only_do_local_transformations << std::endl;
   std::cout << "Two Way Rotation Merging: " << two_way_rotation_merging << std::endl;
+  std::cout << "Enqueue Intermediate: " << enqueue_intermediate << std::endl;
 
   const bool time_benchmark = true;
 
@@ -3297,7 +3298,9 @@ std::shared_ptr<Graph> Graph::optimize_qalm(
         }
 
         found_circuits.push_back(new_graph);
-        candidates.push(new_graph);
+        if (enqueue_intermediate) {
+          candidates.push(new_graph);
+        }
 
         if (!store_all_steps_file_prefix.empty()) {
           // record history
@@ -3398,7 +3401,9 @@ std::shared_ptr<Graph> Graph::optimize_qalm(
             }
 
             found_circuits[circuit_index] = new_graph;
-            candidates.push(new_graph);
+            if (enqueue_intermediate) {
+              candidates.push(new_graph);
+            }
             found_new_circuit = true;
 
             if (!store_all_steps_file_prefix.empty()) {
