@@ -151,7 +151,7 @@ def dispatch(args):
 
     try:
         times, costs, qasm_str = run_qalm(
-            filename, circuit_name, TIMEOUT, n_pool, 1
+            filename, circuit_name, TIMEOUT, n_pool, 3
         )
     except Exception:
         traceback.print_exc()
@@ -211,8 +211,13 @@ def make_aggregate_plots(results, orig_counts):
     fig1.tight_layout()
     path1 = os.path.join(OUT_DIR, f"N_pool_arith_mean_{TIMEOUT}s.pdf")
     fig1.savefig(path1, dpi=150)
-    plt.close(fig1)
     print(f"Saved -> {path1}")
+    ax1.set_title(f"N_pool comparison ({len(plot_circuits)} circuits)")
+    fig1.tight_layout()
+    path1_plain = os.path.join(OUT_DIR, f"N_pool_arith_mean_{TIMEOUT}s_plain.pdf")
+    fig1.savefig(path1_plain, dpi=150)
+    plt.close(fig1)
+    print(f"Saved -> {path1_plain}")
 
     # Geometric mean reduction
     fig2, ax2 = plt.subplots(figsize=(7, 4))
@@ -244,8 +249,13 @@ def make_aggregate_plots(results, orig_counts):
     fig2.tight_layout()
     path2 = os.path.join(OUT_DIR, f"N_pool_geomean_{TIMEOUT}s.pdf")
     fig2.savefig(path2, dpi=150)
-    plt.close(fig2)
     print(f"Saved -> {path2}")
+    ax2.set_title(f"N_pool comparison ({len(plot_circuits)} circuits)")
+    fig2.tight_layout()
+    path2_plain = os.path.join(OUT_DIR, f"N_pool_geomean_{TIMEOUT}s_plain.pdf")
+    fig2.savefig(path2_plain, dpi=150)
+    plt.close(fig2)
+    print(f"Saved -> {path2_plain}")
 
 
 def print_summary(results, orig_counts):
