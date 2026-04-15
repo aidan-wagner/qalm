@@ -219,7 +219,10 @@ class Graph {
   std::shared_ptr<Graph> greedy_optimize(
       Context *ctx, const EquivalenceSet &eqs, bool print_message,
       std::function<float(Graph *)> cost_function = nullptr,
-      const std::string &store_all_steps_file_prefix = std::string());
+      const std::string &store_all_steps_file_prefix = std::string(),
+      double timeout = -1 /*disabled*/,
+      std::chrono::time_point<std::chrono::steady_clock> time_start =
+          std::chrono::time_point<std::chrono::steady_clock>::min());
   /**
    * Greedily apply transformations+ROQC towards lower cost.
    * @param ctx The context variable.
@@ -331,7 +334,9 @@ class Graph {
            std::function<float(Graph *)> cost_function = nullptr,
            double timeout = 3600 /*1 hour*/,
            const std::string &store_all_steps_file_prefix = std::string(),
-           bool continue_storing_all_steps = false);
+           bool continue_storing_all_steps = false,
+           std::chrono::time_point<std::chrono::steady_clock> time_start =
+               std::chrono::time_point<std::chrono::steady_clock>::min());
 
   std::shared_ptr<Graph> optimize_qalm(
       const std::vector<GraphXfer *> &xfers, double cost_upper_bound,

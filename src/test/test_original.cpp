@@ -2,6 +2,9 @@
 #include "quartz/tasograph/tasograph.h"
 #include "test/gen_ecc_set.h"
 
+#include <chrono>
+#include <iostream>
+
 using namespace quartz;
 
 int main(int argc, char **argv) {
@@ -52,9 +55,31 @@ int main(int argc, char **argv) {
   auto graph = Graph::from_qasm_file(&ctx, input_fn);
   assert(graph);
 
-  auto graph_preprocessed = graph->greedy_optimize(graph->context, eqs, false);
+  auto start = std::chrono::steady_clock::now();
+  auto graph_preprocessed = graph->greedy_optimize(
+      graph->context, eqs, /*print_message=*/true, /*cost_function=*/nullptr,
+      /*store_all_steps_file_prefix=*/"", (double)timeout, start);
+  auto greedy_end = std::chrono::steady_clock::now();
+  double greedy_seconds =
+      (double)std::chrono::duration_cast<std::chrono::milliseconds>(greedy_end -
+                                                                    start)
+              .count() /
+      1000.0;
 
-  auto graph_optimized = graph_preprocessed->optimize_original(xfers, graph_preprocessed->gate_count() * 1.05, circuit_name, "", true, nullptr, timeout, "");
+  // Emit the post-greedy intermediate result immediately so that if
+  // optimize_original later OOMs, the benchmark driver still has a valid
+  // circuit + timing to report.
+  std::cout << "Post-greedy time: " << greedy_seconds << " seconds"
+            << std::endl;
+  std::cout << "Post-greedy graph:" << std::endl;
+  std::cout << graph_preprocessed->to_qasm();
+  std::cout << "End post-greedy graph." << std::endl;
+  std::cout.flush();
+
+  auto graph_optimized = graph_preprocessed->optimize_original(
+      xfers, graph_preprocessed->gate_count() * 1.05, circuit_name, "", true,
+      nullptr, (double)timeout, "", /*continue_storing_all_steps=*/false,
+      start);
   std::cout << "Optimized graph:" << std::endl;
   std::cout << graph_optimized->to_qasm();
   return 0;
