@@ -168,8 +168,14 @@ int main(int argc, char **argv) {
         &ctx, greedy_xfers, circuit_name, "", /*print_message=*/true,
         nullptr, timeout, "", /*continue_storing_all_steps=*/false, start);
   }
-  // greedy_k >= 3 is not yet implemented
-  // (greedy_optimize_with_deeper_local_search does not exist)
+  if (greedy_k >= 3) {
+    std::cout
+        << "Running greedy(k=3): greedy_optimize_with_deeper_local_search"
+        << std::endl;
+    graph = graph->greedy_optimize_with_deeper_local_search(
+        &ctx, greedy_xfers, circuit_name, "", /*print_message=*/true,
+        nullptr, timeout, "", /*continue_storing_all_steps=*/false, start);
+  }
 
   // QALM phase.
   // fixed_k > 0  → run once with that exploration depth, then stop.
