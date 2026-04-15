@@ -50,8 +50,8 @@ CIRCUIT_LIST = [
 FIXED_K_VALUES = [1, 2, 3, 4, 5]
 GREEDY_K_GROUPS = [0, 2]
 TIMEOUT = 3600
-RESULTS_DIR = "single_k_results"
-GREEDY_K_RESULTS_DIR = "greedy_k_ablation_results"
+RESULTS_DIR = "single_k_no_enqueue_results"
+GREEDY_K_RESULTS_DIR = "greedy_k_ablation_no_enqueue_results"
 REDUCTION_YLIM = (31, 35)  # set to None for auto; only used as a sentinel now
 
 

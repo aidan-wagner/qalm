@@ -70,20 +70,21 @@ def compute_series(rows, source_filter, circuit_filter=None, orig_lookup=None):
 rows = read_csv(CSV_PATH)
 TIME_COLS = get_time_cols(rows)
 
-# The 26 nam circuits that appear in both nam and nam_rm
+# The 26 nam circuits: all nam circuits except hwb6 and ham15-low
+EXCLUDE_26 = {"hwb6", "ham15-low"}
 nam_circuits = {r["circuit"] for r in rows if r["source"] == "nam"}
 nam_rm_circuits = {r["circuit"] for r in rows if r["source"] == "nam_rm"}
-nam_rm_26 = nam_circuits & nam_rm_circuits  # intersection = 26-circuit subset
+nam_26 = nam_circuits - EXCLUDE_26
+nam_rm_26 = nam_rm_circuits - EXCLUDE_26
 
-# orig_total from the nam rows (true original gate counts)
-nam_orig_lookup = {r["circuit"]: r["orig_total"] for r in rows if r["source"] == "nam" and r["status"] == "OK"}
+# orig_total from the nam rows (true original gate counts, 26-circuit subset)
+nam_orig_lookup = {r["circuit"]: r["orig_total"] for r in rows if r["source"] == "nam" and r["status"] == "OK" and r["circuit"] not in EXCLUDE_26}
 
-print(f"nam circuits: {len(nam_circuits)}")
-print(f"nam_rm circuits: {len(nam_rm_circuits)}")
+print(f"nam 26-circuit subset: {len(nam_26)}")
 print(f"nam_rm 26-circuit subset: {len(nam_rm_26)}")
 print(f"guoq circuits: {sum(1 for r in rows if r['source'] == 'guoq' and r['status'] == 'OK')}")
 
-nam_t, nam_g = compute_series(rows, "nam")
+nam_t, nam_g = compute_series(rows, "nam", circuit_filter=nam_26)
 nam_rm_t, nam_rm_g = compute_series(rows, "nam_rm", circuit_filter=nam_rm_26)
 nam_rm_vs_orig_t, nam_rm_vs_orig_g = compute_series(
     rows, "nam_rm", circuit_filter=nam_rm_26, orig_lookup=nam_orig_lookup

@@ -48,8 +48,10 @@ CIRCUIT_LIST = [
 ]
 
 GREEDY_K_VALUES = [0, 1, 2, 3]
-TIMEOUT = 3600
-RESULTS_DIR = "greedy_k_ablation_results"
+TIMEOUT = int(os.environ.get("ABLATION_TIMEOUT", 3600))
+RESULTS_DIR = os.environ.get(
+    "ABLATION_RESULTS_DIR", "greedy_k_ablation_no_enqueue_results"
+)
 REDUCTION_YLIM = (25, 35)  # set to None for auto
 
 

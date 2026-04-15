@@ -55,19 +55,20 @@ FIXED_K_VALUES = [1, 2, 3, 4, 5]
 GREEDY_K_GROUPS = [0, 2]
 
 TIMEOUT = 3600  # seconds
-N_WORKERS = 32
+N_WORKERS = 52
 MEM_LIMIT_GB = 8
+MIN_FREE_GB = 16  # memory-guard: kill heaviest child if avail < this
 ECCSET = "eccset/Nam_5_3_complete_ECC_set.json"
 
 N_POOL = 1
-N_BRANCH = 1
+N_BRANCH = 3
 REPEAT_TOL = 1.5
 EXP_INCREASE = 0
 STRICTLY_REDUCING = 0
 LOCAL_ONLY = 1
 TWO_WAY_RM = 0
 
-RESULTS_DIR = "single_k_results"
+RESULTS_DIR = "single_k_no_enqueue_results"
 
 
 # ── helpers ────────────────────────────────────────────────────────────────────
@@ -77,7 +78,7 @@ def _set_mem_limit():
     resource.setrlimit(resource.RLIMIT_AS, (lim, lim))
 
 
-def _monitor(proc, mem_limit_kb, peak_ref, stop_evt):
+def _monitor(proc, mem_limit_kb, peak_ref, stop_evt, local_kill_ref):
     peak = 0
     while not stop_evt.is_set():
         try:
@@ -90,6 +91,7 @@ def _monitor(proc, mem_limit_kb, peak_ref, stop_evt):
                         if kb > mem_limit_kb:
                             try:
                                 os.kill(proc.pid, signal.SIGKILL)
+                                local_kill_ref[0] = True
                             except ProcessLookupError:
                                 pass
                         break
@@ -97,6 +99,58 @@ def _monitor(proc, mem_limit_kb, peak_ref, stop_evt):
             break
         stop_evt.wait(0.5)
     peak_ref[0] = peak
+
+
+def _memory_guard(stop_evt, min_free_gb=MIN_FREE_GB, poll_s=5.0):
+    """Background daemon: if system MemAvailable drops below min_free_gb,
+    SIGKILL the test_greedy_k_ablation child with the largest RSS to keep
+    the machine responsive and prevent uncontrolled swapping / OOM storms."""
+    min_kb = min_free_gb * 1024 * 1024
+    target = "test_greedy_k_ablation"
+    while not stop_evt.is_set():
+        try:
+            avail_kb = 0
+            with open("/proc/meminfo") as fh:
+                for line in fh:
+                    if line.startswith("MemAvailable:"):
+                        avail_kb = int(line.split()[1])
+                        break
+            if avail_kb and avail_kb < min_kb:
+                biggest_pid, biggest_rss = None, 0
+                for pid_name in os.listdir("/proc"):
+                    if not pid_name.isdigit():
+                        continue
+                    try:
+                        with open(f"/proc/{pid_name}/cmdline", "rb") as fh:
+                            cmdline = fh.read().decode(errors="replace")
+                        if target not in cmdline:
+                            continue
+                        with open(f"/proc/{pid_name}/status") as fh:
+                            for line in fh:
+                                if line.startswith("VmRSS:"):
+                                    rss = int(line.split()[1])
+                                    if rss > biggest_rss:
+                                        biggest_rss = rss
+                                        biggest_pid = int(pid_name)
+                                    break
+                    except (FileNotFoundError, ProcessLookupError,
+                            PermissionError):
+                        continue
+                if biggest_pid is not None:
+                    print(
+                        f"[mem-guard] MemAvailable="
+                        f"{avail_kb / 1024 / 1024:.1f}GB < {min_free_gb}GB "
+                        f"— killing pid={biggest_pid} "
+                        f"(RSS={biggest_rss / 1024:.0f}MB)",
+                        flush=True,
+                    )
+                    try:
+                        os.kill(biggest_pid, signal.SIGKILL)
+                    except ProcessLookupError:
+                        pass
+        except Exception as e:
+            print(f"[mem-guard] error: {e}", flush=True)
+        stop_evt.wait(poll_s)
 
 
 def run_one(args):
@@ -107,7 +161,8 @@ def run_one(args):
         RESULTS_DIR, "pkl",
         f"{circ_name}_gk{greedy_k}_fk{fixed_k}_{TIMEOUT}.pkl",
     )
-    if os.path.exists(pkl_path):
+    killed_marker = pkl_path[:-4] + ".killed"
+    if os.path.exists(pkl_path) and not os.path.exists(killed_marker):
         with open(pkl_path, "rb") as f:
             return pickle.load(f)
 
@@ -125,6 +180,7 @@ def run_one(args):
             str(int(TWO_WAY_RM)),
             ECCSET,
             str(fixed_k),
+            "0",  # enqueue_intermediate = 0 (no-enqueue variant)
         ],
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
@@ -134,18 +190,21 @@ def run_one(args):
 
     mem_limit_kb = MEM_LIMIT_GB * 1024 * 1024
     peak_ref = [0]
+    local_kill_ref = [False]
     stop_evt = threading.Event()
     mon_thread = threading.Thread(
         target=_monitor,
-        args=(proc, mem_limit_kb, peak_ref, stop_evt),
+        args=(proc, mem_limit_kb, peak_ref, stop_evt, local_kill_ref),
         daemon=True,
     )
     mon_thread.start()
 
+    timeout_hit = False
     wall_limit = TIMEOUT + 120
     try:
         stdout, _ = proc.communicate(timeout=wall_limit)
     except subprocess.TimeoutExpired:
+        timeout_hit = True
         try:
             os.kill(proc.pid, signal.SIGKILL)
         except ProcessLookupError:
@@ -155,6 +214,12 @@ def run_one(args):
     mon_thread.join()
 
     peak_kb = peak_ref[0]
+    rc = proc.returncode
+    guard_killed = (
+        rc in (-9, -signal.SIGKILL)
+        and not local_kill_ref[0]
+        and not timeout_hit
+    )
     times, costs = [], []
     qasm_lines = []
     in_qasm = False
@@ -183,7 +248,8 @@ def run_one(args):
 
     print(
         f"{circ_name} gk={greedy_k} fk={fixed_k}: "
-        f"{len(costs)} improvements, peak={peak_kb / 1024:.0f} MB",
+        f"{len(costs)} improvements, peak={peak_kb / 1024:.0f} MB"
+        f"{' [GUARD-KILLED]' if guard_killed else ''}",
         flush=True,
     )
 
@@ -191,6 +257,12 @@ def run_one(args):
     os.makedirs(os.path.dirname(pkl_path), exist_ok=True)
     with open(pkl_path, "wb") as f:
         pickle.dump(out, f)
+
+    if guard_killed:
+        with open(killed_marker, "w") as f:
+            f.write("killed by memory guard\n")
+    elif os.path.exists(killed_marker):
+        os.remove(killed_marker)
 
     # Save optimized QASM
     if qasm_lines:
@@ -209,27 +281,67 @@ def run_one(args):
 # ── main ───────────────────────────────────────────────────────────────────────
 
 def main():
+    import sys
+    rerun = "--rerun-killed" in sys.argv
+    n_workers = 32 if rerun else N_WORKERS
+
     os.makedirs(os.path.join(RESULTS_DIR, "pkl"), exist_ok=True)
     os.makedirs(os.path.join(RESULTS_DIR, "qasm"), exist_ok=True)
 
-    tasks = [
+    all_tasks = [
         (circ_path, circ_name, gk, fk)
         for gk in GREEDY_K_GROUPS
         for (circ_path, circ_name) in CIRCUIT_LIST
         for fk in FIXED_K_VALUES
     ]
 
-    n_tasks = len(tasks)
-    print(
-        f"Launching {n_tasks} tasks "
-        f"({len(CIRCUIT_LIST)} circuits × {len(FIXED_K_VALUES)} k values "
-        f"× {len(GREEDY_K_GROUPS)} greedy_k groups) "
-        f"with {N_WORKERS} workers, timeout={TIMEOUT}s, "
-        f"mem_limit={MEM_LIMIT_GB}GB …"
-    )
+    if rerun:
+        tasks = []
+        for args in all_tasks:
+            _, circ_name, gk, fk = args
+            pkl_path = os.path.join(
+                RESULTS_DIR, "pkl",
+                f"{circ_name}_gk{gk}_fk{fk}_{TIMEOUT}.pkl",
+            )
+            marker = pkl_path[:-4] + ".killed"
+            if os.path.exists(marker):
+                try:
+                    os.remove(pkl_path)
+                except FileNotFoundError:
+                    pass
+                os.remove(marker)
+                tasks.append(args)
+        if not tasks:
+            print("No killed tasks found — nothing to re-run.")
+            return
+        print(
+            f"Re-running {len(tasks)} killed tasks with {n_workers} workers, "
+            f"timeout={TIMEOUT}s, mem_limit={MEM_LIMIT_GB}GB …"
+        )
+    else:
+        tasks = all_tasks
+        print(
+            f"Launching {len(tasks)} tasks "
+            f"({len(CIRCUIT_LIST)} circuits × {len(FIXED_K_VALUES)} k values "
+            f"× {len(GREEDY_K_GROUPS)} greedy_k groups) "
+            f"with {n_workers} workers, timeout={TIMEOUT}s, "
+            f"mem_limit={MEM_LIMIT_GB}GB …"
+        )
 
-    with multiprocessing.Pool(N_WORKERS) as pool:
-        flat_results = pool.map(run_one, tasks)
+    n_tasks = len(tasks)
+
+    guard_stop = threading.Event()
+    guard_thread = threading.Thread(
+        target=_memory_guard, args=(guard_stop,), daemon=True,
+    )
+    guard_thread.start()
+
+    try:
+        with multiprocessing.Pool(n_workers) as pool:
+            flat_results = pool.map(run_one, tasks)
+    finally:
+        guard_stop.set()
+        guard_thread.join(timeout=10)
 
     print(f"\nAll {n_tasks} tasks completed. Results pickled in {RESULTS_DIR}/pkl/")
     print("Run plot_single_k.py to generate figures.")
