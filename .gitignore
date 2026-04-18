@@ -83,3 +83,4 @@ res_*
 circuit_step*
 comparison_results/*
 past_results/*
+**/*.pkl

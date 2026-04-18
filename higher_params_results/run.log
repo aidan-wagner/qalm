@@ -1,0 +1,28 @@
+Launching 520 tasks with up to 128 parallel workers (timeout 3600s each) …
+Saved → higher_params_results/figures/pool_sweep.pdf
+Saved → higher_params_results/figures/branch_sweep.pdf
+Saved → higher_params_results/figures/ecc_comparison.pdf
+
+=== Final geomean gate-count ratio (lower is better, k=3 fixed) ===
+Config                                                GeoMean
+--------------------------------------------------------------
+  N_pool=1 N_branch=1 ECC=5_3      0.6729
+  N_pool=2 N_branch=1 ECC=5_3      0.6715
+  N_pool=3 N_branch=1 ECC=5_3      0.6712
+  N_pool=4 N_branch=1 ECC=5_3      0.6701
+  N_pool=5 N_branch=1 ECC=5_3      0.6703
+  N_pool=1 N_branch=1 ECC=5_3      0.6713
+  N_pool=1 N_branch=2 ECC=5_3      0.6730
+  N_pool=1 N_branch=3 ECC=5_3      0.6724
+  N_pool=1 N_branch=4 ECC=5_3      0.6716
+  N_pool=1 N_branch=5 ECC=5_3      0.6713
+  N_pool=1 N_branch=1 ECC=6_3      0.6717
+  N_pool=2 N_branch=1 ECC=6_3      0.6746
+  N_pool=3 N_branch=1 ECC=6_3      0.6744
+  N_pool=4 N_branch=1 ECC=6_3      0.6727
+  N_pool=5 N_branch=1 ECC=6_3      0.6721
+  N_pool=1 N_branch=1 ECC=6_3      0.6732
+  N_pool=1 N_branch=2 ECC=6_3      0.6727
+  N_pool=1 N_branch=3 ECC=6_3      0.6751
+  N_pool=1 N_branch=4 ECC=6_3      0.6715
+  N_pool=1 N_branch=5 ECC=6_3      0.6735

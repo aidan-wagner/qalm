@@ -271,7 +271,8 @@ def run_interval(filename, circuit_name, timeout, roqc_interval, greedy_start, t
         words = line.split()
         if words[0] == f"[{circuit_name}]":
             best_cost = float(words[3])
-            time = float(words[8])
+            after_idx = words.index("after")
+            time = float(words[after_idx + 1])
             costs.append(best_cost)
             times.append(time)
 
@@ -299,7 +300,8 @@ def run_original(filename, circuit_name, timeout):
         words = line.split()
         if words[0] == f"[{circuit_name}]":
             best_cost = float(words[3])
-            time = float(words[8])
+            after_idx = words.index("after")
+            time = float(words[after_idx + 1])
             costs.append(best_cost)
             times.append(time)
 
@@ -335,7 +337,8 @@ def run_qalm(filename, circuit_name, timeout, initial_pool_size, exploration_poo
         words = line.split()
         if words[0] == f"[{circuit_name}]":
             best_cost = float(words[3])
-            time = float(words[8])
+            after_idx = words.index("after")
+            time = float(words[after_idx + 1])
             costs.append(best_cost)
             times.append(time)
 

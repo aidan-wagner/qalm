@@ -50,13 +50,8 @@ def qalm_tester(arguments):
 
 def run_experiments():
 
-    if os.path.isdir("comparison_results"):
-        raise Exception("comparison_results found in current directory. These must be removed")
-
-    os.mkdir("comparison_results")
-
-    if not os.path.isdir("pickled_results"):
-        os.mkdir("pickled_results")
+    os.makedirs("comparison_results", exist_ok=True)
+    os.makedirs("pickled_results", exist_ok=True)
 
 
     roqc_time = 0.0
@@ -93,6 +88,32 @@ def run_experiments():
                     ("circuit/nam_circs/tof_5.qasm", "tof_5"),
                     ("circuit/nam_circs/tof_10.qasm", "tof_10"),
                     ("circuit/nam_circs/vbe_adder_3.qasm", "vbe_adder_3"),
+                    ("circuit/nam_rm_circs/adder_8.qasm", "adder_8_rm"),
+                    ("circuit/nam_rm_circs/barenco_tof_3.qasm", "barenco_tof_3_rm"),
+                    ("circuit/nam_rm_circs/barenco_tof_4.qasm", "barenco_tof_4_rm"),
+                    ("circuit/nam_rm_circs/barenco_tof_5.qasm", "barenco_tof_5_rm"),
+                    ("circuit/nam_rm_circs/barenco_tof_10.qasm", "barenco_tof_10_rm"),
+                    ("circuit/nam_rm_circs/csla_mux_3.qasm", "csla_mux_3_rm"),
+                    ("circuit/nam_rm_circs/csum_mux_9.qasm", "csum_mux_9_rm"),
+                    ("circuit/nam_rm_circs/gf2^4_mult.qasm", "gf2^4_mult_rm"),
+                    ("circuit/nam_rm_circs/gf2^5_mult.qasm", "gf2^5_mult_rm"),
+                    ("circuit/nam_rm_circs/gf2^6_mult.qasm", "gf2^6_mult_rm"),
+                    ("circuit/nam_rm_circs/gf2^7_mult.qasm", "gf2^7_mult_rm"),
+                    ("circuit/nam_rm_circs/gf2^8_mult.qasm", "gf2^8_mult_rm"),
+                    ("circuit/nam_rm_circs/gf2^9_mult.qasm", "gf2^9_mult_rm"),
+                    ("circuit/nam_rm_circs/gf2^10_mult.qasm", "gf2^10_mult_rm"),
+                    ("circuit/nam_rm_circs/mod5_4.qasm", "mod5_4_rm"),
+                    ("circuit/nam_rm_circs/mod_mult_55.qasm", "mod_mult_55_rm"),
+                    ("circuit/nam_rm_circs/mod_red_21.qasm", "mod_red_21_rm"),
+                    ("circuit/nam_rm_circs/qcla_adder_10.qasm", "qcla_adder_10_rm"),
+                    ("circuit/nam_rm_circs/qcla_com_7.qasm", "qcla_com_7_rm"),
+                    ("circuit/nam_rm_circs/qcla_mod_7.qasm", "qcla_mod_7_rm"),
+                    ("circuit/nam_rm_circs/rc_adder_6.qasm", "rc_adder_6_rm"),
+                    ("circuit/nam_rm_circs/tof_3.qasm", "tof_3_rm"),
+                    ("circuit/nam_rm_circs/tof_4.qasm", "tof_4_rm"),
+                    ("circuit/nam_rm_circs/tof_5.qasm", "tof_5_rm"),
+                    ("circuit/nam_rm_circs/tof_10.qasm", "tof_10_rm"),
+                    ("circuit/nam_rm_circs/vbe_adder_3.qasm", "vbe_adder_3_rm"),
                     # ("circuit/nam-benchmarks/adder_8.qasm", "adder_8_ccz"),
                     # ("circuit/nam-benchmarks/barenco_tof_3.qasm", "barenco_tof_3_ccz"),
                     # ("circuit/nam-benchmarks/barenco_tof_4.qasm", "barenco_tof_4_ccz"),
@@ -247,6 +268,10 @@ def run_experiments():
         (OptimizationType.qalm, (3, 3, 3, 1.5, 0, 0, 1, 1, 1, "eccset/Nam_5_3_complete_ECC_set.json")),
         (OptimizationType.qalm, (3, 3, 3, 1.5, 0, 0, 1, 1, 1, "eccset/Nam_6_3_complete_ECC_set.json")),
 
+        # (OptimizationType.qalm, (3, 3, 3, 1.5, 0, 0, 1, 1, 0, "eccset/Nam_5_3_complete_ECC_set.json")),
+        # (OptimizationType.qalm, (3, 3, 3, 1.5, 0, 0, 1, 1, 0, "eccset/Nam_6_3_complete_ECC_set.json")),
+        # (OptimizationType.qalm, (3, 3, 3, 1.5, 0, 0, 1, 1, 1, "eccset/Nam_5_3_complete_ECC_set.json")),
+        # (OptimizationType.qalm, (3, 3, 3, 1.5, 0, 0, 1, 1, 1, "eccset/Nam_6_3_complete_ECC_set.json")),
     ]
 
     graph_labels = [
@@ -337,12 +362,20 @@ def run_experiments():
     ]
 
     # voqc_avg = 0
+    # Separate accumulators for nam_circs and nam_rm_circs
     exp_avgs = [0] * len(experiments)
+    exp_log_sums = [0.0] * len(experiments)
+    exp_log_time_series = [[] for _ in experiments]
+    exp_avgs_rm = [0] * len(experiments)
+    exp_log_sums_rm = [0.0] * len(experiments)
+    exp_log_time_series_rm = [[] for _ in experiments]
+    n_circs = 0
+    n_circs_rm = 0
 
     for circuit in circuit_list:
         print(f"Running experiments for {circuit[1]}")
 
-        os.mkdir("comparison_results/" + circuit[1])
+        os.makedirs("comparison_results/" + circuit[1], exist_ok=True)
 
         arguments = [(experiment[0], (circuit[0], circuit[1], timeout) + experiment[1]) for experiment in experiments]
 
@@ -360,7 +393,7 @@ def run_experiments():
 
 
         except:
-            with multiprocessing.Pool(32) as pool:
+            with multiprocessing.Pool(128) as pool:
                 results = pool.map(tester, arguments)
 
         if validate:
@@ -372,7 +405,7 @@ def run_experiments():
 
         # voqc_result = run_voqc(circuit[0])
 
-        original_qc = qiskit.QuantumCircuit.from_qasm_file(circuit[0].replace('nam-benchmarks', 'nam_circs'))
+        original_qc = qiskit.QuantumCircuit.from_qasm_file(circuit[0].replace('nam-benchmarks', 'nam_circs').replace('nam_rm_circs', 'nam_circs'))
         original_gate_count = original_qc.size()
         # original_gate_count = voqc_result[1][0]
 
@@ -389,9 +422,26 @@ def run_experiments():
         ax.set_prop_cycle(color=[colormap(1.*i/len(experiments)) for i in range(len(experiments))])
 
 
+        is_rm = circuit[1].endswith('_rm')
+        if is_rm:
+            n_circs_rm += 1
+        else:
+            n_circs += 1
         for i in range(len(results)):
             ax.plot(results[i][0], results[i][1], label = graph_labels[i], linestyle=['-', '--', ':'][i % 3])
-            exp_avgs[i] += float(results[i][1][-1]) / float(original_gate_count) if len(results[i][1]) > 0 else 1
+            ratio = float(results[i][1][-1]) / float(original_gate_count) if len(results[i][1]) > 0 else 1.0
+            if is_rm:
+                exp_avgs_rm[i] += ratio
+                exp_log_sums_rm[i] += np.log(ratio) if ratio > 0 else 0.0
+                if len(results[i][0]) > 0:
+                    log_ratios = [np.log(max(c, 1) / original_gate_count) for c in results[i][1]]
+                    exp_log_time_series_rm[i].append((results[i][0], log_ratios))
+            else:
+                exp_avgs[i] += ratio
+                exp_log_sums[i] += np.log(ratio) if ratio > 0 else 0.0
+                if len(results[i][0]) > 0:
+                    log_ratios = [np.log(max(c, 1) / original_gate_count) for c in results[i][1]]
+                    exp_log_time_series[i].append((results[i][0], log_ratios))
 
         # ax.plot(voqc_result[0], voqc_result[1], label = "Voqc")
 
@@ -467,8 +517,62 @@ def run_experiments():
     print("Percentage of time spent in Explore phase:", explore_time/total_runs)
     print("Percentage of time spent in Pool Gen phase:", pool_gen_time/total_runs)
 
+    def print_and_plot_aggregates(avgs, log_sums, log_time_series, n, suffix, title_suffix):
+        if n == 0:
+            return
+        avgs_final = [v / n for v in avgs]
+        geomeans_final = [np.exp(s / n) for s in log_sums]
+        print(f"\n=== Aggregate Results ({title_suffix}, final gate count as fraction of original) ===")
+        print(f"{'Config':<55} {'ArithMean':>10} {'GeoMean':>10}")
+        print("-" * 77)
+        for i in range(len(avgs_final)):
+            print(f"{graph_labels[i]:<55} {avgs_final[i]:>10.4f} {geomeans_final[i]:>10.4f}")
+
+        common_times = np.linspace(0, timeout, 300)
+        # Build ratio matrix from log_time_series
+        ratio_matrices = []
+        for i, label in enumerate(graph_labels):
+            series = log_time_series[i]
+            interp_matrix = []
+            if series:
+                for (ts, lrs) in series:
+                    if len(ts) < 2:
+                        continue
+                    ratios = [np.exp(lr) for lr in lrs]
+                    interp_vals = np.interp(common_times, ts, ratios, left=ratios[0], right=ratios[-1])
+                    interp_matrix.append(interp_vals)
+            ratio_matrices.append(interp_matrix)
+
+        for mode, ylabel, fsuffix in [
+            ("arith", "Avg. Gate Count Ratio (vs original)", f"_avg_{timeout}s{suffix}"),
+            ("geo",   "Geomean Gate Count Ratio (vs original)", f"_geomean_{timeout}s{suffix}"),
+        ]:
+            fig_agg, ax_agg = plt.subplots()
+            colormap = plt.get_cmap("gist_rainbow")
+            ax_agg.set_prop_cycle(color=[colormap(1.*i/len(experiments)) for i in range(len(experiments))])
+            for i, label in enumerate(graph_labels):
+                if not ratio_matrices[i]:
+                    continue
+                if mode == "arith":
+                    curve = np.mean(ratio_matrices[i], axis=0)
+                else:
+                    curve = np.exp(np.mean(np.log(ratio_matrices[i]), axis=0))
+                ax_agg.plot(common_times, curve, label=label, linestyle=['-', '--', ':'][i % 3])
+            ax_agg.set_xlabel("Time (s)")
+            ax_agg.set_ylabel(ylabel)
+            ax_agg.set_title(f"Gate Count Reduction vs Time ({timeout}s, {title_suffix})")
+            fig_agg.legend(bbox_to_anchor=(1.1, 1), loc="upper right", fontsize="x-small")
+            fig_agg.tight_layout()
+            fig_agg.savefig(f"comparison_results/aggregate{fsuffix}.png", dpi=500)
+            fig_agg.clf()
+            print(f"Aggregate plot saved to comparison_results/aggregate{fsuffix}.png")
+
+    print_and_plot_aggregates(exp_avgs, exp_log_sums, exp_log_time_series, n_circs, "", "nam_circs")
+    print_and_plot_aggregates(exp_avgs_rm, exp_log_sums_rm, exp_log_time_series_rm, n_circs_rm, "_rm", "nam_rm_circs")
+
 def run_quartz(filename, circuit_name, timeout, roqc_interval, greedy_start, two_way_rm, eccset):
     result = subprocess.run(["./build/test_optimize", f"{filename}", f"{circuit_name}", f"{timeout}", f"{roqc_interval}", f"{greedy_start}", f"{two_way_rm}", f"{eccset}"], capture_output = True, text=True)
+    result_lines = result.stdout.splitlines()
     costs = []
     times = []
     circuit_found = False
@@ -477,7 +581,8 @@ def run_quartz(filename, circuit_name, timeout, roqc_interval, greedy_start, two
         words = line.split()
         if words[0] == f"[{circuit_name}]":
             best_cost = float(words[3])
-            time = float(words[8])
+            after_idx = words.index("after")
+            time = float(words[after_idx + 1])
             costs.append(best_cost)
             times.append(time)
 
@@ -488,7 +593,8 @@ def run_quartz(filename, circuit_name, timeout, roqc_interval, greedy_start, two
 
     final_results = (times, costs)
 
-    with open(f"comparison_results/{circuit_name}/interval_{roqc_interval}_{greedy_start}_{two_way_rm}_{eccset}_result.qasm", 'w') as f:
+    eccset_name = os.path.basename(eccset)
+    with open(f"comparison_results/{circuit_name}/interval_{roqc_interval}_{greedy_start}_{two_way_rm}_{eccset_name}_result.qasm", 'w') as f:
         f.truncate(0)
         f.write(circuit_string)
 
@@ -512,7 +618,8 @@ def run_qalm(filename, circuit_name, timeout, initial_pool_size, exploration_poo
         words = line.split()
         if words[0] == f"[{circuit_name}]":
             best_cost = float(words[3])
-            time = float(words[8])
+            after_idx = words.index("after")
+            time = float(words[after_idx + 1])
             costs.append(best_cost)
             times.append(time)
 
@@ -533,12 +640,13 @@ def run_qalm(filename, circuit_name, timeout, initial_pool_size, exploration_poo
 
     final_results = (times, costs)
 
-    with open(f"pickled_results/{circuit_name}_{timeout}_{initial_pool_size}_{exploration_pool_size}_{exploration_steps}_{repeat_tolerance}_{exploration_increase}_{no_increase}_{only_do_local_transformations}_{greedy_start}_{two_way_rm}_{eccset}_time_benchmark.pkl", 'wb') as f:
+    eccset_name = os.path.basename(eccset)
+    with open(f"pickled_results/{circuit_name}_{timeout}_{initial_pool_size}_{exploration_pool_size}_{exploration_steps}_{repeat_tolerance}_{exploration_increase}_{no_increase}_{only_do_local_transformations}_{greedy_start}_{two_way_rm}_{eccset_name}_time_benchmark.pkl", 'wb') as f:
         f.truncate(0)
         pickle.dump((circuit_roqc_time, circuit_explore_time, circuit_pool_gen_time), f)
 
 
-    with open(f"comparison_results/{circuit_name}/{timeout}_{initial_pool_size}_{exploration_pool_size}_{exploration_steps}_{repeat_tolerance}_{exploration_increase}_{no_increase}_{only_do_local_transformations}_{greedy_start}_{two_way_rm}_{eccset}_result.qasm", 'w') as f:
+    with open(f"comparison_results/{circuit_name}/{timeout}_{initial_pool_size}_{exploration_pool_size}_{exploration_steps}_{repeat_tolerance}_{exploration_increase}_{no_increase}_{only_do_local_transformations}_{greedy_start}_{two_way_rm}_{eccset_name}_result.qasm", 'w') as f:
         f.truncate(0)
         f.write(circuit_string)
 

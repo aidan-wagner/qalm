@@ -13,6 +13,9 @@ Run from repo root:
 import subprocess
 import os
 import pickle
+import resource
+import signal
+import threading
 import numpy as np
 import matplotlib
 matplotlib.use("Agg")
@@ -50,8 +53,10 @@ CIRCUIT_LIST = [
     ("circuit/nam_circs/tof_5.qasm",           "tof_5"),
 ]
 
-TIMEOUT = 3600          # seconds; match the paper's one-hour evaluation
-ECCSET  = "eccset/Nam_5_3_complete_ECC_set.json"
+TIMEOUT      = 3600          # seconds; match the paper's one-hour evaluation
+N_WORKERS    = 32
+MEM_LIMIT_GB = 8
+ECCSET       = "eccset/Nam_5_3_complete_ECC_set.json"
 
 # ── experiment configurations ─────────────────────────────────────────────────
 # (N_pool, N_branch, k, label, group)
@@ -77,8 +82,37 @@ CONFIGS = [
 FIXED_FLAGS = (1.5, 0, 0, 1, 1, 0)
 
 
+def _set_mem_limit():
+    """preexec_fn: set virtual-address-space hard limit to MEM_LIMIT_GB."""
+    lim = MEM_LIMIT_GB * 1024 ** 3
+    resource.setrlimit(resource.RLIMIT_AS, (lim, lim))
+
+
+def _monitor(proc, mem_limit_kb, peak_ref, stop_evt):
+    """Background thread: poll RSS every 0.5 s; kill proc if over limit."""
+    peak = 0
+    while not stop_evt.is_set():
+        try:
+            with open(f"/proc/{proc.pid}/status") as fh:
+                for line in fh:
+                    if line.startswith("VmRSS:"):
+                        kb = int(line.split()[1])
+                        if kb > peak:
+                            peak = kb
+                        if kb > mem_limit_kb:
+                            try:
+                                os.kill(proc.pid, signal.SIGKILL)
+                            except ProcessLookupError:
+                                pass
+                        break
+        except (FileNotFoundError, ProcessLookupError):
+            break
+        stop_evt.wait(0.5)
+    peak_ref[0] = peak
+
+
 def run_one(args):
-    """Run test_qalm for one (circuit, config) pair and return (times, costs)."""
+    """Run test_qalm for one (circuit, config) pair and return (times, costs, peak_kb)."""
     circ_path, circ_name, n_pool, n_branch, k = args
     rep_tol, exp_incr, no_incr, local, greedy, two_way = FIXED_FLAGS
 
@@ -90,7 +124,7 @@ def run_one(args):
         with open(pkl_path, "rb") as f:
             return pickle.load(f)
 
-    result = subprocess.run(
+    proc = subprocess.Popen(
         [
             "./build/test_qalm",
             circ_path, circ_name,
@@ -104,20 +138,51 @@ def run_one(args):
             str(int(two_way)),
             ECCSET,
         ],
-        capture_output=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
         text=True,
+        preexec_fn=_set_mem_limit,
     )
 
+    mem_limit_kb = MEM_LIMIT_GB * 1024 * 1024
+    peak_ref   = [0]
+    stop_evt   = threading.Event()
+    mon_thread = threading.Thread(
+        target=_monitor, args=(proc, mem_limit_kb, peak_ref, stop_evt), daemon=True
+    )
+    mon_thread.start()
+
+    wall_limit = TIMEOUT + 60
+    try:
+        stdout, _ = proc.communicate(timeout=wall_limit)
+    except subprocess.TimeoutExpired:
+        try:
+            os.kill(proc.pid, signal.SIGKILL)
+        except ProcessLookupError:
+            pass
+        stdout, _ = proc.communicate()
+    stop_evt.set()
+    mon_thread.join()
+
+    peak_kb = peak_ref[0]
+
     times, costs = [], []
-    for line in result.stdout.splitlines():
+    for line in stdout.splitlines():
         words = line.split()
         if not words:
             continue
         if words[0] == f"[{circ_name}]":
             costs.append(float(words[3]))
-            times.append(float(words[8]))
+            after_idx = words.index("after")
+            times.append(float(words[after_idx + 1]))
 
-    out = (times, costs)
+    print(
+        f"{circ_name} N_pool={n_pool} N_branch={n_branch} k={k}: "
+        f"{len(costs)} improvements, peak={peak_kb/1024:.0f} MB",
+        flush=True,
+    )
+
+    out = (times, costs, peak_kb)
     os.makedirs(os.path.dirname(pkl_path), exist_ok=True)
     with open(pkl_path, "wb") as f:
         pickle.dump(out, f)
@@ -141,9 +206,9 @@ def main():
         for (n_pool, n_branch, k, _label, _group) in CONFIGS
     ]
 
-    print(f"Launching {len(tasks)} tasks with up to 128 parallel workers "
-          f"(timeout {TIMEOUT}s each) …")
-    with multiprocessing.Pool(128) as pool:
+    print(f"Launching {len(tasks)} tasks with {N_WORKERS} parallel workers "
+          f"(timeout {TIMEOUT}s each, mem_limit={MEM_LIMIT_GB}GB) …")
+    with multiprocessing.Pool(N_WORKERS) as pool:
         flat_results = pool.map(run_one, tasks)
 
     # Reshape: results[circ_idx][cfg_idx] = (times, costs)
@@ -154,22 +219,23 @@ def main():
         for ci in range(n_circs)
     ]
 
-    # ── aggregate geomean-vs-time curve per config ────────────────────────────
-    common_times = np.linspace(0, TIMEOUT, 300)
-    log_series   = [[] for _ in CONFIGS]   # per config: list of log-ratio arrays
+    # ── aggregate avg-vs-time curve per config ─────────────────────────────────
+    common_times  = np.linspace(0, TIMEOUT, 300)
+    ratio_series  = [[] for _ in CONFIGS]   # per config: list of ratio arrays
 
     for ci, (circ_path, circ_name) in enumerate(CIRCUIT_LIST):
         orig = get_original_gate_count(circ_path)
         for cfg_idx in range(n_cfgs):
-            ts, cs = results[ci][cfg_idx]
+            res = results[ci][cfg_idx]
+            ts, cs = res[0], res[1]
             if len(ts) < 2:
                 continue
-            log_rs = [np.log(max(c, 1) / orig) for c in cs]
-            interp = np.interp(common_times, ts, log_rs,
-                               left=log_rs[0], right=log_rs[-1])
-            log_series[cfg_idx].append(interp)
+            ratios = [max(c, 1) / orig for c in cs]
+            interp = np.interp(common_times, ts, ratios,
+                               left=ratios[0], right=ratios[-1])
+            ratio_series[cfg_idx].append(interp)
 
-    # ── Figure 1: all-in-one comparison plot ─────────────────────────────────
+    # ── Figures: all-in-one comparison + three-panel (both arith & geomean) ──
     group_style = {
         "k_vary":      dict(linestyle="-",  linewidth=1.8),
         "pool_vary":   dict(linestyle="--", linewidth=1.4),
@@ -177,90 +243,96 @@ def main():
     }
     DISTINCT_COLORS = [plt.get_cmap("tab10")(i) for i in range(10)]
 
-    from collections import Counter
-    fig, ax = plt.subplots(figsize=(7, 4))
-    for cfg_idx, (n_pool, n_branch, k, label, group) in enumerate(CONFIGS):
-        if not log_series[cfg_idx]:
-            continue
-        mean_log = np.mean(log_series[cfg_idx], axis=0)
-        reduction = (1 - np.exp(mean_log)) * 100
-        color     = DISTINCT_COLORS[cfg_idx % len(DISTINCT_COLORS)]
-        ax.plot(common_times, reduction,
-                label=label, color=color, **group_style[group])
+    def _agg(series, mode):
+        if mode == "arith":
+            return np.mean(series, axis=0)
+        return np.exp(np.mean(np.log(series), axis=0))
 
-    ax.set_xlabel("Time (s)")
-    ax.set_ylabel("Avg. gate-count reduction (%)")
-    ax.set_ylim(bottom=30)
-    ax.set_title(f"Exploration strategy comparison ({TIMEOUT}s timeout, "
-                 f"{n_circs} circuits)")
-    ax.legend(fontsize=8, ncol=2)
-    fig.tight_layout()
-    out_pdf = "k_comparison_results/figures/k_vs_pool_vs_branch.pdf"
-    fig.savefig(out_pdf)
-    print(f"Saved combined figure → {out_pdf}")
-    plt.close(fig)
-
-    # ── Figure 2: three-panel figure for the paper ───────────────────────────
-    # Panel (a): k variation; (b): N_pool variation; (c): N_branch variation
-    # Each panel shows the k=3, N_pool=1, N_branch=1 baseline in grey for reference.
-    baseline_idx = next(
-        i for i, (np_, nb, k, _, g) in enumerate(CONFIGS)
-        if np_ == 1 and nb == 1 and k == 3
-    )
-    if log_series[baseline_idx]:
-        baseline_reduction = (1 - np.exp(np.mean(log_series[baseline_idx], axis=0))) * 100
-    else:
-        baseline_reduction = None
-
-    fig2, axes = plt.subplots(1, 3, figsize=(12, 4), sharey=True)
-    panel_groups = ["k_vary", "pool_vary", "branch_vary"]
-    panel_titles = [
-        "Varying $k$ ($N_\\mathrm{pool}=N_\\mathrm{branch}=1$)",
-        "Varying $N_\\mathrm{pool}$ ($N_\\mathrm{branch}=1,\\ k=3$)",
-        "Varying $N_\\mathrm{branch}$ ($N_\\mathrm{pool}=1,\\ k=3$)",
-    ]
-    for ax2, group, title in zip(axes, panel_groups, panel_titles):
-        # grey baseline (k=3, N_pool=1, N_branch=1) for reference
-        baseline_label = {"pool_vary": "$N_\\mathrm{pool}=1$",
-                          "branch_vary": "$N_\\mathrm{branch}=1$"}.get(group)
-        if baseline_reduction is not None and baseline_label is not None:
-            ax2.plot(common_times, baseline_reduction,
-                     color="grey", linestyle="-", linewidth=1.2,
-                     label=baseline_label, zorder=0)
-        cfg_list = [(i, cfg) for i, cfg in enumerate(CONFIGS) if cfg[4] == group]
-        for j, (cfg_idx, (n_pool, n_branch, k, label, _)) in enumerate(cfg_list):
-            if not log_series[cfg_idx]:
+    for mode, ylabel, suffix in [
+        ("arith", "Avg. Gate Count Reduction (%)", ""),
+        ("geo",   "Geomean Gate Count Reduction (%)", "_geomean"),
+    ]:
+        # Figure 1: all-in-one
+        fig, ax = plt.subplots(figsize=(7, 4))
+        for cfg_idx, (n_pool, n_branch, k, label, group) in enumerate(CONFIGS):
+            if not ratio_series[cfg_idx]:
                 continue
-            reduction = (1 - np.exp(np.mean(log_series[cfg_idx], axis=0))) * 100
-            color     = DISTINCT_COLORS[j % len(DISTINCT_COLORS)]
-            ax2.plot(common_times, reduction, label=label,
-                     color=color, **group_style[group])
-        ax2.set_ylim(bottom=30)
-        ax2.set_title(title, fontsize=9)
-        ax2.set_xlabel("Time (s)")
-        if ax2 is axes[0]:
-            ax2.set_ylabel("Avg. gate-count reduction (%)")
-        ax2.legend(fontsize=8)
-    fig2.suptitle(
-        f"Impact of exploration parameters ({TIMEOUT}s timeout, {n_circs} circuits)",
-        fontsize=10,
-    )
-    fig2.tight_layout()
-    out_pdf2 = "k_comparison_results/figures/exploration_three_panel.pdf"
-    fig2.savefig(out_pdf2)
-    print(f"Saved three-panel figure → {out_pdf2}")
-    plt.close(fig2)
+            reduction = (1 - _agg(ratio_series[cfg_idx], mode)) * 100
+            color     = DISTINCT_COLORS[cfg_idx % len(DISTINCT_COLORS)]
+            ax.plot(common_times, reduction,
+                    label=label, color=color, **group_style[group])
+        ax.set_xlabel("Time (s)")
+        ax.set_ylabel(ylabel)
+        ax.set_ylim(bottom=30)
+        ax.set_title(f"Exploration strategy comparison ({TIMEOUT}s timeout, "
+                     f"{n_circs} circuits)")
+        ax.legend(fontsize=8, ncol=2)
+        fig.tight_layout()
+        out_pdf = f"k_comparison_results/figures/k_vs_pool_vs_branch{suffix}.pdf"
+        fig.savefig(out_pdf)
+        print(f"Saved combined figure → {out_pdf}")
+        plt.close(fig)
+
+        # Figure 2: three-panel
+        baseline_idx = next(
+            i for i, (np_, nb, k, _, g) in enumerate(CONFIGS)
+            if np_ == 1 and nb == 1 and k == 3
+        )
+        if ratio_series[baseline_idx]:
+            baseline_reduction = (1 - _agg(ratio_series[baseline_idx], mode)) * 100
+        else:
+            baseline_reduction = None
+
+        fig2, axes = plt.subplots(1, 3, figsize=(12, 4), sharey=True)
+        panel_groups = ["k_vary", "pool_vary", "branch_vary"]
+        panel_titles = [
+            "Varying $k$ ($N_\\mathrm{pool}=N_\\mathrm{branch}=1$)",
+            "Varying $N_\\mathrm{pool}$ ($N_\\mathrm{branch}=1,\\ k=3$)",
+            "Varying $N_\\mathrm{branch}$ ($N_\\mathrm{pool}=1,\\ k=3$)",
+        ]
+        for ax2, group, title in zip(axes, panel_groups, panel_titles):
+            baseline_label = {"pool_vary": "$N_\\mathrm{pool}=1$",
+                              "branch_vary": "$N_\\mathrm{branch}=1$"}.get(group)
+            if baseline_reduction is not None and baseline_label is not None:
+                ax2.plot(common_times, baseline_reduction,
+                         color="grey", linestyle="-", linewidth=1.2,
+                         label=baseline_label, zorder=0)
+            cfg_list = [(i, cfg) for i, cfg in enumerate(CONFIGS) if cfg[4] == group]
+            for j, (cfg_idx, (n_pool, n_branch, k, label, _)) in enumerate(cfg_list):
+                if not ratio_series[cfg_idx]:
+                    continue
+                reduction = (1 - _agg(ratio_series[cfg_idx], mode)) * 100
+                color     = DISTINCT_COLORS[j % len(DISTINCT_COLORS)]
+                ax2.plot(common_times, reduction, label=label,
+                         color=color, **group_style[group])
+            ax2.set_ylim(bottom=30)
+            ax2.set_title(title, fontsize=9)
+            ax2.set_xlabel("Time (s)")
+            if ax2 is axes[0]:
+                ax2.set_ylabel(ylabel)
+            ax2.legend(fontsize=8)
+        fig2.suptitle(
+            f"Impact of exploration parameters ({TIMEOUT}s timeout, {n_circs} circuits)",
+            fontsize=10,
+        )
+        fig2.tight_layout()
+        out_pdf2 = f"k_comparison_results/figures/exploration_three_panel{suffix}.pdf"
+        fig2.savefig(out_pdf2)
+        print(f"Saved three-panel figure → {out_pdf2}")
+        plt.close(fig2)
 
     # ── text summary ──────────────────────────────────────────────────────────
-    print("\n=== Final geomean gate-count ratio (lower is better) ===")
-    print(f"{'Config':<30} {'GeoMean':>10}")
-    print("-" * 42)
+    print("\n=== Final gate-count ratio (lower is better) ===")
+    print(f"{'Config':<30} {'ArithMean':>10} {'GeoMean':>10}")
+    print("-" * 52)
     for cfg_idx, (n_pool, n_branch, k, label, group) in enumerate(CONFIGS):
-        if not log_series[cfg_idx]:
+        if not ratio_series[cfg_idx]:
             print(f"  N_pool={n_pool} N_branch={n_branch} k={k:<2}  (no data)")
             continue
-        gm = np.exp(np.mean([arr[-1] for arr in log_series[cfg_idx]]))
-        print(f"  N_pool={n_pool} N_branch={n_branch} k={k:<2}  {gm:>10.4f}   ({label})")
+        finals = [arr[-1] for arr in ratio_series[cfg_idx]]
+        am = np.mean(finals)
+        gm = np.exp(np.mean(np.log(finals)))
+        print(f"  N_pool={n_pool} N_branch={n_branch} k={k:<2}  {am:>10.4f} {gm:>10.4f}   ({label})")
 
 
 if __name__ == "__main__":

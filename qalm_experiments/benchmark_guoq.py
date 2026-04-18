@@ -1,5 +1,5 @@
 """
-Benchmark QALM (best config) on:
+Benchmark QALM (best config, advancing k) on:
   - ~/guoq/benchmarks/nam_rz/  (250 circuits)
   - circuit/nam_circs/          (26 circuits, for cross-checking)
   - circuit/nam_rm_circs/       (28 circuits, for cross-checking)
@@ -9,7 +9,9 @@ plus interpolated gate counts at fixed checkpoints, suitable for tables like
 eval_end_to_end.tex.
 
 Best config (from exploration_k_comparison experiments):
-  N_pool=1, N_branch=1, k=3, greedy=1, local=1, two_way=0, Nam_(5,3) ECC set.
+  N_pool=1, N_branch=1, advancing k starting at 3 (i.e. greedy_k=2 →
+  greedy(k=1) + greedy(k=2), then QALM at k=3, 4, 5, …),
+  local=1, two_way=0, Nam_(5,3) ECC set.
 
 Run from repo root:
     PYTHONPATH=qalm_experiments python3 qalm_experiments/benchmark_guoq.py
@@ -31,15 +33,17 @@ TIMEOUT      = 3600         # seconds; use 3600 for the full one-hour run
 N_WORKERS    = 32
 MEM_LIMIT_GB = 8
 ECCSET       = "eccset/Nam_5_3_complete_ECC_set.json"
-OUT_DIR      = "guoq_benchmark_results"
+OUT_DIR      = "guoq_benchmark_advk_results"
 
 # Checkpoints at which we record (total gates, CX gates) by interpolation.
 CHECKPOINTS  = [10, 30, 60, 120, 180, 240, 360, 480, 600, 900, 1200, 1800, 2400, 3000, 3600]
 
-# Best QALM config (initial_pool_size, exploration_pool_size, exploration_steps,
-#   repeat_tolerance, exploration_increase, no_increase,
-#   only_do_local_transformations, greedy_start, two_way_rm)
-BEST_CONFIG = (1, 1, 3, 1.5, 0, 0, 1, 1, 0)
+# Best QALM config for test_greedy_k_ablation:
+#   (initial_pool_size, exploration_pool_size, greedy_k, repeat_tolerance,
+#    exploration_increase, strictly_reducing, only_do_local_transformations,
+#    two_way_rm)
+# greedy_k=2  →  greedy(k=1) + greedy(k=2) then advancing QALM at k=3,4,5,...
+BEST_CONFIG = (1, 1, 2, 1.5, 0, 0, 1, 0)
 
 # ── circuit lists ─────────────────────────────────────────────────────────────
 _GUOQ_DIR = os.path.expanduser("~/guoq/benchmarks/nam_rz")
@@ -166,21 +170,25 @@ def _interp_at(times, values, t):
 # ── worker function ───────────────────────────────────────────────────────────
 def run_one(args):
     circ_path, circ_name, source = args
-    n_pool, n_branch, k, rep_tol, exp_incr, no_incr, local, greedy, two_way = BEST_CONFIG
+    (n_pool, n_branch, greedy_k, rep_tol, exp_incr, no_incr,
+     local, two_way) = BEST_CONFIG
 
     pkl_path = f"{OUT_DIR}/pkl/{source}_{circ_name}_{TIMEOUT}.pkl"
     if os.path.exists(pkl_path):
         with open(pkl_path, "rb") as fh:
             return pickle.load(fh)
 
+    # test_greedy_k_ablation: runs greedy(k=1..greedy_k), then advancing QALM
+    # starting at k=greedy_k+1 and incrementing each iteration.
     cmd = [
-        "./build/test_qalm",
+        "./build/test_greedy_k_ablation",
         circ_path, circ_name,
         str(TIMEOUT),
-        str(n_pool), str(n_branch), str(k),
+        str(greedy_k),
+        str(n_pool), str(n_branch),
         str(rep_tol),
         str(int(exp_incr)), str(int(no_incr)),
-        str(int(local)), str(int(greedy)), str(int(two_way)),
+        str(int(local)), str(int(two_way)),
         ECCSET,
     ]
 
@@ -200,10 +208,10 @@ def run_one(args):
     )
     mon_thread.start()
 
-    # Hard wall-clock limit: TIMEOUT + 60s grace for startup/greedy preprocessing.
-    # test_qalm's internal timeout may not fire during the greedy pass on very
-    # large circuits, so we enforce it from Python.
-    wall_limit = TIMEOUT + 60
+    # Hard wall-clock limit: TIMEOUT + 120s grace. The greedy phases check
+    # their deadline only between iterations, so they may overrun by tens of
+    # seconds on large circuits.
+    wall_limit = TIMEOUT + 120
     try:
         stdout, _ = proc.communicate(timeout=wall_limit)
     except subprocess.TimeoutExpired:
@@ -324,7 +332,7 @@ def main():
         if ratios:
             print(
                 f"{src_label}: {len(ratios)}/{len(subset)} OK, "
-                f"geomean total-gate ratio={np.exp(np.mean(np.log(ratios))):.4f}"
+                f"avg={np.mean(ratios):.4f}, geomean={np.exp(np.mean(np.log(ratios))):.4f}"
             )
 
 

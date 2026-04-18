@@ -1,0 +1,18 @@
+/home/cc/mingkuan/qalm/qalm_experiments/exploration_k_comparison.py:201: SyntaxWarning: invalid escape sequence '\ '
+  ax.set_ylabel("Geomean gate-count ratio (vs.\ original)")
+Launching 234 tasks with up to 128 parallel workers (timeout 3600s each) …
+Saved combined figure → k_comparison_results/figures/k_vs_pool_vs_branch.pdf
+Saved three-panel figure → k_comparison_results/figures/exploration_three_panel.pdf
+
+=== Final geomean gate-count ratio (lower is better) ===
+Config                            GeoMean
+------------------------------------------
+  N_pool=1 N_branch=1 k=1       0.6714   ($k=1$)
+  N_pool=1 N_branch=1 k=2       0.6730   ($k=2$)
+  N_pool=1 N_branch=1 k=3       0.6713   ($k=3$)
+  N_pool=1 N_branch=1 k=4       0.6729   ($k=4$)
+  N_pool=1 N_branch=1 k=5       0.6722   ($k=5$)
+  N_pool=2 N_branch=1 k=3       0.6719   ($N_\mathrm{pool}=2$)
+  N_pool=3 N_branch=1 k=3       0.6706   ($N_\mathrm{pool}=3$)
+  N_pool=1 N_branch=2 k=3       0.6716   ($N_\mathrm{branch}=2$)
+  N_pool=1 N_branch=3 k=3       0.6724   ($N_\mathrm{branch}=3$)

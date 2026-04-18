@@ -79,7 +79,8 @@ def run_quartz(filename, circuit_name, timeout, roqc_interval):
         words = line.split()
         if words[0] == f"[{circuit_name}]":
             best_cost = float(words[3])
-            time = float(words[8])
+            after_idx = words.index("after")
+            time = float(words[after_idx + 1])
             costs.append(best_cost)
             times.append(time)
 

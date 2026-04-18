@@ -60,9 +60,11 @@ def extract_results(filename):
         assert len(result_depth) == len(result)
     print('tot_gate =', tot_gate)
     print('num_circuits =', len(result))
+    print('avg_gatecount =', tot_gate / len(result))
     print('geomean_gatecount =', gate_product ** (1 / len(result)))
     if len(result_depth) > 0:
         print('tot_depth =', tot_depth)
+        print('avg_depth =', tot_depth / len(result))
         print('geomean_depth =', depth_product ** (1 / len(result)))
     print('tot_time =', tot_time)
     # for k, v in natsorted(result.items()):

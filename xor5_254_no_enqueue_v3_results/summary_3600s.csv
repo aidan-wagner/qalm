@@ -1,0 +1,9 @@
+label,best_total,time_to_best_s,status,peak_mb,n_improvements
+gk10_np1_nb5_adv,15,0.0,OK,19,2689
+gk0_np1_nb5_adv_ei,15,0.0,OK,95,6299
+gk0_np3_nb5_adv_ei,15,0.0,OK,96,6571
+gk0_np1_nb2_fk10,15,0.0,OK,309,274505
+gk0_np1_nb3_fk10,15,0.0,OK,303,188025
+gk0_np3_nb5_fk15,15,0.1,OK,216,73820
+gk0_np1_nb5_fk10,15,0.1,OK,281,112145
+gk0_np1_nb8_fk10,15,0.1,OK,258,75740

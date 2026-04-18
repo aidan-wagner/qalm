@@ -1,0 +1,7 @@
+Running 2 extra nam circuits with timeout=3600s
+[nam] tof_10: 484317 improvements, peak=2000 MB, status=OK
+[nam] vbe_adder_3: 851484 improvements, peak=1392 MB, status=OK
+[nam] tof_10: opt=167, peak=2000 MB, status=OK
+[nam] vbe_adder_3: opt=75, peak=1392 MB, status=OK
+
+Inserted after row 25 in guoq_benchmark_results/results_3600s.csv

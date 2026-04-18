@@ -1,0 +1,19 @@
+Running experiments for adder_8
+Running experiments for barenco_tof_3
+Greedy+Roqc Average:  0.6698275862068965
+Roqc interval = 1 Average:  0.6348084291187739
+Roqc interval = 5 Average:  0.6292528735632184
+Init1, Gen10, Steps10, Rep_tol1.5 Average:  0.6353639846743295
+Init1, Gen20, Steps20, Rep_tol1.5 Average:  0.6442528735632184
+Init1, Gen50, Steps50, Rep_tol1.5 Average:  0.6514750957854406
+Init1, PoolGen100, Steps100, Rep_tol1.5 Average:  0.6748275862068966
+Init1, PoolGen10, Steps20, Rep_tol1.5 Average:  0.639808429118774
+Init1, Pool20, Steps10, Rep_tol1.5 Average:  0.6075670498084291
+Init5, Pool10, Steps10, Rep_tol1.5 Average:  0.6314750957854406
+Init10, Pool10, Steps10, Rep_tol1.5 Average:  0.6209003831417624
+Init10, Gen10, Steps10, Rep_tol1.5, exp_incr Average:  0.6720498084291189
+Init10, Gen10, Steps10, Rep_tol1.5, no_incr Average:  0.6348275862068966
+Init10, Gen10, Steps10, Rep_tol1.5, exp_incr+no_incr Average:  0.6387164750957854
+Percentage of time spent in ROQC phase: 0.0
+Percentage of time spent in Explore phase: 0.0
+Percentage of time spent in Pool Gen phase: 0.0
