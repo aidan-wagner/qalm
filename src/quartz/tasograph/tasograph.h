@@ -196,6 +196,7 @@ class Graph {
   bool check_correctness();
   [[nodiscard]] int specific_gate_count(GateType gate_type) const;
   [[nodiscard]] float total_cost() const;
+  [[nodiscard]] float weighted_2q_cost() const;
   [[nodiscard]] float hadamard_reduction_cost() const;
   [[nodiscard]] int gate_count() const;
   [[nodiscard]] int circuit_depth() const;

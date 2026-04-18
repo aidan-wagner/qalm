@@ -25,6 +25,8 @@
  *   argv[14] (optional) enqueue_intermediate — 0 to skip enqueuing
  *            intermediate exploration results (only enqueue after ROQC).
  *            1 or omitted = enqueue all (default).
+ *   argv[15] (optional) cost_mode — 0 = gate count (default, same as before);
+ *            1 = weighted: 1Q gates count 1, 2Q gates count 10.
  */
 
 #include "quartz/tasograph/substitution.h"
@@ -63,6 +65,18 @@ int main(int argc, char **argv) {
     enqueue_intermediate = std::stoi(argv[14]);
   }
 
+  // Optional: cost mode (0 = gate count, 1 = weighted 1Q + 10*2Q)
+  int cost_mode = 0;
+  if (argc >= 16) {
+    cost_mode = std::stoi(argv[15]);
+  }
+  std::function<float(Graph *)> cost_function =
+      (cost_mode == 1)
+          ? std::function<float(Graph *)>(
+                [](Graph *g) { return g->weighted_2q_cost(); })
+          : std::function<float(Graph *)>(
+                [](Graph *g) { return g->total_cost(); });
+
   // QALM starts exploration at greedy_k+1 (unless fixed_k overrides)
   std::size_t exploration_steps = (std::size_t)(greedy_k + 1);
 
@@ -86,7 +100,6 @@ int main(int argc, char **argv) {
   // Build xfers
   std::vector<GraphXfer *> xfers;
   if (strictly_reducing_rules) {
-    auto cost_function = [](Graph *graph) { return graph->total_cost(); };
     auto eccs = eqs.get_all_equivalence_sets();
     for (const auto &ecc : eccs) {
       const int ecc_size = (int)ecc.size();
@@ -159,14 +172,14 @@ int main(int argc, char **argv) {
     std::cout << "Running greedy(k=1): greedy_optimize_with_roqc" << std::endl;
     graph = graph->greedy_optimize_with_roqc(
         &ctx, greedy_xfers, circuit_name, "", /*print_message=*/true,
-        nullptr, timeout, "", start);
+        cost_function, timeout, "", start);
   }
   if (greedy_k >= 2) {
     std::cout << "Running greedy(k=2): greedy_optimize_with_local_search"
               << std::endl;
     graph = graph->greedy_optimize_with_local_search(
         &ctx, greedy_xfers, circuit_name, "", /*print_message=*/true,
-        nullptr, timeout, "", /*continue_storing_all_steps=*/false, start);
+        cost_function, timeout, "", /*continue_storing_all_steps=*/false, start);
   }
   if (greedy_k >= 3) {
     std::cout
@@ -174,7 +187,7 @@ int main(int argc, char **argv) {
         << std::endl;
     graph = graph->greedy_optimize_with_deeper_local_search(
         &ctx, greedy_xfers, circuit_name, "", /*print_message=*/true,
-        nullptr, timeout, "", /*continue_storing_all_steps=*/false, start);
+        cost_function, timeout, "", /*continue_storing_all_steps=*/false, start);
   }
 
   // QALM phase.
@@ -190,8 +203,8 @@ int main(int argc, char **argv) {
                1000.0);
     fflush(stdout);
     graph = graph->optimize_qalm(
-        xfers, graph->gate_count() * 1.05, circuit_name, "",
-        /*print_message=*/true, nullptr, timeout, "",
+        xfers, cost_function(graph.get()) * 1.05, circuit_name, "",
+        /*print_message=*/true, cost_function, timeout, "",
         /*continue_storing_all_steps=*/false, start, initial_pool_size,
         exploration_pool_size, k, repeat_tolerance, exploration_increase,
         only_do_local_transformations, two_way_rotation_merging,
@@ -213,8 +226,8 @@ int main(int argc, char **argv) {
       fflush(stdout);
 
       auto new_graph = graph->optimize_qalm(
-          xfers, graph->gate_count() * 1.05, circuit_name, "",
-          /*print_message=*/true, nullptr, timeout, "",
+          xfers, cost_function(graph.get()) * 1.05, circuit_name, "",
+          /*print_message=*/true, cost_function, timeout, "",
           /*continue_storing_all_steps=*/false, start, initial_pool_size,
           exploration_pool_size, k, repeat_tolerance, exploration_increase,
           only_do_local_transformations, two_way_rotation_merging,

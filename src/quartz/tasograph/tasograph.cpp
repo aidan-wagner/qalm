@@ -500,6 +500,17 @@ float Graph::total_cost(void) const {
   return (float)cnt;
 }
 
+float Graph::weighted_2q_cost(void) const {
+  // 1Q gates count as 1, 2Q gates count as 10. Non-quantum gates ignored.
+  std::size_t weighted = 0;
+  for (const auto &it : inEdges) {
+    if (it.first.ptr->is_quantum_gate()) {
+      weighted += (it.first.ptr->get_num_qubits() >= 2) ? 10 : 1;
+    }
+  }
+  return (float)weighted;
+}
+
 float Graph::hadamard_reduction_cost(void) const {
   // Uncomment to use circuit depth as the cost
   // return circuit_depth();
