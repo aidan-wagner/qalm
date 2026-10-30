@@ -277,8 +277,12 @@ class Scheduler:
         md5 = hashlib.md5(open(ecc, "rb").read()).hexdigest()
         assert md5 == self.cfg["ecc_md5"], f"ECC md5 mismatch {md5}"
         assert not os.path.exists(os.path.join(REPO, "benchmark-logs")), "benchmark-logs/ must not exist"
+        lib = jobsmod.lib_path(self.cfg)
         assert not os.path.exists(os.path.join(REPO, "libquartz_runtime.so")), \
-            "repo-root libquartz_runtime.so would shadow build/repro (RUNPATH order)"
+            f"repo-root libquartz_runtime.so would shadow {lib} (RUNPATH order)"
+        # each binary loads the library of its own build directory (RUNPATH)
+        for p in self.cfg["binaries"].values():
+            assert os.path.dirname(p) == os.path.dirname(lib), f"{p} does not belong to {lib}"
         recorded = {}
         in_block = False
         for line in open(os.path.join(REPO, "repro", "env", "build_info.txt")):
@@ -290,11 +294,14 @@ class Scheduler:
             if in_block and line.strip():
                 h, p = line.split()
                 recorded[p] = h
-        for p in list(self.cfg["binaries"].values()) + ["build/repro/libquartz_runtime.so"]:
+        for p in list(self.cfg["binaries"].values()) + [lib]:
             h = sha256(os.path.join(REPO, p))
             assert recorded.get(p) == h, f"{p} differs from repro/env/build_info.txt (rebuild?)"
             self.binary_hashes[p] = h
         assert all("nam-benchmarks" not in j["input_path"] for j in self.plan)
+        builds = {j.get("build") for j in self.plan if j["kind"] == "native"}
+        assert builds <= {self.cfg.get("native_build")}, \
+            f"plan native builds {builds} != campaign native_build {self.cfg.get('native_build')}"
         assert len(self.by_id) == len(self.plan), "duplicate job ids in plan"
         out = sh(["systemctl", "show", "qalmrepro.slice", "-p", "ActiveState", "-p", "MemoryMax",
                   "-p", "AllowedCPUs"]).stdout
@@ -397,6 +404,7 @@ class Scheduler:
             # a unit killed moments ago may still be loaded in "failed" state
             sh(["sudo", "-n", "systemctl", "reset-failed", f"{self.unit(jid)}.service"])
             spec["argv"] = jobsmod.argv_for(job, self.cfg)
+            spec["lib"] = jobsmod.lib_path(self.cfg)
             write_json(os.path.join(d, "job.json"), spec, indent=1)
             cmd = ["sudo", "-n", "systemd-run", f"--unit={self.unit(jid)}", "--slice=qalmrepro.slice",
                    "--uid=cc", "--gid=cc", "--collect", "--no-block", "--quiet",

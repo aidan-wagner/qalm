@@ -30,12 +30,20 @@ sys.path.insert(0, os.path.join(REPRO, "harness"))
 import legacy  # noqa: E402
 import metrics  # noqa: E402
 from collect import ROW_FIELDS  # noqa: E402
+from jobs import DEFAULTS  # noqa: E402
 from qasm_count import count_file  # noqa: E402
 
 REF_TABLE = os.path.join(
     REPRO, "reference", "audit_20261030", "eval_end_to_end_table.json"
 )
-CONFIG_A = dict(greedy_k=2, n_pool=1, n_branch=3, fixed_k=0, enqueue=0)
+CONFIG_A = dict(
+    greedy_k=2,
+    n_pool=1,
+    n_branch=3,
+    fixed_k=0,
+    enqueue=0,
+    stall_rounds=DEFAULTS["qalm"]["stall_rounds"],
+)
 
 # Selection of each 248-suite column (metrics.select kwargs) ...
 SELECT_248 = {

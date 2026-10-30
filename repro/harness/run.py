@@ -1,6 +1,7 @@
 """Campaign CLI. Run from the repo root.
 
   python3 repro/harness/run.py plan [--configs repro/config/E*.yaml] [--experiments E3_greedy ...]
+                                    [--native-experiments P0_stall,...] [--campaign CAMPAIGN_YAML]
                                     [--circuits a,b] [--budget-override 60] [--shard i/n] -o PLAN
   python3 repro/harness/run.py launch --plan PLAN [--max-running N]     (usually via launch_sched.sh)
   python3 repro/harness/run.py status
@@ -14,7 +15,6 @@ import gzip
 import hashlib
 import json
 import os
-import shutil
 import sys
 import time
 
@@ -28,10 +28,16 @@ RUNS = CFG["runs_dir"]
 
 
 def cmd_plan(a):
+    # --campaign: plan against a staged campaign file (e.g. a new native build) without swapping it in
+    campaign = jobsmod.load_campaign(a.campaign) if a.campaign else CFG
     configs = a.configs or sorted(glob.glob(os.path.join(jobsmod.REPRO, "config", "E*.yaml")))
-    jobs = jobsmod.expand(configs)
+    jobs = jobsmod.expand(configs, campaign)
     if a.experiments:
         jobs = [j for j in jobs if set(j["experiments"]) & set(a.experiments)]
+    if a.native_experiments:
+        # every docker job stays; native jobs only for the listed experiments
+        keep = set(a.native_experiments.split(","))
+        jobs = [j for j in jobs if j["kind"] != "native" or set(j["experiments"]) & keep]
     if a.circuits:
         keep = set(a.circuits.split(","))
         jobs = [j for j in jobs if j["circuit"] in keep]
@@ -51,7 +57,7 @@ def cmd_plan(a):
         jobs = [j for j in jobs
                 if int(hashlib.sha1(j["circuit"].encode()).hexdigest(), 16) % n == i]
     priors = Priors(os.path.join(jobsmod.REPRO, "config", "mem_priors.csv"))
-    jobs = order_plan(jobs, CFG, priors)
+    jobs = order_plan(jobs, campaign, priors)
     with open(a.output, "w") as f:
         for j in jobs:
             f.write(json.dumps(j, sort_keys=True) + "\n")
@@ -112,6 +118,16 @@ def cmd_collect(a):
                     dst.writelines(src)
                 os.remove(log)
     rows.sort(key=lambda r: r["job_id"])
+    # every native optimizer of one plan must have run one build: refuse to mix binaries
+    hashes = {}
+    for r in rows:
+        for field in ("binary_sha256", "lib_sha256"):
+            if r.get(field):
+                hashes.setdefault((r["optimizer"], field), set()).add(r[field])
+    mixed = {k: sorted(v) for k, v in hashes.items() if len(v) > 1}
+    if mixed:
+        raise SystemExit(f"collect: jobs of one optimizer ran different binaries {mixed}; "
+                         f"plan {a.plan} mixes builds")
     with open(os.path.join(a.out, "runs.csv"), "w", newline="") as f:
         w = csv.DictWriter(f, fieldnames=ROW_FIELDS, extrasaction="ignore")
         w.writeheader()
@@ -126,7 +142,14 @@ def cmd_collect(a):
         w.writerows(sorted(ks, key=lambda r: (r[0], r[2])))
     ev = os.path.join(RUNS, "events.csv")
     if os.path.exists(ev):  # concurrency / re-run statistics come from the same campaign
-        shutil.copy(ev, os.path.join(a.out, "events.csv"))
+        # only events of this plan's jobs (a runs dir can hold jobs of earlier plan versions)
+        ids = {j["job_id"] for j in plan}
+        with open(ev, newline="") as src, open(os.path.join(a.out, "events.csv"), "w", newline="") as dst:
+            r, w = csv.reader(src), csv.writer(dst)
+            header = next(r)
+            col = header.index("job_id")
+            w.writerow(header)
+            w.writerows(e for e in r if e[col] in ids)
     statuses = {}
     for r in rows:
         statuses[r["status"]] = statuses.get(r["status"], 0) + 1
@@ -139,6 +162,8 @@ def main():
     s = sub.add_parser("plan")
     s.add_argument("--configs", nargs="*")
     s.add_argument("--experiments", nargs="*")
+    s.add_argument("--native-experiments")
+    s.add_argument("--campaign")
     s.add_argument("--circuits")
     s.add_argument("--optimizers")
     s.add_argument("--budget-override", type=int)

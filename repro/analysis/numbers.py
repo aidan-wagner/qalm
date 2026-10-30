@@ -5,7 +5,11 @@ Inputs
                     timeseries.csv.gz and kevents.csv.
     --events FILE   optional: the scheduler's ``<runs_dir>/events.csv``
                     (concurrency, memory-cap escalations, preemptions, infra
-                    re-runs).  Without it those macros print "??".
+                    re-runs), or the copy ``run.py collect`` writes next to
+                    runs.csv.  Only events of the plan's jobs count (``--plan``,
+                    else the jobs in runs.csv), so jobs of other plan versions
+                    in the same runs dir are left out.  Without it those macros
+                    print "??".
     repro/inputs/{S248,S26,S26PP}.csv     suites (circuit counts, gate counts)
     repro/config/campaign.yaml            memory cap tiers and job cores
     repro/env/*.txt                       host snapshots (CPU model claim)
@@ -60,7 +64,8 @@ as "one hour" and "one minute"; other values are only for smoke tests.
 CLI (from the repo root):
     python3 repro/analysis/numbers.py --results repro/results \\
         --out repro/analysis/out [--qalm-config a|b] [--threshold 32] \\
-        [--events repro/runs/events.csv] [--allow-partial]
+        [--events repro/runs/events.csv] [--plan repro/runs/plan.jsonl] \\
+        [--allow-partial]
 
 Note: this file shares its name with the standard library module ``numbers``.
 Every script in repro/analysis has this directory on sys.path[0], so an
@@ -2174,10 +2179,10 @@ def _parse_cpus(spec):
     return n
 
 
-def events_stats(path):
-    """Concurrency and re-run counts from the scheduler's events.csv."""
+def events_stats(path, job_ids):
+    """Concurrency and re-run counts from the events.csv rows of the given jobs."""
     with open(path) as f:
-        ev = list(csv.DictReader(f))
+        ev = [e for e in csv.DictReader(f) if e["job_id"] in job_ids]
     by_host = {}
     for e in ev:
         by_host.setdefault(e["host"], []).append(e)
@@ -2229,7 +2234,7 @@ def cpu_models():
     return sorted(out)
 
 
-def setup_numbers(book, rows, events_path):
+def setup_numbers(book, rows, events_path, job_ids):
     book.section = "setup"
     m248 = tables.load_manifest("S248")
     with open(os.path.join(REPRO, "inputs", "S248.csv")) as f:
@@ -2426,7 +2431,7 @@ def setup_numbers(book, rows, events_path):
         ["runs:all"],
     )
     # scheduler events (optional)
-    ev = events_stats(events_path) if events_path else None
+    ev = events_stats(events_path, job_ids) if events_path else None
     hs = list(ev["hosts"].values()) if ev else []
     book.selection(
         "events",
@@ -2543,6 +2548,11 @@ def main(argv=None):
     )
     ap.add_argument("--events", default=None, help="scheduler events.csv (optional)")
     ap.add_argument(
+        "--plan",
+        default=None,
+        help="plan whose jobs' events count (default: the jobs in runs.csv)",
+    )
+    ap.add_argument(
         "--budget",
         type=int,
         default=3600,
@@ -2567,7 +2577,13 @@ def main(argv=None):
     book = Book(a.allow_partial)
     rows = dedupe(metrics.load_runs(a.results), book)
     view = budget_view(rows, a.budget, a.short_budget)
-    setup_numbers(book, rows, a.events)
+    if a.plan:
+        with open(a.plan) as f:
+            job_ids = {json.loads(line)["job_id"] for line in f}
+    else:
+        with open(os.path.join(a.results, "runs.csv")) as f:
+            job_ids = {r["job_id"] for r in csv.DictReader(f)}  # incl. rows load_runs skips
+    setup_numbers(book, rows, a.events, job_ids)
     s248_numbers(book, view, a.qalm_config, a.budget, a.short_budget)
     ete_numbers(book, view, a.qalm_config)
     fnum, derived, curve_issues = curve_numbers(book, a.results, a.budget, a.threshold)
@@ -2594,6 +2610,7 @@ def main(argv=None):
         },
         "events": a.events,
         "events_sha256": _file_sha(a.events) if a.events else None,
+        "events_plan": a.plan,
         "qalm_config": a.qalm_config,
         "qalm_selection": {
             "optimizer": tables.QALM_CONFIGS[a.qalm_config][0],

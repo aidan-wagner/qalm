@@ -1,0 +1,6 @@
+# Pilot for the stall rule of build v2 (choose R: the higher mean S26 total reduction, the smaller R on a tie);
+# QALM (a) exactly as in E2, so the runs at the chosen R are reused by E2/E3/E5 once DEFAULTS has it
+experiment: P0_stall
+suite: S26
+runs:
+  - {optimizer: qalm, budget_s: 3600, params: {greedy_k: 2, n_pool: 1, n_branch: 3, fixed_k: 0, enqueue: 0, stall_rounds: [100, 1000]}}

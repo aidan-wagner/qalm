@@ -11,7 +11,9 @@ half of the paper's original results had no surviving raw data
 | Path | What |
 |---|---|
 | `config/campaign.yaml` | machine/resource policy (cores, memory caps, binaries, ECC set, docker image digest) |
+| `config/campaign_v2.yaml` | staged copy for build v2 (`native_build: v2`, `build/repro2` binaries and `lib`); swapped in, see below |
 | `config/E*.yaml` | the experiments (one file per paper section) |
+| `config/P0_*.yaml` | build v2 pilot (`P0_stall`) and harness smoke test (`P0_smoke`); not in the default plan |
 | `config/mem_priors.csv` | expected peak memory per circuit, from earlier runs (`make_mem_priors.py`) |
 | `inputs/S248.csv`, `S26.csv`, `S26PP.csv` | input circuits with sha256 and gate counts (`make_manifests.py`) |
 | `harness/` | job expansion, scheduler, per-job wrapper, log parsers, result collection, equivalence check |
@@ -31,12 +33,15 @@ half of the paper's original results had no surviving raw data
 | `E3_greedy` | Fig greedy_k | S26 | greedy_k 0..3 |
 | `E4_single_k` | Figs single_k_gk0/gk2 | S26 | greedy_k {0,2} x fixed k 1..5 |
 | `E5_explore` | Figs N_pool / N_branch | S26 | 9 configs x seeds {0,1,2} |
+| `P0_stall` | none (chooses R for build v2) | S26 | QALM (a) with stall_rounds 100 and 1000 |
+| `P0_smoke` | none (smoke test of build v2, 60 s, run in plan swap #1) | 29 S248 circuits (`circuits:` list) | QALM (a) with stall_rounds 100, QALM (b), Quartz |
 
 QALM (a) is the configuration the paper describes (`N_pool=1, N_branch=3`, greedy k<=2,
 advancing k, no intermediate enqueue). QALM (b) is the configuration the previous
 main run actually used (`build/test_qalm 1 1 3 1.5 0 0 1 1 0`). Identical runs shared by
 several experiments are executed once (job id = hash of optimizer, parameters, circuit,
-input hash, budget, seed).
+input hash, budget, seed, and for native jobs the build tag). An experiment file may restrict
+its suite with `circuits: [name, ...]` (per file or per run).
 
 ## Resource policy (identical for every run)
 
@@ -76,11 +81,49 @@ Gate counts are always taken from the circuit a tool reports, with one counter
 (`harness/qasm_count.py`). Some tools drop trivial rotations (e.g. `rz(0)`) when they write a
 circuit out; that counts as a reduction for whichever tool does it (decided 2026-10-30).
 
-Equivalence (`harness/verify.py`, circuits up to 16 qubits): QALM and Quartz print rotation angles
-with 6 decimals, and QALM also passes every circuit to ROQC through that text format, so on
+Equivalence (`harness/verify.py`, circuits up to 16 qubits): QALM, Quartz and VOQC print rotation
+angles with 6 decimals, and QALM also passes every circuit to ROQC through that text format, so on
 arbitrary-angle circuits their outputs are equivalent only up to ~1e-6 rad angle rounding
-(state overlap >= 1 - 1e-6, verdict `pass_rounding`). The binaries are evaluated unchanged
+(state overlap >= 1 - 1e-6, verdict `pass_rounding`). The 6-decimal printing is kept
 (decided 2026-10-30). GUOQ TWO_Q is approximate by design (`approx`).
+
+## Build v2 (native re-run)
+
+The code audit (`/home/cc/qalm_bugs.md`) found bugs in QALM and Quartz, fixed in build v2
+(`build/repro2`, same source tree; `build/repro` stays as it was). Every native job (QALM (a),
+QALM (b), Quartz) is re-run on it; docker jobs are unaffected and keep their ids and results.
+- **Build tag:** `native_build: v2` in the campaign file is copied into every native job
+  (`job["build"]`) and is part of its id, so v2 runs never share a job directory with v1 runs.
+  Without the key (the first campaign) jobs and ids are exactly as before.
+- **`stall_rounds` (R):** new QALM parameter (`argv[17]` of `test_greedy_k_ablation`). With
+  advancing k, a pass ends after R consecutive rounds without a new best circuit and the next k
+  starts from the best circuit; 0 means the time limit only (v1 behaviour, not part of the job id).
+  The pilot `P0_stall` chooses R in {100, 1000} (higher mean S26 total reduction; the smaller R on
+  a tie); R is then set in `DEFAULTS["qalm"]["stall_rounds"]` (`harness/jobs.py`). Every analysis
+  selector of QALM (a) uses that value, so pilot runs with the other R never mix in, and the pilot
+  runs at the chosen R are the E2/E3/E5 runs (same job ids).
+- **Library:** `lib:` in the campaign file names the runtime library; the scheduler checks its
+  hash against `env/build_info.txt` and every result records `binary_sha256` and `lib_sha256`.
+  `run.py collect` refuses a plan in which one optimizer ran more than one binary.
+- **Plan swap** (the scheduler reads plan and config only at start; used at both swaps):
+  0. once the last job of the old plan has finished, run `env/archive.sh` with the old plan in place,
+     so its logs are compressed and listed in the manifest;
+  1. write the new plan to a temp file, e.g.
+     `run.py plan --campaign repro/config/campaign_v2.yaml --configs repro/config/E*.yaml repro/config/P0_stall.yaml repro/config/P0_smoke.yaml --native-experiments P0_stall,P0_smoke -o /tmp/plan_new.jsonl`
+     (`--native-experiments` keeps every docker job but only the native jobs of the listed experiments;
+     swap #1 runs the pilot and the 60 s smoke test of build v2 with the campaign scheduler, since a
+     second scheduler cannot run next to it);
+  2. check that every running unit and container is in the new plan;
+  3. stop `qalmrepro-sched`;
+  4. back up `runs/plan.jsonl` to `runs/plan_v<n>.jsonl`;
+  5. swap in the plan and the config files (`campaign_v2.yaml` -> `campaign.yaml`, the staged
+     `env/build_info_v2.txt` -> `env/build_info.txt`, which keeps the build v1 lines and adds the
+     `build/repro2` hashes inside `## binaries`, plus `env/roqc_source_v2.sha256`);
+  6. run `harness/launch_sched.sh repro/runs/plan.jsonl`;
+  7. rewrite `runs/HOLD` to `[]` so the new native jobs can launch.
+- `env/archive.sh` selects files by the stamp `runs/CAMPAIGN_START` (the first scheduler event),
+  not by `plan.jsonl`, and archives every plan version. `run.py collect` copies only the events of
+  the plan's jobs; `analysis/numbers.py --events ... --plan PLAN` counts only those too.
 
 ## Running
 
@@ -89,16 +132,21 @@ cd /home/cc/mingkuan/qalm
 # one-time per boot
 sudo cp repro/env/qalmrepro.slice /run/systemd/system/ && sudo systemctl daemon-reload
 repro/env/set_cpu_mode.sh fixed
-# build (see env/build_info.txt for the exact configuration used)
+# build (see env/build_info.txt for the exact configuration used); v1:
 cmake -S . -B build/repro -DRust_TOOLCHAIN=stable-x86_64-unknown-linux-gnu -DPython_EXECUTABLE=/usr/bin/python3
 RUSTUP_TOOLCHAIN=stable cmake --build build/repro --target test_greedy_k_ablation test_qalm test_original -j 48
+# v2 (rustc 1.94.1 pinned; check with readelf -d that RUNPATH points to build/repro2)
+cmake -S . -B build/repro2 -DRust_TOOLCHAIN=1.94.1-x86_64-unknown-linux-gnu -DPython_EXECUTABLE=/usr/bin/python3
+RUSTUP_TOOLCHAIN=1.94.1-x86_64-unknown-linux-gnu cmake --build build/repro2 --target test_greedy_k_ablation test_qalm test_original -j 48
 sudo docker pull amxu/guoq@sha256:310905ead964978676921d191819ce21f9ccdd06e5709a6b6b5dbec4777780e9
 # plan and launch (the scheduler is a system unit and survives logout)
 python3 repro/harness/run.py plan -o repro/runs/plan.jsonl      # add --shard i/n per node
 repro/harness/launch_sched.sh repro/runs/plan.jsonl
 python3 repro/harness/run.py status                              # drain / resume / stop also available
-# hold queued jobs without stopping anything: repro/runs/HOLD is a JSON list of rules such as
-# [{"optimizer": ["qalm", "qalm_old"]}]; it is re-read on change, delete it to release
+# hold queued jobs without stopping anything: repro/runs/HOLD is a JSON list of rules; a queued
+# job matching every field of one rule is not launched (e.g. [{"kind": "native"}] or
+# [{"optimizer": ["qalm", "qalm_old"]}]). It is re-read on change; write it atomically
+# (tmp file + mv); [] or deleting it releases everything; an unreadable file holds everything
 # afterwards
 python3 repro/harness/run.py collect --plan repro/runs/plan.jsonl --gzip-logs
 python3 repro/harness/verify.py --plan repro/runs/plan.jsonl

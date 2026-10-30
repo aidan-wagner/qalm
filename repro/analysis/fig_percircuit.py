@@ -6,8 +6,9 @@ Inputs: result rows in the ``metrics.load_runs`` schema, either
 S248, ``budget_s=3600``, ``seed=0`` rows are used:
 
 * QALM: config ``a`` (optimizer ``qalm``, greedy_k=2, n_pool=1, n_branch=3,
-  fixed_k=0, enqueue=0) or config ``b`` (optimizer ``qalm_old``).  The
-  default is ``a``; with ``--legacy`` it is ``b`` (the only 1 h legacy QALM).
+  fixed_k=0, enqueue=0, stall_rounds of ``jobs.DEFAULTS``) or config ``b``
+  (optimizer ``qalm_old``).  The default is ``a``; with ``--legacy`` it is
+  ``b`` (the only 1 h legacy QALM).
 * Baselines: GUOQ and QUESO with ``params.opt`` TWO_Q / TOTAL, VOQC, Quartz.
 
 The circuit set is the suite manifest ``repro/inputs/S248.csv``; circuits
@@ -63,7 +64,9 @@ from matplotlib.patches import Patch  # noqa: E402
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
+sys.path.insert(0, os.path.join(os.path.dirname(HERE), "harness"))
 import metrics  # noqa: E402
+from jobs import DEFAULTS  # noqa: E402
 
 log = logging.getLogger("fig_percircuit")
 
@@ -72,7 +75,17 @@ MANIFEST = os.path.join(os.path.dirname(HERE), "inputs", f"{SUITE}.csv")
 BUDGET_S = 3600
 SEED = 0
 QALM_CONFIGS = {
-    "a": ("qalm", dict(greedy_k=2, n_pool=1, n_branch=3, fixed_k=0, enqueue=0)),
+    "a": (
+        "qalm",
+        dict(
+            greedy_k=2,
+            n_pool=1,
+            n_branch=3,
+            fixed_k=0,
+            enqueue=0,
+            stall_rounds=DEFAULTS["qalm"]["stall_rounds"],
+        ),
+    ),
     "b": ("qalm_old", {}),
 }
 # (key, column title, optimizer, params filter)

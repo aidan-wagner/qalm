@@ -6,6 +6,9 @@ Launched by the scheduler as
 It starts the optimizer binary (stdout/stderr to files), enforces the wall
 limit, and finally records rusage plus its own cgroup's memory.peak,
 memory.events and cpu.stat into <jobdir>/result.json. Standard library only.
+The runtime library hashed into result.json is job.json's "lib" (the campaign's
+`lib`), or else the libquartz_runtime.so next to the binary (where its RUNPATH
+points; job.json files written before "lib" existed).
 """
 import hashlib
 import json
@@ -49,10 +52,11 @@ def main():
     with open(os.path.join(jobdir, "job.json")) as f:
         job = json.load(f)
     env = dict(os.environ, OMP_NUM_THREADS="1", RAYON_NUM_THREADS="1", LANG="C.UTF-8")
+    lib = job.get("lib") or os.path.join(os.path.dirname(job["argv"][0]), "libquartz_runtime.so")
     result = {"job_id": job["job_id"], "host": socket.gethostname(), "argv": job["argv"],
               "wall_limit_s": job["wall_limit_s"], "started_utc": time.time(),
               "binary_sha256": sha256(os.path.join(job["repo_root"], job["argv"][0])),
-              "lib_sha256": sha256(os.path.join(job["repo_root"], "build/repro/libquartz_runtime.so"))}
+              "lib": lib, "lib_sha256": sha256(os.path.join(job["repo_root"], lib))}
     wall_kill = False
     with open(os.path.join(jobdir, "stdout.log"), "wb") as out, \
             open(os.path.join(jobdir, "stderr.log"), "wb") as err:

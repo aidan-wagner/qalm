@@ -7,6 +7,8 @@ for GUOQ/QUESO it is latest_sol_*.qasm (the process is killed at T); for VOQC
 it is the output circuit. Runs with nothing reported count as the original
 circuit. Infrastructure failures (global/slice OOM, missing result.json,
 preemption) are returned as status INFRA and must be re-run, never reported.
+Native rows also carry the sha256 of the binary and runtime library that ran
+(from jobwrap.py's result.json).
 """
 import json
 import os
@@ -19,6 +21,7 @@ ROW_FIELDS = [
     "exit_code", "oom_events", "oom_kill_events", "log_final_consistent", "improved_after_budget",
     "final_total", "final_cx", "greedy_end_s", "last_k", "n_changepoints", "peak_rss_kb",
     "cgroup_peak_bytes", "cpu_user_s", "cpu_sys_s", "wall_s", "host", "core", "attempt",
+    "binary_sha256", "lib_sha256",
 ]
 
 
@@ -70,6 +73,7 @@ def summarize(job, jobdir, launch):
     infra_oom = bool(row["oom_kill_events"]) and not row["oom_events"]
 
     if job["kind"] == "native":
+        row["binary_sha256"], row["lib_sha256"] = res.get("binary_sha256"), res.get("lib_sha256")
         row["exit_code"] = res["exit_code"]
         row["peak_rss_kb"], row["cpu_user_s"], row["cpu_sys_s"], row["wall_s"] = (
             res["ru_maxrss_kb"], res["utime_s"], res["stime_s"], res["wall_s"])

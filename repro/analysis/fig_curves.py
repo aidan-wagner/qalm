@@ -2,7 +2,8 @@
 
 All curves use the 26-circuit suite S26, optimizer ``qalm`` and one time budget
 (``--budget``, default 3600 s). Every QALM parameter not named below keeps its
-default from ``repro/harness/jobs.py``.
+default from ``repro/harness/jobs.py`` (so runs with another stall_rounds, such
+as the P0_stall pilot, are never mixed into a curve).
 
 Figures (written to ``--out``), styled like the current paper figures:
     greedy_k_reduction.pdf       E3: greedy_k in {0,1,2,3} (N_pool=1, N_branch=3,
@@ -115,6 +116,8 @@ def _params(**overrides):
     """Full QALM parameter set: the jobs.py defaults with the given overrides."""
     p = dict(DEFAULTS[OPTIMIZER])
     p.update(overrides)
+    if p["fixed_k"] > 0:
+        p["stall_rounds"] = 0  # as jobs.expand records fixed-k runs
     return p
 
 

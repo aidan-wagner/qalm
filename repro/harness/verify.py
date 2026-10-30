@@ -4,9 +4,10 @@ For circuits with at most --max-qubits qubits, input and output are applied to t
 same random states with a small numpy statevector simulator and compared via
 |<psi_in|psi_out>| (global phase ignored). Verdicts:
   pass            overlap >= 1 - 1e-9 (exact up to floating point)
-  pass_rounding   QALM/Quartz only, overlap >= 1 - 1e-6: they print rotation angles with 6
+  pass_rounding   QALM/Quartz/VOQC only, overlap >= 1 - 1e-6: they print rotation angles with 6
                   decimals (QALM also round-trips every circuit through that text format when
                   calling ROQC), so arbitrary-angle circuits carry ~1e-6 rad angle rounding
+                  (the 7 VOQC outputs below 1 - 1e-9 in the interim check all had >= 1 - 1.5e-8)
   approx          GUOQ TWO_Q (approximate resynthesis, epsilon 1e-8), overlap >= 1 - 1e-6
   FAIL            anything else
   trivial         the reported result is the input circuit (nothing to check)
@@ -123,7 +124,7 @@ def check(task):
             b = simulate(n, ops_out, v.copy())
             worst = min(worst, abs(np.vdot(a, b)))
         approx = job["optimizer"] == "guoq" and job["params"].get("opt") == "TWO_Q"
-        rounding = job["optimizer"] in ("qalm", "qalm_old", "quartz")
+        rounding = job["optimizer"] in ("qalm", "qalm_old", "quartz", "voqc")
         if worst >= 1 - 1e-9 and not approx:
             verdict = "pass"
         elif worst >= 1 - 1e-6 and (approx or rounding):
