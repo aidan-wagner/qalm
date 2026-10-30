@@ -137,11 +137,11 @@ class Priors:
             if fam in ("guoq", "queso"):
                 base = 6.0 if job["orig_total"] < 100_000 else 21.0   # JVM is started with -Xmx20g
             elif fam == "voqc":
-                base = 2.0 if job["orig_total"] < 100_000 else 16.0
+                base = 2.0 if job["orig_total"] < 100_000 else 4.0  # observed < 1 GB on the largest
             else:
                 base = 4.0
         if is_short(job):
-            base = max(1.0, 0.4 * base)
+            base = min(3.0, max(0.5, 0.4 * base))  # 60 s runs peaked at 2.3 GB in earlier runs
         return min(base * float(os.environ.get("REPRO_PRIOR_SCALE", "1")), 32.0)  # scale: tests only
 
     def learn(self, job, peak_bytes):
@@ -562,39 +562,53 @@ class Scheduler:
             end = start + self.wall_limit(job) + 120
         return max(end, now + 60)
 
+    @staticmethod
+    def usage(g, tau):
+        """Projected usage (GiB) at time tau of a job described by growth(): the larger of
+        its expected ramp (reaching its prior at the end of its budget, then flat) and its
+        measured usage extrapolated at the measured slope; never above its cap."""
+        cur, slope, now, target, start, budget, cap, end = g
+        ramp = 0.5 + target * min(1.0, max(0.0, tau - start) / budget)
+        return min(cap, max(ramp, cur + slope * (tau - now)))
+
     def growth(self, job, info, now):
-        """(current GiB, growth rate GiB/s, cap GiB, end time) of a running job."""
-        prior, cap = info["prior"], info["cap"]
+        """Parameters of a running job's projected usage (see usage())."""
         s = info["samples"]
-        cur = s[-1][1] if s else min(cap, 0.5 + prior * (now - info["start"]) / job["budget_s"])
-        rate = prior / job["budget_s"]
+        cur = s[-1][1] if s else 0.0
+        slope = 0.0
         if len(s) >= 2 and s[-1][0] - s[0][0] >= 60:
-            rate = max(rate, (s[-1][1] - s[0][1]) / (s[-1][0] - s[0][0]))
-        return cur, rate, cap, self.end_time(job, info["start"], now)
+            slope = max(0.0, (s[-1][1] - s[0][1]) / (s[-1][0] - s[0][0]))
+        # after 10 minutes, trust the measurement more than the prior: expect at most 1.5x the
+        # current usage extrapolated linearly to the end of the budget
+        target = info["prior"]
+        elapsed = now - info["start"]
+        if s and elapsed >= 600:
+            target = min(target, max(cur, 1.5 * cur * job["budget_s"] / elapsed))
+        return (cur, slope, now, target, info["start"], job["budget_s"], info["cap"],
+                self.end_time(job, info["start"], now))
 
     def profile(self, now, node=None):
         """Projected total usage of the running jobs (optionally on one NUMA node) at each end time."""
         jobs = [self.growth(self.by_id[jid], info, now) for jid, info in self.running.items()
                 if node is None or self.numa(info["core"]) == node]
-        points = sorted({now} | {e - 1 for (_, _, _, e) in jobs if e - 1 > now})
+        points = sorted({now} | {g[7] - 1 for g in jobs if g[7] - 1 > now})
         m = self.mem["margin"]
-        totals = [sum(min(cap, cur + rate * (tau - now)) * m for cur, rate, cap, end in jobs if end > tau)
-                  for tau in points]
+        totals = [sum(self.usage(g, tau) * m for g in jobs if g[7] > tau) for tau in points]
         return jobs, points, totals
 
     def fits(self, job, prior, cap, now, jobs, points, totals, budget):
-        rate = prior / job["budget_s"]
         end = self.end_time(job, now, now)
+        new = (0.0, 0.0, now, prior, now, job["budget_s"], cap, end)
         m = self.mem["margin"]
         for tau, tot in zip(points, totals):
             # hold back part of the far-future budget for jobs admitted later, so that start
             # times spread out instead of forming lockstep waves (tightens, never loosens)
             u = min(1.0, (tau - now) / self.horizon)
-            if tau < end and tot + min(cap, 0.5 + rate * (tau - now)) * m > budget * (1 - 0.5 * u * u):
+            if tau < end and tot + self.usage(new, tau) * m > budget * (1 - 0.5 * u * u):
                 return False
         tau = end - 1  # the candidate's own end, where it is largest
-        tot = sum(min(c, cur + r * (tau - now)) * m for cur, r, c, e in jobs if e > tau)
-        return tot + min(cap, 0.5 + rate * (tau - now)) * m <= budget
+        tot = sum(self.usage(g, tau) * m for g in jobs if g[7] > tau)
+        return tot + self.usage(new, tau) * m <= budget
 
     def pick(self, free_cores):
         """Next queued job that fits; returns (index, core, prior, cap) or None."""

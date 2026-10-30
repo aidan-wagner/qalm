@@ -32,7 +32,8 @@ def _events(cg):
 
 
 def _greedy_end(job, kevents):
-    """Time at which QALM's greedy phase ended: first [QALM_K_START] with k = greedy_k + 1."""
+    """Time at which QALM's greedy phase ended: first [QALM_K_START] with k = greedy_k + 1
+    (k events after the budget do not count; the budget is returned if it never ended in time)."""
     if job["optimizer"] != "qalm":
         return None
     p = job["params"]
@@ -41,7 +42,7 @@ def _greedy_end(job, kevents):
     else:
         target = p["greedy_k"] + 1
     for k, t in kevents:
-        if k == target:
+        if k == target and t <= job["budget_s"]:
             return t
     return float(job["budget_s"])  # never reached (same convention as plot_greedy_k.py)
 
@@ -143,7 +144,8 @@ def summarize(job, jobdir, launch):
         else:
             row["opt_total"], row["opt_cx"], row["result_source"] = job["orig_total"], job["orig_cx"], "original"
     row["greedy_end_s"] = _greedy_end(job, parsed["kevents"])
-    row["last_k"] = parsed["kevents"][-1][0] if parsed["kevents"] else None
+    ks_in = [k for k, t in parsed["kevents"] if t <= T]
+    row["last_k"] = ks_in[-1] if ks_in else None
     ts = [(job["job_id"], 0.0, job["orig_total"], job["orig_cx"])] + [
         (job["job_id"], t, a, b) for (t, a, b) in within]
     ks = [(job["job_id"], k, t) for (k, t) in parsed["kevents"] if t <= T]

@@ -118,11 +118,11 @@ def cmd_collect(a):
     with gzip.open(os.path.join(a.out, "timeseries.csv.gz"), "wt", newline="") as f:
         w = csv.writer(f)
         w.writerow(["job_id", "t_s", "total", "cx"])
-        w.writerows(sorted(ts))
+        w.writerows(sorted(ts, key=lambda r: (r[0], r[1])))  # stable: keep log order at equal t
     with open(os.path.join(a.out, "kevents.csv"), "w", newline="") as f:
         w = csv.writer(f)
         w.writerow(["job_id", "k", "t_s"])
-        w.writerows(sorted(ks))
+        w.writerows(sorted(ks, key=lambda r: (r[0], r[2])))
     statuses = {}
     for r in rows:
         statuses[r["status"]] = statuses.get(r["status"], 0) + 1

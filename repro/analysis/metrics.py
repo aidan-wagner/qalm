@@ -19,6 +19,11 @@ def fidelity(total, cx):
     return F1Q ** (total - cx) * F2Q ** cx
 
 
+def log_fidelity(total, cx):
+    """ln F; used for comparisons because F underflows to 0 for the largest circuits."""
+    return (total - cx) * math.log(F1Q) + cx * math.log(F2Q)
+
+
 def reduction_pct(orig, opt):
     return 100.0 * (orig - opt) / orig
 
@@ -47,10 +52,11 @@ def averages(rows):
 def compare(a, b, metric):
     """+1 if a better, 0 tie, -1 worse, for one circuit (a, b are rows of the same circuit)."""
     if metric == "fidelity":
-        fa, fb = fidelity(a["opt_total"], a["opt_cx"]), fidelity(b["opt_total"], b["opt_cx"])
-        if abs(fa - fb) <= FID_TIE * max(fa, fb, 1e-300):
+        # compare in log space: |d ln F| <= FID_TIE is the same relative tie rule, without underflow
+        la, lb = log_fidelity(a["opt_total"], a["opt_cx"]), log_fidelity(b["opt_total"], b["opt_cx"])
+        if abs(la - lb) <= FID_TIE:
             return 0
-        return 1 if fa > fb else -1
+        return 1 if la > lb else -1
     key = {"cx": "opt_cx", "total": "opt_total"}[metric]
     return (a[key] < b[key]) - (a[key] > b[key])
 
@@ -115,6 +121,9 @@ def load_runs(results_dir):
     rows = []
     with open(os.path.join(results_dir, "runs.csv")) as f:
         for r in csv.DictReader(f):
+            if r["opt_total"] == "":  # INFRA / COLLECT_ERROR rows carry no result
+                print(f"load_runs: skipping {r['job_id']} ({r['optimizer']} {r['circuit']}): status {r['status']}")
+                continue
             for k in INT_FIELDS:
                 r[k] = int(r[k])
             r["params"] = json.loads(r["params"])
@@ -130,7 +139,7 @@ def load_timeseries(results_dir, job_ids=None):
             if job_ids is None or r["job_id"] in job_ids:
                 ts[r["job_id"]].append((float(r["t_s"]), int(r["total"]), int(r["cx"])))
     for s in ts.values():
-        s.sort()
+        s.sort(key=lambda p: p[0])  # stable: equal timestamps keep log order (last one wins)
     return ts
 
 
