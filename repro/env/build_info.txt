@@ -104,6 +104,10 @@ _Python_EXECUTABLE:INTERNAL=/usr/bin/python3
 a6be9ac7ed1233472d6d99ccbabd3726b4a5033176e640cd3d3a3ee972a77ae7  build/repro/test_qalm
 092bef2b0742432d5eabf5233b5c07ff98c6ffedef3224a1a9ebd0b5c7e56fca  build/repro/test_original
 50cf3b5518093366c266ff3b08e1edb3dd9ba19b349f3305116356c7a13e48f3  build/repro/libquartz_runtime.so
+c2a68fb9f078e8241d399dbcaa89b96bbebf6dca7544f6c733886416c2a81a7a  build/repro2/test_greedy_k_ablation
+ac9942698c6c9aaae31d0e7dc3a639c8cae84f37febb1240c2f09a2ec165df05  build/repro2/test_qalm
+fc09b3b0952bae81d2e0caffdb18c08c70a2ceca24a05edb1fc73754803552d6  build/repro2/test_original
+d4baf5030347d7fd830533362f91035db70857584b361fe2c83abb5de2c6bcdb  build/repro2/libquartz_runtime.so
 ## ldd test_greedy_k_ablation
 	linux-vdso.so.1 (0x00007ffd5b7d1000)
 	libquartz_runtime.so => /home/cc/mingkuan/qalm/build/repro/libquartz_runtime.so (0x00007f21d6a00000)
@@ -130,3 +134,36 @@ cadc03bdf058c9674675b5c4c9ec1bb2b6623b22f2c802449ddad3817128bf68  roqc/Cargo.loc
 ["amxu/guoq@sha256:310905ead964978676921d191819ce21f9ccdd06e5709a6b6b5dbec4777780e9"]
 ## GUOQ jar sha256 (in image)
 df09a32ea7d3df8e6c7877f833531f1f250d58590439cafcfc08d7a9a6ba8895
+
+## build v2 (build/repro2), recorded 2026-10-30T22:13:51Z on qalm
+## v2 source: commit d7016300b4ab738e0514319d8e734f177eb762bf (src/ as committed in 88dfa6d) plus roqc/ = roqc_source.sha256 tree + repro/env/roqc_v2.patch
+## v2 roqc sources: roqc_source_v2.sha256 (sha256 f31dcc470189a94d5897b824c375b2a62acd74fe64b433e86ca333f647f0a830); files not matching in roqc/: 0
+## v2 configure
+cmake -S . -B build/repro2 -DRust_TOOLCHAIN=1.94.1-x86_64-unknown-linux-gnu -DPython_EXECUTABLE=/usr/bin/python3 -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
+RUSTUP_TOOLCHAIN=1.94.1-x86_64-unknown-linux-gnu cmake --build build/repro2 --target test_greedy_k_ablation test_qalm test_original -j 4
+## v2 compile flags (flags.make)
+CXX_FLAGS = -O3 -Wall -fPIC -std=c++17  -fopenmp -O3 -DNDEBUG -fPIC
+## v2 toolchain
+rustc 1.94.1 (e408947bf 2026-03-25)
+cargo 1.94.1 (29ea6fb6a 2026-03-24)
+gcc (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0
+c++ (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0
+cmake version 3.28.3
+## v2 corrosion
+a1a1aaa057a5da656c06c3d8505b767a4e941709
+## v2 RUNPATH
+test_greedy_k_ablation: Library runpath: [/home/cc/mingkuan/qalm/src/test/../..:/home/cc/mingkuan/qalm/build/repro2]
+test_qalm: Library runpath: [/home/cc/mingkuan/qalm/src/test/../..:/home/cc/mingkuan/qalm/build/repro2]
+test_original: Library runpath: [/home/cc/mingkuan/qalm/src/test/../..:/home/cc/mingkuan/qalm/build/repro2]
+## v2 ldd test_greedy_k_ablation
+	linux-vdso.so.1 (0x00007ffc859c7000)
+	libquartz_runtime.so => /home/cc/mingkuan/qalm/build/repro2/libquartz_runtime.so (0x00007de781400000)
+	libgcc_s.so.1 => /lib/x86_64-linux-gnu/libgcc_s.so.1 (0x00007de781810000)
+	libstdc++.so.6 => /lib/x86_64-linux-gnu/libstdc++.so.6 (0x00007de781000000)
+	libc.so.6 => /lib/x86_64-linux-gnu/libc.so.6 (0x00007de780c00000)
+	libpython3.12.so.1.0 => /lib/x86_64-linux-gnu/libpython3.12.so.1.0 (0x00007de780200000)
+	libm.so.6 => /lib/x86_64-linux-gnu/libm.so.6 (0x00007de781317000)
+	/lib64/ld-linux-x86-64.so.2 (0x00007de78185f000)
+	libgomp.so.1 => /lib/x86_64-linux-gnu/libgomp.so.1 (0x00007de7812c1000)
+	libz.so.1 => /lib/x86_64-linux-gnu/libz.so.1 (0x00007de7817f2000)
+	libexpat.so.1 => /lib/x86_64-linux-gnu/libexpat.so.1 (0x00007de781293000)

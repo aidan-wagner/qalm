@@ -1,0 +1,27 @@
+# Global settings for the re-run campaign (see repro/README.md).
+repo_root: /home/cc/mingkuan/qalm
+runs_dir: /home/cc/mingkuan/qalm/repro/runs
+cores:
+  jobs: "2-63,66-127"          # one logical CPU per physical core; SMT siblings (n+128) stay idle
+  housekeeping: "0,1,64,65,128,129,192,193"   # system, user sessions, docker daemon, scheduler
+numa_of_core: {split: 64}      # cores < 64 -> node 0, else node 1
+mem:
+  cap_tiers_gib: [2, 4, 8, 16, 32]   # native jobs start at the smallest tier >= 1.5x expected peak and
+                                    # are re-run with the next tier if they reach it; containers get 32
+  escalate_rss_fraction: 0.9   # also re-run with the next tier if peak RSS reached 90% of the cap
+  slice_cap_gib: 236           # cap for the whole qalmrepro.slice
+  budget_gib: 228              # admission budget (projected sum at every future job-end time)
+  node_budget_gib: 114         # the same check per NUMA node
+  pause_below_gib: 24          # stop launching when MemAvailable drops below this
+  preempt_below_gib: 10        # kill + requeue the newest job below this
+  margin: 1.15                 # applied to every projected usage
+wall_margin_s: {default: 900, short: 300}   # wall limit = budget + margin (short = budget <= 300 s)
+stagger_s: {short: 0.5, long: 5}   # minimum gap between launches (short: 60 s jobs and VOQC)
+order_seed: 20261030
+docker_image: "amxu/guoq@sha256:310905ead964978676921d191819ce21f9ccdd06e5709a6b6b5dbec4777780e9"
+binaries:
+  qalm: build/repro/test_greedy_k_ablation
+  qalm_old: build/repro/test_qalm
+  quartz: build/repro/test_original
+ecc: eccset/Nam_5_3_complete_ECC_set.json
+ecc_md5: 4f36694c2367eec8d9551e372af753c7
