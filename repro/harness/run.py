@@ -14,6 +14,7 @@ import gzip
 import hashlib
 import json
 import os
+import shutil
 import sys
 import time
 
@@ -123,6 +124,9 @@ def cmd_collect(a):
         w = csv.writer(f)
         w.writerow(["job_id", "k", "t_s"])
         w.writerows(sorted(ks, key=lambda r: (r[0], r[2])))
+    ev = os.path.join(RUNS, "events.csv")
+    if os.path.exists(ev):  # concurrency / re-run statistics come from the same campaign
+        shutil.copy(ev, os.path.join(a.out, "events.csv"))
     statuses = {}
     for r in rows:
         statuses[r["status"]] = statuses.get(r["status"], 0) + 1
