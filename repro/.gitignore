@@ -1,0 +1,8 @@
+# Raw per-job run directories (archived to the object store, not git)
+runs/
+*.qasm
+*.log
+*.log.gz
+# root .gitignore ignores *.json; we commit small JSON reference/config files
+!*.json
+runs_*/

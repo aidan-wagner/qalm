@@ -1,0 +1,11 @@
+# 26-circuit Quartz benchmark table (Table eval_end_to_end)
+experiment: E2_quartz26
+suite: S26
+runs:
+  - {optimizer: voqc, budget_s: 3600}
+  - {optimizer: queso, budget_s: 3600, params: {opt: TOTAL}}
+  - {optimizer: guoq, budget_s: 3600, params: {opt: TOTAL}}
+  - {optimizer: quartz, budget_s: 3600}
+  - {optimizer: quartz, budget_s: 3600, suite: S26PP}          # Quartz with preprocessing (rotation-merged inputs)
+  - {optimizer: qalm, budget_s: 3600, params: {greedy_k: 2, n_pool: 1, n_branch: 3, fixed_k: 0, enqueue: 0}}
+  - {optimizer: qalm_old, budget_s: 3600, priority: 3}

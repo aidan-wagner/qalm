@@ -1,0 +1,54 @@
+# /home/cc/seach_and_rule_based_opt/figure/N_pool_arith_mean_3600s_plain.pdf
+vertical lines y-range: [41.96, 261.12] ...
+color=(0.122, 0.467, 0.706) npts=122 last_x=473.237 last_y=215.192 -> 33.1618
+color=(1.0, 0.498, 0.055) npts=104 last_x=473.237 last_y=214.965 -> 33.1576
+color=(0.173, 0.627, 0.173) npts=113 last_x=473.237 last_y=208.604 -> 33.0415
+color=(0.839, 0.153, 0.157) npts=127 last_x=473.237 last_y=208.109 -> 33.0325
+color=(0.58, 0.404, 0.741) npts=124 last_x=473.237 last_y=212.681 -> 33.1159
+vertical lines y-range: [] ...
+# /home/cc/seach_and_rule_based_opt/figure/N_branch_arith_mean_3600s_plain.pdf
+vertical lines y-range: [41.96, 261.12] ...
+color=(1.0, 0.498, 0.055) npts=69 last_x=473.237 last_y=192.670 -> 32.7507
+color=(0.173, 0.627, 0.173) npts=133 last_x=473.237 last_y=226.782 -> 33.3733
+color=(0.839, 0.153, 0.157) npts=157 last_x=473.237 last_y=222.510 -> 33.2953
+color=(0.58, 0.404, 0.741) npts=124 last_x=473.237 last_y=217.658 -> 33.2067
+vertical lines y-range: [] ...
+# /home/cc/mingkuan/qalm/npool_comparison_3600s_advk_results/N_pool_arith_mean_3600s.pdf
+vertical lines y-range: [41.96, 261.12] ...
+color=(0.122, 0.467, 0.706) npts=152 last_x=473.237 last_y=226.995 -> 33.3772
+color=(1.0, 0.498, 0.055) npts=160 last_x=473.237 last_y=221.669 -> 33.2800
+color=(0.173, 0.627, 0.173) npts=159 last_x=473.237 last_y=224.558 -> 33.3327
+color=(0.839, 0.153, 0.157) npts=118 last_x=473.237 last_y=220.634 -> 33.2611
+color=(0.58, 0.404, 0.741) npts=146 last_x=473.237 last_y=222.630 -> 33.2975
+vertical lines y-range: [] ...
+# /home/cc/mingkuan/qalm/nbranch_comparison_3600s_advk_results/N_branch_arith_mean_3600s.pdf
+vertical lines y-range: [41.96, 261.12] ...
+color=(0.122, 0.467, 0.706) npts=129 last_x=473.237 last_y=229.884 -> 33.4299
+color=(1.0, 0.498, 0.055) npts=148 last_x=473.237 last_y=213.235 -> 33.1260
+color=(0.173, 0.627, 0.173) npts=128 last_x=473.237 last_y=216.561 -> 33.1867
+color=(0.839, 0.153, 0.157) npts=140 last_x=473.237 last_y=227.628 -> 33.3887
+color=(0.58, 0.404, 0.741) npts=131 last_x=473.237 last_y=223.935 -> 33.3213
+vertical lines y-range: [] ...
+# old_paper_N_pool.pdf
+vertical lines y-range: [41.96, 261.12] ...
+color=(0.122, 0.467, 0.706) npts=153 last_x=473.237 last_y=218.031 -> 33.2136
+color=(1.0, 0.498, 0.055) npts=165 last_x=473.237 last_y=234.349 -> 33.5114
+color=(0.173, 0.627, 0.173) npts=152 last_x=473.237 last_y=229.585 -> 33.4244
+color=(0.839, 0.153, 0.157) npts=147 last_x=473.237 last_y=231.626 -> 33.4617
+color=(0.58, 0.404, 0.741) npts=142 last_x=473.237 last_y=217.121 -> 33.1969
+vertical lines y-range: [] ...
+# old_paper_N_branch.pdf
+vertical lines y-range: [41.96, 261.12] ...
+color=(0.122, 0.467, 0.706) npts=146 last_x=473.237 last_y=220.009 -> 33.2497
+color=(1.0, 0.498, 0.055) npts=137 last_x=473.237 last_y=210.429 -> 33.0748
+color=(0.173, 0.627, 0.173) npts=139 last_x=473.237 last_y=219.105 -> 33.2332
+color=(0.839, 0.153, 0.157) npts=134 last_x=473.237 last_y=218.424 -> 33.2207
+color=(0.58, 0.404, 0.741) npts=114 last_x=473.237 last_y=209.966 -> 33.0664
+vertical lines y-range: [] ...
+# /home/cc/seach_and_rule_based_opt/figure/greedy_k_reduction.pdf
+vertical lines y-range: [41.96, 261.12] ...
+color=(0.122, 0.467, 0.706) npts=116 last_x=473.237 last_y=195.541 -> 32.8031
+color=(1.0, 0.498, 0.055) npts=85 last_x=473.237 last_y=196.760 -> 32.8253
+color=(0.173, 0.627, 0.173) npts=105 last_x=473.237 last_y=220.928 -> 33.2664
+color=(0.839, 0.153, 0.157) npts=88 last_x=473.237 last_y=212.793 -> 33.1180
+vertical lines y-range: [] ...

@@ -1,0 +1,5 @@
+[Unit]
+Description=QALM paper re-run campaign
+[Slice]
+AllowedCPUs=2-63,66-127
+MemoryMax=236G

@@ -1,0 +1,10 @@
+# Main comparison on the 248-circuit GUOQ suite (Table avg-comparison, Figs comparison_3x3 / win_rate / gate_scatter)
+experiment: E1_main
+suite: S248
+runs:
+  - {optimizer: qalm, budget_s: [3600, 60], params: {greedy_k: 2, n_pool: 1, n_branch: 3, fixed_k: 0, enqueue: 0}}  # (a) paper default
+  - {optimizer: qalm_old, budget_s: [3600, 60]}                                                                       # (b) old BEST_CONFIG
+  - {optimizer: quartz, budget_s: 3600}
+  - {optimizer: guoq, budget_s: 3600, params: {opt: [TWO_Q, TOTAL]}}
+  - {optimizer: queso, budget_s: 3600, params: {opt: [TWO_Q, TOTAL]}}
+  - {optimizer: voqc, budget_s: 3600}

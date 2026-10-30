@@ -1,0 +1,5 @@
+# Greedy-mode ablation (Fig greedy_k_reduction)
+experiment: E3_greedy
+suite: S26
+runs:
+  - {optimizer: qalm, budget_s: 3600, params: {greedy_k: [0, 1, 2, 3], n_pool: 1, n_branch: 3, fixed_k: 0, enqueue: 0}}

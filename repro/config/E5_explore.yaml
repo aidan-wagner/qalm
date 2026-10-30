@@ -1,0 +1,7 @@
+# Exploration strategy (Figs N_pool / N_branch); repeated with 3 seeds because the section discusses run-to-run variance
+experiment: E5_explore
+suite: S26
+seeds: [0, 1, 2]
+runs:
+  - {optimizer: qalm, budget_s: 3600, params: {greedy_k: 2, n_pool: [1, 2, 3, 4, 5], n_branch: 3, fixed_k: 0, enqueue: 0}}
+  - {optimizer: qalm, budget_s: 3600, params: {greedy_k: 2, n_pool: 1, n_branch: [1, 2, 3, 4, 5], fixed_k: 0, enqueue: 0}}

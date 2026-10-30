@@ -1,0 +1,5 @@
+# Fixed exploration depth (Figs single_k_gk0 / single_k_gk2)
+experiment: E4_single_k
+suite: S26
+runs:
+  - {optimizer: qalm, budget_s: 3600, params: {greedy_k: [0, 2], n_pool: 1, n_branch: 3, fixed_k: [1, 2, 3, 4, 5], enqueue: 0}}

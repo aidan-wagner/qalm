@@ -1,0 +1,27 @@
+337,343c337,339
+<     def __init__(self, bqskit, bqskit_auto_workers, verbose, *args, **kwargs):
+<         self.compiler = None
+<         if bqskit:
+<             if bqskit_auto_workers:
+<                 self.compiler = Compiler()
+<             else:
+<                 self.compiler = Compiler(num_workers=64)
+---
+>     def __init__(self, compiler, verbose, *args, **kwargs):
+>         # repro: the compiler is created once per server (upstream GUOQ 8c4c3a5)
+>         self.compiler = compiler
+400c396,398
+<     partial_handler = partial(MyHandler, bqskit, bqskit_auto_workers, verbose)
+---
+>     # repro: one worker; bqskit_auto_workers would spawn one per visible CPU (256 here)
+>     compiler = Compiler(num_workers=1) if bqskit else None
+>     partial_handler = partial(MyHandler, compiler, verbose)
+434c432
+<             continue
+---
+>             time.sleep(0.2)  # repro: was a busy-wait
+436,437c434
+<         while True:
+<             continue
+---
+>         p.join()  # repro: was `while True: continue`
