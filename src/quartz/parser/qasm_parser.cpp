@@ -274,6 +274,11 @@ int ParamParser::parse_expr(std::stringstream &ss, bool is_halved) {
       if (token[pos - 1] == '*') {
         // Case: t*-e (negative sign), ignored here
         pos = token.find_last_of("+-", pos - 1);
+      } else if ((token[pos - 1] == 'e' || token[pos - 1] == 'E') && pos > 1 &&
+                 (std::isdigit((unsigned char)token[pos - 2]) ||
+                  token[pos - 2] == '.')) {
+        // Case: 1.5e-05 (exponent sign), ignored here
+        pos = token.find_last_of("+-", pos - 1);
       } else {
         break;
       }

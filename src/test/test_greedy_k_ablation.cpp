@@ -12,6 +12,8 @@
  *             1 = greedy(k=1) [greedy_optimize_with_roqc], then QALM k=2
  *             2 = greedy(k=1..2), then QALM k=3
  *             3 = greedy(k=1..3), then QALM k=4
+ *            In QALM, k is the number of transformations a branch applies
+ *            before ROQC, including the pool step.
  *   argv[5]  initial_pool_size   (N_pool for QALM)
  *   argv[6]  exploration_pool_size (N_branch for QALM)
  *   argv[7]  repeat_tolerance
@@ -29,6 +31,13 @@
  *            1 = weighted: 1Q gates count 1, 2Q gates count 10.
  *   argv[16] (optional) seed — RNG seed for optimize_qalm. 0 or omitted =
  *            the legacy fixed seed (bit-identical to builds without it).
+ *   argv[17] (optional) stall_rounds — advancing mode only (ignored when
+ *            fixed_k > 0): each k-pass ends after this many consecutive
+ *            rounds without a new best circuit, or when a round re-seeded from
+ *            the best circuit finds no new circuit; the next pass starts from
+ *            the best circuit with k+1. 0 or omitted = a pass ends only at the
+ *            timeout, so k never advances. Cannot be combined with
+ *            exploration_increase.
  */
 
 #include "quartz/tasograph/substitution.h"
@@ -78,6 +87,18 @@ int main(int argc, char **argv) {
     seed = (unsigned)std::stoul(argv[16]);
   }
   std::cout << "Seed: " << seed << std::endl;
+  // Optional: stall rounds for advancing k (0 = a pass ends at the timeout)
+  std::size_t stall_rounds = 0;
+  if (argc >= 18 && fixed_k == 0) {
+    stall_rounds = (std::size_t)std::stoul(argv[17]);
+  }
+  std::cout << "Stall rounds: " << stall_rounds << std::endl;
+  if (exploration_increase && stall_rounds > 0) {
+    std::cerr << "exploration_increase cannot be combined with stall_rounds > "
+                 "0."
+              << std::endl;
+    return 1;
+  }
 
   std::function<float(Graph *)> cost_function =
       (cost_mode == 1)
@@ -170,27 +191,34 @@ int main(int argc, char **argv) {
   assert(graph);
 
   auto start = std::chrono::steady_clock::now();
+  auto elapsed_seconds = [&]() {
+    return (double)std::chrono::duration_cast<std::chrono::milliseconds>(
+               std::chrono::steady_clock::now() - start)
+               .count() /
+           1000.0;
+  };
 
   // All greedy phases use all xfers (not strictly reducing)
   const auto &greedy_xfers =
       strictly_reducing_rules ? GraphXfer::get_all_xfers_from_eqs(&ctx, eqs)
                               : xfers;
 
-  // Run greedy phases 1 through greedy_k
-  if (greedy_k >= 1) {
+  // Run greedy phases 1 through greedy_k; a phase is skipped once the time is
+  // up.
+  if (greedy_k >= 1 && elapsed_seconds() < (double)timeout) {
     std::cout << "Running greedy(k=1): greedy_optimize_with_roqc" << std::endl;
     graph = graph->greedy_optimize_with_roqc(
         &ctx, greedy_xfers, circuit_name, "", /*print_message=*/true,
         cost_function, timeout, "", start);
   }
-  if (greedy_k >= 2) {
+  if (greedy_k >= 2 && elapsed_seconds() < (double)timeout) {
     std::cout << "Running greedy(k=2): greedy_optimize_with_local_search"
               << std::endl;
     graph = graph->greedy_optimize_with_local_search(
         &ctx, greedy_xfers, circuit_name, "", /*print_message=*/true,
         cost_function, timeout, "", /*continue_storing_all_steps=*/false, start);
   }
-  if (greedy_k >= 3) {
+  if (greedy_k >= 3 && elapsed_seconds() < (double)timeout) {
     std::cout
         << "Running greedy(k=3): greedy_optimize_with_deeper_local_search"
         << std::endl;
@@ -202,32 +230,32 @@ int main(int argc, char **argv) {
   // QALM phase.
   // fixed_k > 0  → run once with that exploration depth, then stop.
   // fixed_k == 0 → advancing mode: start at greedy_k+1, increment each iter.
+  //                With stall_rounds == 0 the first pass runs until the
+  //                timeout.
   if (fixed_k > 0) {
     std::size_t k = (std::size_t)fixed_k;
-    printf("[%s] [QALM_K_START] k=%zu at %.3f seconds.\n",
-           circuit_name.c_str(), k,
-           (double)std::chrono::duration_cast<std::chrono::milliseconds>(
-               std::chrono::steady_clock::now() - start)
-                   .count() /
-               1000.0);
-    fflush(stdout);
-    graph = graph->optimize_qalm(
-        xfers, cost_function(graph.get()) * 1.05, circuit_name, "",
-        /*print_message=*/true, cost_function, timeout, "",
-        /*continue_storing_all_steps=*/false, start, initial_pool_size,
-        exploration_pool_size, k, repeat_tolerance, exploration_increase,
-        only_do_local_transformations, two_way_rotation_merging,
-        enqueue_intermediate, seed);
+    double elapsed = elapsed_seconds();
+    if (elapsed < (double)timeout) {
+      printf("[%s] [QALM_K_START] k=%zu at %.3f seconds.\n",
+             circuit_name.c_str(), k, elapsed);
+      fflush(stdout);
+      graph = graph->optimize_qalm(
+          xfers, cost_function(graph.get()) * 1.05, circuit_name, "",
+          /*print_message=*/true, cost_function, timeout, "",
+          /*continue_storing_all_steps=*/false, start, initial_pool_size,
+          exploration_pool_size, k, repeat_tolerance, exploration_increase,
+          only_do_local_transformations, two_way_rotation_merging,
+          enqueue_intermediate, seed, /*stall_rounds=*/0);
+    }
   } else {
     std::size_t k = exploration_steps;
     while (true) {
-      auto now = std::chrono::steady_clock::now();
-      double elapsed =
-          (double)std::chrono::duration_cast<std::chrono::milliseconds>(
-              now - start)
-              .count() /
-          1000.0;
+      double elapsed = elapsed_seconds();
       if (elapsed >= (double)timeout) {
+        break;
+      }
+      if (graph->gate_count() == 0) {
+        // Nothing left to optimize.
         break;
       }
       printf("[%s] [QALM_K_START] k=%zu at %.3f seconds.\n",
@@ -240,7 +268,7 @@ int main(int argc, char **argv) {
           /*continue_storing_all_steps=*/false, start, initial_pool_size,
           exploration_pool_size, k, repeat_tolerance, exploration_increase,
           only_do_local_transformations, two_way_rotation_merging,
-          enqueue_intermediate, seed);
+          enqueue_intermediate, seed, stall_rounds);
       graph = new_graph;
       k++;
     }

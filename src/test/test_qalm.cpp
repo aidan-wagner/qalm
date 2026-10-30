@@ -140,42 +140,63 @@ int main(int argc, char **argv) {
   assert(graph);
 
   auto start = std::chrono::steady_clock::now();
+  auto time_is_up = [&]() {
+    return (double)std::chrono::duration_cast<std::chrono::milliseconds>(
+               std::chrono::steady_clock::now() - start)
+                   .count() /
+               1000.0 >=
+           (double)timeout;
+  };
   if (preprocess) {
     // If strictly_reducing_rules is true, we need to get all xfers again here.
     const auto &greedy_xfers =
         strictly_reducing_rules ? GraphXfer::get_all_xfers_from_eqs(&ctx, eqs)
                                 : xfers;
-    graph = graph->greedy_optimize_with_roqc(
-        &ctx, greedy_xfers, circuit_name, "", true, nullptr, timeout,
-        kQuartzRootPath.string() + "/benchmark-logs/" + circuit_name +
-            "_timeout_" + std::to_string(timeout) + "_init_pool_" +
-            std::to_string(initial_pool_size) + "_exp_pool_" +
-            std::to_string(exploration_pool_size) + "_exp_steps_" +
-            std::to_string(exploration_steps) + "_exp_increase_" +
-            std::to_string(exploration_increase) + "_no_increase_" +
-            std::to_string(strictly_reducing_rules) +
-            "_only_do_local_transformations_" +
-            std::to_string(only_do_local_transformations) + "_",
-        start);
-    graph = graph->greedy_optimize_with_local_search(
-        &ctx, greedy_xfers, circuit_name, "", true, nullptr, timeout,
-        kQuartzRootPath.string() + "/benchmark-logs/" + circuit_name +
-            "_timeout_" + std::to_string(timeout) + "_init_pool_" +
-            std::to_string(initial_pool_size) + "_exp_pool_" +
-            std::to_string(exploration_pool_size) + "_exp_steps_" +
-            std::to_string(exploration_steps) + "_exp_increase_" +
-            std::to_string(exploration_increase) + "_no_increase_" +
-            std::to_string(strictly_reducing_rules) +
-            "_only_do_local_transformations_" +
-            std::to_string(only_do_local_transformations) + "_",
-        true, start);
+    // Each greedy pass is skipped once the time is up.
+    if (!time_is_up()) {
+      graph = graph->greedy_optimize_with_roqc(
+          &ctx, greedy_xfers, circuit_name, "", true, nullptr, timeout,
+          kQuartzRootPath.string() + "/benchmark-logs/" + circuit_name +
+              "_timeout_" + std::to_string(timeout) + "_init_pool_" +
+              std::to_string(initial_pool_size) + "_exp_pool_" +
+              std::to_string(exploration_pool_size) + "_exp_steps_" +
+              std::to_string(exploration_steps) + "_exp_increase_" +
+              std::to_string(exploration_increase) + "_no_increase_" +
+              std::to_string(strictly_reducing_rules) +
+              "_only_do_local_transformations_" +
+              std::to_string(only_do_local_transformations) + "_",
+          start);
+    }
+    if (!time_is_up()) {
+      graph = graph->greedy_optimize_with_local_search(
+          &ctx, greedy_xfers, circuit_name, "", true, nullptr, timeout,
+          kQuartzRootPath.string() + "/benchmark-logs/" + circuit_name +
+              "_timeout_" + std::to_string(timeout) + "_init_pool_" +
+              std::to_string(initial_pool_size) + "_exp_pool_" +
+              std::to_string(exploration_pool_size) + "_exp_steps_" +
+              std::to_string(exploration_steps) + "_exp_increase_" +
+              std::to_string(exploration_increase) + "_no_increase_" +
+              std::to_string(strictly_reducing_rules) +
+              "_only_do_local_transformations_" +
+              std::to_string(only_do_local_transformations) + "_",
+          true, start);
+    }
   }
 
-  auto graph_optimized = graph->optimize_qalm(
-      xfers, graph->gate_count() * 1.05, circuit_name, "", true, nullptr,
-      timeout, "", preprocess, start, initial_pool_size, exploration_pool_size,
-      exploration_steps, repeat_tolerance, exploration_increase,
-      only_do_local_transformations, two_way_rotation_merging);
+  // exploration_steps counts every transformation of a branch, including the
+  // pool step. stall_rounds = 0: the search runs until the timeout. It is
+  // skipped when the greedy passes already used up the time.
+  auto graph_optimized =
+      time_is_up()
+          ? graph
+          : graph->optimize_qalm(
+                xfers, graph->gate_count() * 1.05, circuit_name, "", true,
+                nullptr, timeout, "", preprocess, start, initial_pool_size,
+                exploration_pool_size, exploration_steps, repeat_tolerance,
+                exploration_increase, only_do_local_transformations,
+                two_way_rotation_merging,
+                /*enqueue_intermediate=*/true, /*seed=*/0,
+                /*stall_rounds=*/0);
   std::cout << "Optimized graph:" << std::endl;
   std::cout << graph_optimized->to_qasm();
   return 0;

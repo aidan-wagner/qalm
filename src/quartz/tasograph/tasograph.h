@@ -192,6 +192,15 @@ class Graph {
   Op new_gate(GateType gt);
   [[nodiscard]] bool has_loop() const;
   std::size_t hash();
+  /**
+   * A structural hash that, unlike hash(), depends on the qubit each gate
+   * acts on, the order of the gates on each wire, and constant parameter
+   * values. It does not depend on op guids, and constant angles are keyed
+   * the way they come back from a ROQC round trip (reduced into [0, 2*pi),
+   * multiples of pi/4 exactly, other angles to 6 decimals), so a circuit and
+   * its unchanged ROQC output hash to the same value.
+   */
+  [[nodiscard]] std::size_t hash_exact() const;
   [[nodiscard]] bool equal(const Graph &other) const;
   bool check_correctness();
   [[nodiscard]] int specific_gate_count(GateType gate_type) const;
@@ -356,7 +365,11 @@ class Graph {
       const bool two_way_rotation_merging = false,
       const bool enqueue_intermediate = true,
       // 0 keeps the legacy fixed seed (std::default_random_engine{}()).
-      const unsigned seed = 0);
+      const unsigned seed = 0,
+      // > 0: return after this many consecutive rounds without a new best
+      // circuit, or when a round re-seeded from the best circuit finds no new
+      // circuit. 0: run until the timeout.
+      const size_t stall_rounds = 0);
 
   // Adaptive variant: same search loop but escalates N_pool, N_branch, and k
   // in round-robin order whenever no improvement is found for stall_window_seconds.
@@ -380,6 +393,14 @@ class Graph {
       size_t max_branch_size = 5,
       size_t max_steps = 5);
 
+  /**
+   * Run ROQC on this circuit.
+   * @param two_way_rotation_merging Use ROQC's two-way rotation merging.
+   * @return The circuit returned by ROQC, or nullptr if ROQC reported a
+   * failure, its output could not be parsed, or the number of qubits changed.
+   */
+  [[nodiscard]] std::shared_ptr<Graph>
+  roqc_checked(bool two_way_rotation_merging = false) const;
   void constant_and_rotation_elimination();
   void rotation_merging(GateType target_rotation);
   [[nodiscard]] std::string to_qasm(bool print_result = false,
