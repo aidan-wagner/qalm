@@ -143,8 +143,11 @@ class Priors:
         key = (fam, job["circuit"])
         base = max(self.table.get(key, 0.0), self.learned.get(key, 0.0))
         if base == 0.0:
-            if fam in ("guoq", "queso"):
-                base = 6.0 if job["orig_total"] < 100_000 else 21.0   # JVM is started with -Xmx20g
+            if fam == "guoq":
+                # measured 0.4-0.8 GB (1 h on S26, 60 s on 100k-770k gates, TWO_Q incl. the resynth server)
+                base = 1.5 if job["orig_total"] < 100_000 else 4.0
+            elif fam == "queso":
+                base = 6.0 if job["orig_total"] < 100_000 else 21.0   # JVM (-Xmx20g) grows to 10 GB within 1 h
             elif fam == "voqc":
                 base = 2.0 if job["orig_total"] < 100_000 else 4.0  # observed < 1 GB on the largest
             else:
