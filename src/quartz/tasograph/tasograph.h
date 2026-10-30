@@ -354,7 +354,9 @@ class Graph {
       const bool exploration_increase = false,
       const bool only_do_local_transformations = false,
       const bool two_way_rotation_merging = false,
-      const bool enqueue_intermediate = true);
+      const bool enqueue_intermediate = true,
+      // 0 keeps the legacy fixed seed (std::default_random_engine{}()).
+      const unsigned seed = 0);
 
   // Adaptive variant: same search loop but escalates N_pool, N_branch, and k
   // in round-robin order whenever no improvement is found for stall_window_seconds.

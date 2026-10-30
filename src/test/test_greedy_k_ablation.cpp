@@ -27,6 +27,8 @@
  *            1 or omitted = enqueue all (default).
  *   argv[15] (optional) cost_mode — 0 = gate count (default, same as before);
  *            1 = weighted: 1Q gates count 1, 2Q gates count 10.
+ *   argv[16] (optional) seed — RNG seed for optimize_qalm. 0 or omitted =
+ *            the legacy fixed seed (bit-identical to builds without it).
  */
 
 #include "quartz/tasograph/substitution.h"
@@ -70,6 +72,13 @@ int main(int argc, char **argv) {
   if (argc >= 16) {
     cost_mode = std::stoi(argv[15]);
   }
+  // Optional: RNG seed for optimize_qalm (0 = legacy fixed seed)
+  unsigned seed = 0;
+  if (argc >= 17) {
+    seed = (unsigned)std::stoul(argv[16]);
+  }
+  std::cout << "Seed: " << seed << std::endl;
+
   std::function<float(Graph *)> cost_function =
       (cost_mode == 1)
           ? std::function<float(Graph *)>(
@@ -208,7 +217,7 @@ int main(int argc, char **argv) {
         /*continue_storing_all_steps=*/false, start, initial_pool_size,
         exploration_pool_size, k, repeat_tolerance, exploration_increase,
         only_do_local_transformations, two_way_rotation_merging,
-        enqueue_intermediate);
+        enqueue_intermediate, seed);
   } else {
     std::size_t k = exploration_steps;
     while (true) {
@@ -231,7 +240,7 @@ int main(int argc, char **argv) {
           /*continue_storing_all_steps=*/false, start, initial_pool_size,
           exploration_pool_size, k, repeat_tolerance, exploration_increase,
           only_do_local_transformations, two_way_rotation_merging,
-          enqueue_intermediate);
+          enqueue_intermediate, seed);
       graph = new_graph;
       k++;
     }

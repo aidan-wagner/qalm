@@ -3080,8 +3080,10 @@ Graph::optimize_original(const std::vector<GraphXfer *> &xfers, double cost_uppe
     if (print_message) {
       fprintf(
           fout,
-          "[%s] Best cost: %f\tcandidate number: %zu\tafter %.3f seconds.\n",
-          circuit_name.c_str(), best_cost, candidates.size(),
+          "[%s] Best cost: %f\tCX: %d\tcandidate number: %zu\tafter %.3f "
+          "seconds.\n",
+          circuit_name.c_str(), best_cost,
+          best_graph->specific_gate_count(GateType::cx), candidates.size(),
           (double)std::chrono::duration_cast<std::chrono::milliseconds>(end -
                                                                         start)
                   .count() /
@@ -3125,9 +3127,10 @@ std::shared_ptr<Graph> Graph::optimize_qalm(
     const size_t initial_pool_size, const size_t exploration_pool_size,
     size_t exploration_steps, const float repeat_tolerance,
     const bool exploration_increase, const bool only_do_local_transformations,
-    const bool two_way_rotation_merging, const bool enqueue_intermediate) {
+    const bool two_way_rotation_merging, const bool enqueue_intermediate,
+    const unsigned seed) {
   auto rand_engine = std::default_random_engine{};
-  std::mt19937 gen(rand_engine());  // mersenne_twister_engine
+  std::mt19937 gen(seed == 0 ? rand_engine() : seed);  // mersenne_twister_engine
   if (cost_function == nullptr) {
     cost_function = [](Graph *graph) { return graph->total_cost(); };
     // cost_function = [](Graph *graph) {return
