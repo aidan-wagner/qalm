@@ -12,7 +12,8 @@ mkdir -p "$RUNS"
 HK=$(python3 -c "import yaml;print(yaml.safe_load(open('$REPO/repro/config/campaign.yaml'))['cores']['housekeeping'])")
 sudo -n install -m644 "$REPO/repro/env/qalmrepro.slice" /run/systemd/system/qalmrepro.slice
 sudo -n systemctl daemon-reload
-sudo -n systemctl restart qalmrepro.slice 2>/dev/null || sudo -n systemctl start qalmrepro.slice
+# never stop or restart the slice here: running jobs live in it and must survive a scheduler restart
+sudo -n systemctl start qalmrepro.slice
 if [ "${REPRO_ALLOW_CPU_MODE:-0}" != "1" ]; then
   for u in user.slice system.slice init.scope; do
     sudo -n systemctl set-property --runtime "$u" AllowedCPUs="$HK"

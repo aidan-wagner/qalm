@@ -110,6 +110,11 @@ def is_short(job):
     return job["budget_s"] <= 300
 
 
+def is_held(job, rules):
+    """True if any HOLD rule matches: every field of the rule equals (or is listed in) the job's field."""
+    return any(all(job.get(k) in (v if isinstance(v, list) else [v]) for k, v in r.items()) for r in rules)
+
+
 def is_quick(job):
     """Jobs that finish within minutes: launched back to back."""
     return is_short(job) or job["optimizer"] == "voqc"
@@ -198,6 +203,7 @@ class Scheduler:
         self.allow_cpu_mode = os.environ.get("REPRO_ALLOW_CPU_MODE") == "1"  # smoke tests only
         self.cpu_mode_ok = True
         self.binary_hashes = {}
+        self.hold = (None, [])  # (HOLD file mtime, rules)
 
     # ---------- bookkeeping ----------
     def jobdir(self, jid):
@@ -214,6 +220,31 @@ class Scheduler:
 
     def flag(self, name):
         return os.path.exists(os.path.join(self.runs, name))
+
+    def hold_rules(self):
+        """Rules in runs/HOLD (JSON list of {field: value or [values]}); matching queued jobs are not launched.
+
+        Re-read whenever the file changes, so jobs can be held and released without a restart.
+        An unreadable file holds everything (the empty rule matches every job).
+        """
+        path = os.path.join(self.runs, "HOLD")
+        try:
+            mtime = os.path.getmtime(path)
+        except OSError:
+            mtime = None
+        if mtime != self.hold[0]:
+            rules = []
+            if mtime is not None:
+                try:
+                    rules = json.load(open(path))
+                    assert isinstance(rules, list) and all(isinstance(r, dict) for r in rules)
+                except (OSError, ValueError, AssertionError) as e:
+                    rules = [{}]
+                    self.log(f"HOLD unreadable ({e}); holding every queued job")
+            self.hold = (mtime, rules)
+            self.head_wait_since = None
+            self.log(f"hold rules: {rules}")
+        return self.hold[1]
 
     def numa(self, core):
         return 0 if core < self.split else 1
@@ -627,9 +658,10 @@ class Scheduler:
         per = {n: self.profile(now, n) for n in (0, 1)}
         node_order = sorted((0, 1), key=lambda n: max(per[n][2], default=0.0))
         head_starving = self.head_wait_since is not None and now - self.head_wait_since > 1800
-        for i, job in enumerate(self.queue[:400]):
-            if job["job_id"] in self.running:
-                continue
+        rules = self.hold_rules()
+        cands = [(i, j) for i, j in enumerate(self.queue)
+                 if j["job_id"] not in self.running and not is_held(j, rules)][:400]
+        for pos, (i, job) in enumerate(cands):
             prior = self.priors.get(job)
             cap = self.cap_for(job, prior)
             chosen = None
@@ -640,10 +672,10 @@ class Scheduler:
                         chosen = cands[0]
                         break
             if chosen is not None:
-                if i == 0:
+                if pos == 0:
                     self.head_wait_since = None
                 return i, chosen, prior, cap
-            if i == 0 and self.head_wait_since is None:
+            if pos == 0 and self.head_wait_since is None:
                 self.head_wait_since = now
             if head_starving:
                 return None  # stop skipping ahead until the head job gets in
@@ -703,7 +735,9 @@ class Scheduler:
     def write_status(self, avail, draining):
         now = time.time()
         _, _, totals = self.profile(now)
+        rules = self.hold_rules()
         st = {"utc": now, "running": len(self.running), "queued": len(self.queue),
+              "held": sum(1 for j in self.queue if is_held(j, rules)),
               "mem_available_gib": round(avail, 1), "draining": draining, "cpu_mode_ok": self.cpu_mode_ok,
               "projected_peak_gib": round(max(totals, default=0.0), 1),
               "current_gib": round(sum(i["samples"][-1][1] for i in self.running.values() if i["samples"]), 1)}

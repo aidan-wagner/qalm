@@ -97,6 +97,8 @@ sudo docker pull amxu/guoq@sha256:310905ead964978676921d191819ce21f9ccdd06e5709a
 python3 repro/harness/run.py plan -o repro/runs/plan.jsonl      # add --shard i/n per node
 repro/harness/launch_sched.sh repro/runs/plan.jsonl
 python3 repro/harness/run.py status                              # drain / resume / stop also available
+# hold queued jobs without stopping anything: repro/runs/HOLD is a JSON list of rules such as
+# [{"optimizer": ["qalm", "qalm_old"]}]; it is re-read on change, delete it to release
 # afterwards
 python3 repro/harness/run.py collect --plan repro/runs/plan.jsonl --gzip-logs
 python3 repro/harness/verify.py --plan repro/runs/plan.jsonl
