@@ -131,6 +131,10 @@ class Priors:
 
     def get(self, job):
         fam = self.family(job)
+        if is_short(job) and fam == "qalm" and ("qalm_short", job["circuit"]) in self.table:
+            # a previous 60 s run of this circuit: use its own peak (times the scale, for tests)
+            base = max(self.table[("qalm_short", job["circuit"])], self.learned.get(("qalm_short", job["circuit"]), 0.0))
+            return min(base * float(os.environ.get("REPRO_PRIOR_SCALE", "1")), 32.0)
         key = (fam, job["circuit"])
         base = max(self.table.get(key, 0.0), self.learned.get(key, 0.0))
         if base == 0.0:
@@ -145,9 +149,15 @@ class Priors:
         return min(base * float(os.environ.get("REPRO_PRIOR_SCALE", "1")), 32.0)  # scale: tests only
 
     def learn(self, job, peak_bytes):
-        if peak_bytes and not is_short(job):
-            key = (self.family(job), job["circuit"])
-            self.learned[key] = max(self.learned.get(key, 0.0), 1.1 * peak_bytes / GIB)
+        if not peak_bytes:
+            return
+        fam = self.family(job)
+        if is_short(job):
+            if fam != "qalm":
+                return
+            fam = "qalm_short"
+        key = (fam, job["circuit"])
+        self.learned[key] = max(self.learned.get(key, 0.0), 1.1 * peak_bytes / GIB)
 
     def dump(self):
         return {f"{f}|{c}": v for (f, c), v in self.learned.items()}
@@ -578,11 +588,11 @@ class Scheduler:
         slope = 0.0
         if len(s) >= 2 and s[-1][0] - s[0][0] >= 60:
             slope = max(0.0, (s[-1][1] - s[0][1]) / (s[-1][0] - s[0][0]))
-        # after 10 minutes, trust the measurement more than the prior: expect at most 1.5x the
-        # current usage extrapolated linearly to the end of the budget
+        # after half the budget (at most 10 minutes), trust the measurement more than the prior:
+        # expect at most 1.5x the current usage extrapolated linearly to the end of the budget
         target = info["prior"]
         elapsed = now - info["start"]
-        if s and elapsed >= 600:
+        if s and elapsed >= min(600, job["budget_s"] / 2):
             target = min(target, max(cur, 1.5 * cur * job["budget_s"] / elapsed))
         return (cur, slope, now, target, info["start"], job["budget_s"], info["cap"],
                 self.end_time(job, info["start"], now))

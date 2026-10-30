@@ -32,6 +32,10 @@ for path in ["guoq_benchmark_results/results_3600s.csv", "guoq_benchmark_advk_re
         for r in csv.DictReader(open(path)):
             if r["peak_rss_mb"]:
                 bump("qalm", r["circuit"], mb_to_prior(r["peak_rss_mb"]))
+# 60 s runs have their own (much smaller) peaks
+for r in csv.DictReader(open("guoq_benchmark_prev_qalm_results/results_60s.csv")):
+    if r["peak_rss_mb"]:
+        bump("qalm_short", r["circuit"], max(0.25, float(r["peak_rss_mb"]) / 1024))
 for path in ["greedy_k_guoq_benchmark_results/summary.csv", "single_k_guoq_benchmark_results/summary.csv",
              "greedy_k_ablation_results/summary.csv", "single_k_results/summary.csv"]:
     if os.path.exists(path):
