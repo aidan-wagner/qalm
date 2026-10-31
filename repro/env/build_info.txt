@@ -112,6 +112,10 @@ d4baf5030347d7fd830533362f91035db70857584b361fe2c83abb5de2c6bcdb  build/repro2/l
 02fa2919c26b30643c01e2d7259da4334e7d2a345cf85940e188b097f98970b3  build/repro3/test_qalm
 d594d8acb3e5a548db578594fbfca3e40426f412978d06027be410955db879c5  build/repro3/test_original
 a98748462b03dc48fd6151d21827a663dd827895bc25c669d439d489c6000ba5  build/repro3/libquartz_runtime.so
+dcf13902dd8385974e094951b50a0593da1534373648815a1db5bab296ffc312  build/repro4/test_greedy_k_ablation
+bd857f452636a7459f3d3e97d281df8cd0a77ca3fe6fb2490f3fb6aa1164b723  build/repro4/test_qalm
+05c3261002b99c804f451ed1aa4017a85ff5a60fe8b2e2b7d083a9af834f2afd  build/repro4/test_original
+80558fd2ab4b566463040e152cfd9234b17933fc5a67b2f9534a09abafc3f3d8  build/repro4/libquartz_runtime.so
 ## ldd test_greedy_k_ablation
 	linux-vdso.so.1 (0x00007ffd5b7d1000)
 	libquartz_runtime.so => /home/cc/mingkuan/qalm/build/repro/libquartz_runtime.so (0x00007f21d6a00000)
@@ -175,3 +179,7 @@ test_original: Library runpath: [/home/cc/mingkuan/qalm/src/test/../..:/home/cc/
 ## build v3 (build/repro3), recorded 2026-10-31T00:10:29Z on qalm
 ## v3 = v2 plus: a re-seeded round that generates no new circuit clears the visited set and keeps k (only the stall rule advances k); same toolchain, configure and roqc sources (roqc_source_v2.sha256) as v2
 cmake -S . -B build/repro3 -DRust_TOOLCHAIN=1.94.1-x86_64-unknown-linux-gnu -DPython_EXECUTABLE=/usr/bin/python3 -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
+
+## build v4 (build/repro4), recorded 2026-10-31T02:42:31Z on qalm, src at 5ca5e8ecb4a130ba261ac6cab3f9acf31c6f6bd4
+## v4 = v3 plus: in advancing mode a pass ends when the queue becomes empty (paper Alg. 1); per-k random streams; same toolchain, configure and roqc sources (roqc_source_v2.sha256) as v2/v3
+cmake -S . -B build/repro4 -DRust_TOOLCHAIN=1.94.1-x86_64-unknown-linux-gnu -DPython_EXECUTABLE=/usr/bin/python3 -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
