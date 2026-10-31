@@ -3390,7 +3390,8 @@ std::shared_ptr<Graph> Graph::optimize_qalm(
     size_t exploration_steps, const float repeat_tolerance,
     const bool exploration_increase, const bool only_do_local_transformations,
     const bool two_way_rotation_merging, const bool enqueue_intermediate,
-    const unsigned seed, const size_t stall_rounds) {
+    const unsigned seed, const size_t stall_rounds,
+    const bool end_pass_on_empty_queue) {
   if (exploration_increase && stall_rounds > 0) {
     std::cerr << "optimize_qalm(): exploration_increase cannot be combined "
                  "with stall_rounds > 0."
@@ -3398,7 +3399,11 @@ std::shared_ptr<Graph> Graph::optimize_qalm(
     return std::make_shared<Graph>(*this);
   }
   auto rand_engine = std::default_random_engine{};
-  std::mt19937 gen(seed == 0 ? rand_engine() : seed);  // mersenne_twister_engine
+  // A different stream for every k: consecutive passes start from the same
+  // best circuit and would otherwise replay each other.
+  std::seed_seq seed_sequence{seed == 0 ? (unsigned)rand_engine() : seed,
+                              (unsigned)exploration_steps};
+  std::mt19937 gen(seed_sequence);  // mersenne_twister_engine
   if (cost_function == nullptr) {
     cost_function = [](Graph *graph) { return graph->total_cost(); };
     // cost_function = [](Graph *graph) {return
@@ -3552,7 +3557,8 @@ std::shared_ptr<Graph> Graph::optimize_qalm(
   size_t num_pushes = 0;
   size_t num_dup_rejected = 0;
   size_t num_reseeds = 0;
-  // 1: the pass ended after |stall_rounds| rounds without a new best circuit.
+  // 1: the pass ended after |stall_rounds| rounds without a new best circuit;
+  // 2: the queue became empty (with end_pass_on_empty_queue).
   int stall_exit = 0;
 
   // std::cout << "Starting optimization loop" << std::endl;
@@ -3569,6 +3575,11 @@ std::shared_ptr<Graph> Graph::optimize_qalm(
     }
     bool reseeded = false;
     if (candidates.empty()) {
+      if (end_pass_on_empty_queue) {
+        // Every circuit this pass enqueued has been expanded.
+        stall_exit = 2;
+        break;
+      }
       if (best_graph->gate_count() == 0) {
         // Nothing left to transform.
         break;

@@ -364,12 +364,17 @@ class Graph {
       const bool only_do_local_transformations = false,
       const bool two_way_rotation_merging = false,
       const bool enqueue_intermediate = true,
-      // 0 keeps the legacy fixed seed (std::default_random_engine{}()).
+      // 0 keeps the legacy fixed seed (std::default_random_engine{}()). The
+      // random stream also depends on exploration_steps, so passes with
+      // different k do not replay each other.
       const unsigned seed = 0,
       // > 0: return after this many consecutive rounds without a new best
-      // circuit, or when a round re-seeded from the best circuit finds no new
-      // circuit. 0: run until the timeout.
-      const size_t stall_rounds = 0);
+      // circuit. 0: no such limit.
+      const size_t stall_rounds = 0,
+      // true: return when the queue becomes empty (a pass of the advancing-k
+      // search ends there). false: re-seed the queue with the best circuit
+      // and keep going until the timeout.
+      const bool end_pass_on_empty_queue = false);
 
   // Adaptive variant: same search loop but escalates N_pool, N_branch, and k
   // in round-robin order whenever no improvement is found for stall_window_seconds.

@@ -30,14 +30,13 @@
  *   argv[15] (optional) cost_mode — 0 = gate count (default, same as before);
  *            1 = weighted: 1Q gates count 1, 2Q gates count 10.
  *   argv[16] (optional) seed — RNG seed for optimize_qalm. 0 or omitted =
- *            the legacy fixed seed (bit-identical to builds without it).
+ *            the legacy fixed seed; every k gets its own random stream.
  *   argv[17] (optional) stall_rounds — advancing mode only (ignored when
- *            fixed_k > 0): each k-pass ends after this many consecutive
- *            rounds without a new best circuit, or when a round re-seeded from
- *            the best circuit finds no new circuit; the next pass starts from
- *            the best circuit with k+1. 0 or omitted = a pass ends only at the
- *            timeout, so k never advances. Cannot be combined with
- *            exploration_increase.
+ *            fixed_k > 0). In advancing mode a k-pass ends when its queue
+ *            becomes empty and the next pass starts from the best circuit with
+ *            k+1; stall_rounds > 0 also ends it after this many consecutive
+ *            rounds without a new best circuit. 0 or omitted = no such limit.
+ *            Cannot be combined with exploration_increase.
  */
 
 #include "quartz/tasograph/substitution.h"
@@ -228,10 +227,11 @@ int main(int argc, char **argv) {
   }
 
   // QALM phase.
-  // fixed_k > 0  → run once with that exploration depth, then stop.
-  // fixed_k == 0 → advancing mode: start at greedy_k+1, increment each iter.
-  //                With stall_rounds == 0 the first pass runs until the
-  //                timeout.
+  // fixed_k > 0  → one pass with that exploration depth until the timeout
+  //                (an empty queue is re-seeded with the best circuit).
+  // fixed_k == 0 → advancing mode: start at greedy_k+1; a pass ends when its
+  //                queue becomes empty (or after stall_rounds rounds without
+  //                improvement, if > 0), then k is incremented.
   if (fixed_k > 0) {
     std::size_t k = (std::size_t)fixed_k;
     double elapsed = elapsed_seconds();
@@ -268,7 +268,8 @@ int main(int argc, char **argv) {
           /*continue_storing_all_steps=*/false, start, initial_pool_size,
           exploration_pool_size, k, repeat_tolerance, exploration_increase,
           only_do_local_transformations, two_way_rotation_merging,
-          enqueue_intermediate, seed, stall_rounds);
+          enqueue_intermediate, seed, stall_rounds,
+          /*end_pass_on_empty_queue=*/true);
       graph = new_graph;
       k++;
     }
