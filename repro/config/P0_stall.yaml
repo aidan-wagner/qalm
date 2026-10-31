@@ -3,4 +3,4 @@
 experiment: P0_stall
 suite: S26
 runs:
-  - {optimizer: qalm, budget_s: 3600, params: {greedy_k: 2, n_pool: 1, n_branch: 3, fixed_k: 0, enqueue: 0, stall_rounds: [100, 1000]}}
+  - {optimizer: qalm, budget_s: 3600, params: {greedy_k: 2, n_pool: 1, n_branch: 3, fixed_k: 0, enqueue: 0, stall_rounds: [100, 1000, 10000]}}

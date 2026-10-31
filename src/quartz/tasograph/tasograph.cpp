@@ -3552,8 +3552,7 @@ std::shared_ptr<Graph> Graph::optimize_qalm(
   size_t num_pushes = 0;
   size_t num_dup_rejected = 0;
   size_t num_reseeds = 0;
-  // 1: |stall_rounds| rounds without a new best circuit; 2: a round re-seeded
-  // from the best circuit found no new circuit.
+  // 1: the pass ended after |stall_rounds| rounds without a new best circuit.
   int stall_exit = 0;
 
   // std::cout << "Starting optimization loop" << std::endl;
@@ -3924,14 +3923,10 @@ std::shared_ptr<Graph> Graph::optimize_qalm(
     }
 
     if (reseeded && num_new_pool_circuits == 0) {
-      if (stall_rounds > 0) {
-        // End this pass so that the caller can advance k.
-        stall_exit = 2;
-        break;
-      }
-      // Forget the visited circuits, so that the next re-seeded round can
-      // revisit the neighbors of the best circuit. The random engine keeps
-      // its state, so that round does not replay this one.
+      // k stays the same (it only advances after |stall_rounds| rounds without
+      // a new best circuit). Forget the visited circuits, so that the next
+      // re-seeded round can revisit the neighbors of the best circuit. The
+      // random engine keeps its state, so that round does not replay this one.
       hashmap.clear();
     }
   }
