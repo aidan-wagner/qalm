@@ -46,6 +46,12 @@ for r in csv.DictReader(open("original_benchmark_results/results_3600s.csv")):
     gib = QUARTZ_OOM_GIB if r["status"].startswith("OOM") else float(r["peak_rss_mb"] or 0) / 1024
     bump("quartz", r["circuit"], gib)
 
+# Build v4 QALM peaks are far below the v1 history (13 S248 1 h runs with a >= 8 GiB prior peaked at
+# 8.9 GiB at most, median 1.9 GiB), so QALM priors are capped at 10 GiB.
+for key in prior:
+    if key[0] == "qalm":
+        prior[key] = min(prior[key], 10.0)
+
 out = "repro/config/mem_priors.csv"
 with open(out, "w", newline="") as f:
     w = csv.writer(f)
