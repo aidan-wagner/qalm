@@ -97,10 +97,21 @@ for which output is which table or figure).
 
 ## Running the experiments
 
-The commands below were used for the paper. `config/campaign.yaml` describes the paper's
-machine (2x AMD EPYC 7763, 128 physical cores, 251 GiB); on another machine adapt `cores`,
-`numa_of_core` and the memory budgets in it, and `AllowedCPUs`/`MemoryMax` in
-`env/qalmrepro.slice`.
+The commands below were used for the paper. They need systemd, passwordless `sudo` and Docker.
+`config/campaign.yaml` describes the paper's machine (2x AMD EPYC 7763, 128 physical cores,
+251 GiB). On another machine adapt, in `config/campaign.yaml`:
+- `cores.jobs`: one logical CPU per physical core that may run a job (`lscpu -e` lists the cores;
+  leave the SMT siblings out), and `cores.housekeeping`: the remaining CPUs (incl. siblings);
+- `numa_of_core`: `{split: N}` with N the first CPU of NUMA node 1 (or a value above every CPU
+  on a single-node machine);
+- `mem`: `slice_cap_gib` and `budget_gib` a little below the machine's RAM, `node_budget_gib`
+  about `budget_gib` / number of NUMA nodes; keep `cap_tiers_gib` (the per-job cap of 32 GiB is
+  part of the setup);
+
+and in `env/qalmrepro.slice` the same CPUs (`AllowedCPUs` = `cores.jobs`) and
+`MemoryMax` = `slice_cap_gib` (the scheduler checks both). Machines without CPU frequency control
+(many VMs): skip `set_cpu_mode.sh` and set `REPRO_ALLOW_CPU_MODE=1` for `launch_sched.sh`, which
+also leaves other processes unconfined; the runs are then less comparable to the paper's.
 
 ```shell
 # build as in the top-level README, then record the build; the scheduler refuses to start if the
@@ -127,10 +138,13 @@ Smaller runs: `run.py plan` accepts `--experiments E3_greedy`, `--circuits tof_3
 a smoke test of a few minutes:
 
 ```shell
-python3 repro/harness/run.py plan --experiments E2_quartz26 --circuits tof_3,barenco_tof_4 \
-  --budget-override 60 -o /tmp/plan_smoke.jsonl
-repro/harness/launch_sched.sh /tmp/plan_smoke.jsonl $PWD/repro/runs_smoke     # runs dir must be absolute
-REPRO_RUNS_DIR=$PWD/repro/runs_smoke python3 repro/harness/run.py status
+python3 repro/harness/run.py plan --circuits tof_3,barenco_tof_3 --budget-override 60 \
+  -o /tmp/plan_smoke.jsonl                                          # 108 jobs, every experiment
+REPRO_ALLOW_CPU_MODE=1 repro/harness/launch_sched.sh /tmp/plan_smoke.jsonl $PWD/repro/runs_smoke
+export REPRO_RUNS_DIR=$PWD/repro/runs_smoke                         # runs dir must be absolute
+python3 repro/harness/run.py status                                 # done after ~3 minutes
+python3 repro/harness/run.py collect --plan /tmp/plan_smoke.jsonl --out /tmp/smoke_results
+python3 repro/harness/verify.py --plan /tmp/plan_smoke.jsonl --results /tmp/smoke_results
 ```
 
 `runs/HOLD` (a JSON list of rules such as `[{"kind": "docker"}]`) keeps matching queued jobs

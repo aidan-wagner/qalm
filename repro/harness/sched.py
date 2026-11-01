@@ -96,13 +96,21 @@ def sha256(path):
     return h.hexdigest()
 
 
+def _read(path):
+    try:
+        with open(path) as f:
+            return f.read().strip()
+    except OSError:
+        return None
+
+
 def cpu_mode(cores):
-    with open("/sys/devices/system/cpu/cpufreq/boost") as f:
-        boost = f.read().strip()
-    govs = set()
-    for c in cores:
-        with open(f"/sys/devices/system/cpu/cpu{c}/cpufreq/scaling_governor") as f:
-            govs.add(f.read().strip())
+    """Boost state and governors; "n/a" where the machine has no such control (e.g. many VMs)."""
+    boost = _read("/sys/devices/system/cpu/cpufreq/boost")  # acpi-cpufreq (AMD)
+    if boost is None:
+        no_turbo = _read("/sys/devices/system/cpu/intel_pstate/no_turbo")  # intel_pstate
+        boost = "n/a" if no_turbo is None else str(1 - int(no_turbo))
+    govs = {_read(f"/sys/devices/system/cpu/cpu{c}/cpufreq/scaling_governor") or "n/a" for c in cores}
     return {"boost": boost, "governors": sorted(govs)}
 
 

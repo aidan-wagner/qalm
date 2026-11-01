@@ -8,6 +8,13 @@ case "${1:-}" in
   restore) boost=1; gov=schedutil ;;
   *) echo "usage: $0 fixed|restore" >&2; exit 2 ;;
 esac
-echo "$boost" | sudo -n tee /sys/devices/system/cpu/cpufreq/boost > /dev/null
-for g in /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor; do echo "$gov" | sudo -n tee "$g" > /dev/null; done
-echo "boost=$(cat /sys/devices/system/cpu/cpufreq/boost) governors: $(sort /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor | uniq -c | tr '\n' ' ')"
+C=/sys/devices/system/cpu
+if [ -e $C/cpufreq/boost ]; then                 # acpi-cpufreq (AMD)
+  echo "$boost" | sudo -n tee $C/cpufreq/boost > /dev/null
+elif [ -e $C/intel_pstate/no_turbo ]; then       # intel_pstate
+  echo $((1 - boost)) | sudo -n tee $C/intel_pstate/no_turbo > /dev/null
+else
+  echo "no CPU boost control on this machine; run the scheduler with REPRO_ALLOW_CPU_MODE=1" >&2; exit 1
+fi
+for g in $C/cpu*/cpufreq/scaling_governor; do echo "$gov" | sudo -n tee "$g" > /dev/null; done
+echo "boost=$boost governors: $(sort $C/cpu*/cpufreq/scaling_governor | uniq -c | tr '\n' ' ')"
