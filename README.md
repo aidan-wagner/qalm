@@ -30,15 +30,30 @@ by the scripts in `repro/analysis/`; the experiments themselves are run by the h
 - Build: CMake >= 3.16, GCC with OpenMP (paper: GCC 13.3.0, CMake 3.28.3), Python 3 with
   development headers and `pybind11`, and `rustup` (the Rust toolchain is pinned to 1.94.1 in
   `roqc/rust-toolchain.toml`). CMake downloads corrosion v0.5 at configure time.
-- Analysis: Python 3 with `numpy`, `scipy`, `matplotlib`, `pyyaml` (`repro/requirements.txt`).
+- Analysis and harness: Python 3 with `numpy`, `scipy`, `matplotlib`, `pyyaml`
+  (`repro/requirements.txt`), installed for the system `/usr/bin/python3`, which the scheduler runs.
 - Full re-run only: `systemd` and passwordless `sudo` (the scheduler runs every job in its own
   transient unit with a CPU and memory limit), and Docker for the baselines GUOQ, QUESO and VOQC
-  (the authors' image `amxu/guoq`, pinned by digest in `repro/config/campaign.yaml`).
+  (the GUOQ authors' artifact image `amxu/guoq:1`, pinned by digest; see
+  [`repro/baselines/README.md`](repro/baselines/README.md), also for getting it from Zenodo).
+
+On Ubuntu 24.04 (as root or with `sudo`):
+
+```shell
+sudo apt-get update
+sudo apt-get install -y build-essential cmake git curl ca-certificates python3-dev \
+  python3-pybind11 pybind11-dev python3-yaml python3-numpy python3-scipy python3-matplotlib
+curl -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain none
+. "$HOME/.cargo/env" && rustup toolchain install 1.94.1
+# full re-run only:
+sudo apt-get install -y docker.io && sudo systemctl enable --now docker
+```
 
 ## Build
 
 ```shell
-cmake -S . -B build -DRust_TOOLCHAIN=1.94.1-x86_64-unknown-linux-gnu -DPython_EXECUTABLE=$(which python3)
+git clone -b artifact https://github.com/aidan-wagner/qalm.git && cd qalm
+cmake -S . -B build -DRust_TOOLCHAIN=1.94.1-x86_64-unknown-linux-gnu -DPython_EXECUTABLE=/usr/bin/python3
 RUSTUP_TOOLCHAIN=1.94.1-x86_64-unknown-linux-gnu cmake --build build -j \
   --target test_greedy_k_ablation test_qalm test_original
 ```
@@ -70,7 +85,6 @@ The collected results of all 3,676 runs are in `repro/results/` (`runs.csv`: one
 `timeseries.csv.gz`: every progress line; `kevents.csv`: start time and k of every QALM search pass).
 
 ```shell
-pip install -r repro/requirements.txt
 repro/inputs/fetch_guoq_benchmarks.sh   # optional: only the suite-size number needs it
 repro/analysis/make_all.sh              # writes repro/analysis/out/
 ```

@@ -13,7 +13,7 @@ that turn them into the paper's tables, figures and numbers.
 | `inputs/S248.csv`, `S26.csv`, `S26PP.csv` | the input circuits with sha256 and gate counts (`make_manifests.py`); paths are relative to the repository root |
 | `inputs/fetch_guoq_benchmarks.sh` | downloads S248 (GUOQ's `benchmarks/nam_rz` at commit 8c4c3a5) and checks it |
 | `harness/` | job expansion (`jobs.py`), scheduler (`sched.py`, `run.py`, `launch_sched.sh`), per-job wrapper (`jobwrap.py`), log parsers, result collection (`collect.py`), gate counter (`qasm_count.py`), equivalence check (`verify.py`) |
-| `baselines/` | entry point of the GUOQ/QUESO/VOQC container (`entry.py`), the single-core resynthesis server for GUOQ, and the authors' original scripts (`upstream/`) |
+| `baselines/` | entry point of the GUOQ/QUESO/VOQC container (`entry.py`), the single-core resynthesis server for GUOQ, and the authors' original scripts (`upstream/`); the image and how each baseline is run: `baselines/README.md` |
 | `results/` | collected results of the paper's 3,676 runs (below) |
 | `analysis/` | metric definitions (`metrics.py`), table/figure/number generators, `make_all.sh`, and their output `out/` |
 | `env/` | build provenance (`build_info_paper.txt`), host snapshots of the paper's machine, CPU-mode script, systemd slice |
@@ -131,6 +131,13 @@ repro/harness/monitor.sh                                             # optional:
 python3 repro/harness/run.py collect --plan repro/runs/plan.jsonl --gzip-logs
 python3 repro/harness/verify.py --plan repro/runs/plan.jsonl --max-qubits 12 --out repro/results/verify_q12.csv
 repro/analysis/make_all.sh
+
+# give the machine back (launch_sched.sh confined everything else to the housekeeping CPUs;
+# the settings are runtime-only, so a reboot also undoes them)
+for u in user.slice system.slice init.scope; do
+  sudo systemctl set-property --runtime $u AllowedCPUs=0-$(( $(nproc --all) - 1 ))
+done
+repro/env/set_cpu_mode.sh restore
 ```
 
 Smaller runs: `run.py plan` accepts `--experiments E3_greedy`, `--circuits tof_3,barenco_tof_4`,
