@@ -1,0 +1,389 @@
+{
+ "baselines": {
+  "guoq_2q": {
+   "means": {
+    "cx_red": 24.784104599556613,
+    "fidelity": 0.3476042916045541,
+    "n": 248,
+    "total_red": -1.9652725579333477
+   },
+   "missing": [],
+   "n": 248,
+   "no_data": false,
+   "non_ok": {
+    "JVM_OOM": 3
+   },
+   "optimizer": "guoq",
+   "params": {
+    "opt": "TWO_Q"
+   },
+   "qalm_means": {
+    "cx_red": 25.588953978770498,
+    "fidelity": 0.4016596395974459,
+    "n": 248,
+    "total_red": 56.19791531427124
+   },
+   "title": "GUOQ (2Q Gate)",
+   "win_rate": {
+    "cx": {
+     "n": 248,
+     "tie": 8.46774193548387,
+     "win": 46.774193548387096,
+     "win_or_tie": 55.24193548387097
+    },
+    "fidelity": {
+     "n": 248,
+     "tie": 2.8225806451612905,
+     "win": 88.70967741935483,
+     "win_or_tie": 91.53225806451613
+    },
+    "total": {
+     "n": 248,
+     "tie": 2.8225806451612905,
+     "win": 92.33870967741936,
+     "win_or_tie": 95.16129032258064
+    }
+   }
+  },
+  "guoq_total": {
+   "means": {
+    "cx_red": 20.06283834177986,
+    "fidelity": 0.3692467071709289,
+    "n": 248,
+    "total_red": 44.39628597880877
+   },
+   "missing": [],
+   "n": 248,
+   "no_data": false,
+   "non_ok": {
+    "JVM_OOM": 4
+   },
+   "optimizer": "guoq",
+   "params": {
+    "opt": "TOTAL"
+   },
+   "qalm_means": {
+    "cx_red": 25.588953978770498,
+    "fidelity": 0.4016596395974459,
+    "n": 248,
+    "total_red": 56.19791531427124
+   },
+   "title": "GUOQ (Total Gate)",
+   "win_rate": {
+    "cx": {
+     "n": 248,
+     "tie": 22.983870967741936,
+     "win": 58.064516129032256,
+     "win_or_tie": 81.04838709677419
+    },
+    "fidelity": {
+     "n": 248,
+     "tie": 10.887096774193548,
+     "win": 75.80645161290323,
+     "win_or_tie": 86.69354838709677
+    },
+    "total": {
+     "n": 248,
+     "tie": 11.693548387096774,
+     "win": 83.46774193548387,
+     "win_or_tie": 95.16129032258064
+    }
+   }
+  },
+  "quartz": {
+   "means": {
+    "cx_red": 12.036371646093276,
+    "fidelity": 0.35138741269721224,
+    "n": 248,
+    "total_red": 39.19923042509492
+   },
+   "missing": [],
+   "n": 248,
+   "no_data": false,
+   "non_ok": {
+    "OOM_CAP": 2
+   },
+   "optimizer": "quartz",
+   "params": {},
+   "qalm_means": {
+    "cx_red": 25.588953978770498,
+    "fidelity": 0.4016596395974459,
+    "n": 248,
+    "total_red": 56.19791531427124
+   },
+   "title": "Quartz",
+   "win_rate": {
+    "cx": {
+     "n": 248,
+     "tie": 18.14516129032258,
+     "win": 78.62903225806451,
+     "win_or_tie": 96.7741935483871
+    },
+    "fidelity": {
+     "n": 248,
+     "tie": 7.258064516129032,
+     "win": 91.93548387096774,
+     "win_or_tie": 99.19354838709677
+    },
+    "total": {
+     "n": 248,
+     "tie": 7.258064516129032,
+     "win": 92.33870967741936,
+     "win_or_tie": 99.59677419354838
+    }
+   }
+  },
+  "queso_2q": {
+   "means": {
+    "cx_red": 12.927235730702234,
+    "fidelity": 0.33482748907113635,
+    "n": 248,
+    "total_red": 27.342087440168385
+   },
+   "missing": [],
+   "n": 248,
+   "no_data": false,
+   "non_ok": {
+    "JVM_OOM": 2
+   },
+   "optimizer": "queso",
+   "params": {
+    "opt": "TWO_Q"
+   },
+   "qalm_means": {
+    "cx_red": 25.588953978770498,
+    "fidelity": 0.4016596395974459,
+    "n": 248,
+    "total_red": 56.19791531427124
+   },
+   "title": "QUESO (2Q Gate)",
+   "win_rate": {
+    "cx": {
+     "n": 248,
+     "tie": 16.532258064516128,
+     "win": 80.24193548387096,
+     "win_or_tie": 96.7741935483871
+    },
+    "fidelity": {
+     "n": 248,
+     "tie": 4.838709677419355,
+     "win": 94.35483870967742,
+     "win_or_tie": 99.19354838709677
+    },
+    "total": {
+     "n": 248,
+     "tie": 4.838709677419355,
+     "win": 94.75806451612904,
+     "win_or_tie": 99.59677419354838
+    }
+   }
+  },
+  "queso_total": {
+   "means": {
+    "cx_red": 12.951302989944017,
+    "fidelity": 0.3543562994989208,
+    "n": 248,
+    "total_red": 38.826641056075
+   },
+   "missing": [],
+   "n": 248,
+   "no_data": false,
+   "non_ok": {
+    "JVM_OOM": 4
+   },
+   "optimizer": "queso",
+   "params": {
+    "opt": "TOTAL"
+   },
+   "qalm_means": {
+    "cx_red": 25.588953978770498,
+    "fidelity": 0.4016596395974459,
+    "n": 248,
+    "total_red": 56.19791531427124
+   },
+   "title": "QUESO (Total Gate)",
+   "win_rate": {
+    "cx": {
+     "n": 248,
+     "tie": 15.725806451612904,
+     "win": 80.64516129032258,
+     "win_or_tie": 96.37096774193549
+    },
+    "fidelity": {
+     "n": 248,
+     "tie": 6.048387096774194,
+     "win": 92.74193548387096,
+     "win_or_tie": 98.79032258064517
+    },
+    "total": {
+     "n": 248,
+     "tie": 6.048387096774194,
+     "win": 93.54838709677419,
+     "win_or_tie": 99.59677419354838
+    }
+   }
+  },
+  "voqc": {
+   "means": {
+    "cx_red": 4.062197756084139,
+    "fidelity": 0.33730602190669196,
+    "n": 248,
+    "total_red": 45.045186587371525
+   },
+   "missing": [],
+   "n": 248,
+   "no_data": false,
+   "non_ok": {
+    "TIMEOUT": 7
+   },
+   "optimizer": "voqc",
+   "params": {},
+   "qalm_means": {
+    "cx_red": 25.588953978770498,
+    "fidelity": 0.4016596395974459,
+    "n": 248,
+    "total_red": 56.19791531427124
+   },
+   "title": "VOQC",
+   "win_rate": {
+    "cx": {
+     "n": 248,
+     "tie": 11.693548387096774,
+     "win": 85.88709677419355,
+     "win_or_tie": 97.58064516129032
+    },
+    "fidelity": {
+     "n": 248,
+     "tie": 4.435483870967742,
+     "win": 95.56451612903226,
+     "win_or_tie": 100.0
+    },
+    "total": {
+     "n": 248,
+     "tie": 4.435483870967742,
+     "win": 95.56451612903226,
+     "win_or_tie": 100.0
+    }
+   }
+  }
+ },
+ "budget_s": 3600,
+ "comparison_3x3_points": {
+  "cx": {
+   "guoq_2q": [
+    248,
+    248
+   ],
+   "guoq_total": [
+    248,
+    248
+   ],
+   "quartz": [
+    248,
+    248
+   ],
+   "queso_2q": [
+    248,
+    248
+   ],
+   "queso_total": [
+    248,
+    248
+   ],
+   "voqc": [
+    248,
+    248
+   ]
+  },
+  "fidelity": {
+   "guoq_2q": [
+    248,
+    248
+   ],
+   "guoq_total": [
+    248,
+    248
+   ],
+   "quartz": [
+    248,
+    248
+   ],
+   "queso_2q": [
+    248,
+    248
+   ],
+   "queso_total": [
+    248,
+    248
+   ],
+   "voqc": [
+    248,
+    248
+   ]
+  },
+  "total": {
+   "guoq_2q": [
+    248,
+    248
+   ],
+   "guoq_total": [
+    248,
+    248
+   ],
+   "quartz": [
+    248,
+    248
+   ],
+   "queso_2q": [
+    248,
+    248
+   ],
+   "queso_total": [
+    248,
+    248
+   ],
+   "voqc": [
+    248,
+    248
+   ]
+  }
+ },
+ "gate_scatter": {
+  "dropped_zero_count": {
+   "guoq_2q": 0,
+   "original": 0,
+   "qalm": 0
+  },
+  "n_points": {
+   "guoq_2q": 248,
+   "original": 248,
+   "qalm": 248
+  }
+ },
+ "outputs": [
+  "comparison_3x3.pdf",
+  "win_rate.png",
+  "gate_scatter.pdf"
+ ],
+ "qalm": {
+  "means": {
+   "cx_red": 25.588953978770498,
+   "fidelity": 0.4016596395974459,
+   "n": 248,
+   "total_red": 56.19791531427124
+  },
+  "missing": [],
+  "non_ok": {},
+  "optimizer": "qalm",
+  "params": {
+   "enqueue": 0,
+   "fixed_k": 0,
+   "greedy_k": 2,
+   "n_branch": 3,
+   "n_pool": 1,
+   "stall_rounds": 0
+  }
+ },
+ "qalm_config": "a",
+ "suite": "S248"
+}
