@@ -2261,12 +2261,10 @@ def setup_numbers(book, rows, events_path, job_ids):
     )
     src_dirs = {os.path.dirname(r["path"]) for r in rows248}
     removed, n_src = None, None
-    if len(src_dirs) == 1 and os.path.isdir(next(iter(src_dirs))):
-        names = {
-            f[: -len(".qasm")]
-            for f in os.listdir(next(iter(src_dirs)))
-            if f.endswith(".qasm")
-        }
+    # manifest paths are relative to the repository root
+    src_dir = os.path.join(os.path.dirname(REPRO), next(iter(src_dirs)))
+    if len(src_dirs) == 1 and os.path.isdir(src_dir):
+        names = {f[: -len(".qasm")] for f in os.listdir(src_dir) if f.endswith(".qasm")}
         n_src = len(names)
         removed = sorted(names - set(m248))
     else:

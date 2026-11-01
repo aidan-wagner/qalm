@@ -1,0 +1,7 @@
+numpy>=1.26
+scipy>=1.11
+matplotlib>=3.8
+pyyaml>=6.0
+# build only
+pybind11>=2.11
+# versions used for the paper: numpy 2.4.3, scipy 1.17.1, matplotlib 3.10.8, pyyaml 6.0.1, pybind11 3.0.2 (Python 3.12.3)

@@ -380,8 +380,7 @@
    "fixed_k": 0,
    "greedy_k": 2,
    "n_branch": 3,
-   "n_pool": 1,
-   "stall_rounds": 0
+   "n_pool": 1
   }
  },
  "qalm_config": "a",

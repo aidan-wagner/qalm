@@ -27,7 +27,7 @@ DEFAULTS = {
     "qalm": {"greedy_k": 2, "n_pool": 1, "n_branch": 3, "repeat_tol": 1.5, "exp_increase": 0,
              "strictly_reducing": 0, "local_only": 1, "two_way": 0, "fixed_k": 0,
              "enqueue": 0, "cost_mode": 0},
-    # BEST_CONFIG = (1, 1, 3, 1.5, 0, 0, 1, 1, 0) of benchmark_guoq.py@b10f6ec, via test_qalm
+    # configuration (b), supplementary: test_qalm 1 1 3 1.5 0 0 1 1 0 (N_pool=1, N_branch=1, fixed k=3)
     "qalm_old": {"n_pool": 1, "n_branch": 1, "k": 3, "repeat_tol": 1.5, "exp_increase": 0,
                  "strictly_reducing": 0, "local_only": 1, "preprocess": 1, "two_way": 0},
     "quartz": {},

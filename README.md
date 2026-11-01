@@ -1,320 +1,113 @@
-# The Quartz Quantum Circuit Optimizer
+# QALM artifact
 
-Quartz is a quantum circuit optimizer that automatically generates and verifies
-circuit transformations for an arbitrary quantum gate set. To optimize an input
-quantum circuit, Quartz uses these auto-generated circuit transformations to
-construct a search space of functionally equivalent quantum circuits. Quartz
-uses a cost-based search algorithm to explore the space and discovers highly
-optimized quantum circuits.
+Code, inputs, raw results and analysis scripts for the paper
+*QALM: Escaping Local Minima via Interleaved Exploration and Exploitation in Quantum Circuit Optimization*.
 
-## PLDI 2022 Artifact
+QALM is built on the [Quartz](https://github.com/quantum-compiler/quartz) circuit optimizer
+(C++, this repository is a fork of it) and on ROQC, a rule-based rotation optimizer written in
+Rust (`roqc/`, linked into the Quartz library through [corrosion](https://github.com/corrosion-rs/corrosion)).
+Every table, figure and number in the paper's evaluation is computed from `repro/results/`
+by the scripts in `repro/analysis/`; the experiments themselves are run by the harness in
+`repro/harness/`.
 
-If you would like to compare with the Quartz version published in PLDI 2022,
-please go to https://github.com/quantum-compiler/quartz-artifact. Note that the
-format of ECC sets has been changed since then (after v0.2.0).
+## Contents
 
-## Install Quartz
+| Path | What |
+|---|---|
+| `src/quartz/` | Quartz library; the QALM search is `Graph::optimize_qalm` and the greedy passes are `Graph::greedy_optimize_with_roqc` / `greedy_optimize_with_local_search` in `src/quartz/tasograph/tasograph.cpp` |
+| `src/test/test_greedy_k_ablation.cpp` | QALM driver used for every QALM result in the paper |
+| `src/test/test_original.cpp` | Quartz baseline driver (greedy pass, then Quartz's backtracking search) |
+| `src/test/test_qalm.cpp` | QALM configuration (b) (supplementary, not in the paper) |
+| `src/test/gen_ecc_set.cpp` | regenerates the ECC set `eccset/Nam_5_3_complete_ECC_set.json` (shipped) |
+| `roqc/` | ROQC (Rust) |
+| `circuit/nam_circs/`, `circuit/nam_rm_circs/` | the 26-circuit benchmark (S26), and the same circuits after rotation merging (S26PP, input of "Quartz with preprocessing") |
+| `benchmarks/guoq_nam_rz/` | the 248-circuit benchmark (S248); not in git, downloaded by `repro/inputs/fetch_guoq_benchmarks.sh` |
+| `repro/` | experiment harness, configurations, results and analysis; see [`repro/README.md`](repro/README.md) |
 
-See [instructions](INSTALL.md) to install Quartz from source code.
+## Requirements
 
-## Use Quartz
+- Linux x86-64 (the paper's runs: Ubuntu 24.04, 2x AMD EPYC 7763, 251 GiB RAM).
+- Build: CMake >= 3.16, GCC with OpenMP (paper: GCC 13.3.0, CMake 3.28.3), Python 3 with
+  development headers and `pybind11`, and `rustup` (the Rust toolchain is pinned to 1.94.1 in
+  `roqc/rust-toolchain.toml`). CMake downloads corrosion v0.5 at configure time.
+- Analysis: Python 3 with `numpy`, `scipy`, `matplotlib`, `pyyaml` (`repro/requirements.txt`).
+- Full re-run only: `systemd` and passwordless `sudo` (the scheduler runs every job in its own
+  transient unit with a CPU and memory limit), and Docker for the baselines GUOQ, QUESO and VOQC
+  (the authors' image `amxu/guoq`, pinned by digest in `repro/config/campaign.yaml`).
 
-Quartz targets the logical optimization stage in quantum circuit compilation and
-can be used to optimize quantum circuits for arbitrary gate sets (e.g., IBM or
-Rigetti quantum processors). Quartz works in two steps. First, for a given gate
-set, the Quartz circuit generator and circuit equivalence verifier can
-automatically generate and verify possible circuit transformations, represented
-as an equivalent circuit class (ECC) set. Second, Quartz's circuit optimizer
-takes a quantum circuit and an ECC set as inputs and uses cost-based backtracking
-search to discover a super-optimized quantum circuit.
-
-### Generate and verify an ECC set
-
-To generate and verify pre-defined ECC sets, you can simply
-run `./gen_ecc_set.sh`.
-
-To generate an `(n,q)`-complete ECC set with `m` input parameters for some gate
-set, you can change the main function in `src/test/gen_ecc_set.cpp` to the
-following:
-
-```c++
-gen_ecc_set({Gate set}, "{Name of the gate set}_{n}_{q}_", true, true, q, m, n);
-return 0;
-```
-
-where `{Gate set}` can
-be `{GateType::rz, GateType::h, GateType::cx, GateType::x, GateType::add}` for
-the Nam gate set,
-`{GateType::u1, GateType::u2, GateType::u3, GateType::cx, GateType::add}` for
-the IBM gate set,
-`{GateType::rx, GateType::rz, GateType::cz, GateType::add}` for the Rigetti gate
-set, or any gate set you want. `GateType::add` is to enable using a sum of two
-input parameters as an input to a parameterized quantum gate. See all supported
-gate types in [gates.inc.h](src/quartz/gate/gates.inc.h) and their
-implementations in [gate/](src/quartz/gate).
-
-And then you can run `./gen_ecc_set.sh` to generate the ECC set.
-
-## Optimize a quantum circuit
-
-We show the steps to super-optimize a quantum circuit in Quartz.
-
-#### Input the circuit
-
-To optimize a circuit, you can write your circuit
-in [OpenQASM](https://openqasm.com/) and write it to a `qasm` file. Currently,
-we only support a subset of OpenQASM 2.0 and OpenQASM 3.0 grammar. Specifically,
-the `qasm` files we support should consist of a header and lines of `qasm`
-instructions. The header should be in the format below (all quantum registers
-should come before gates):
-
-```qasm
-OPENQASM 2.0;
-include "qelib1.inc";
-qreg q[24];
-```
-
-The instructions should be in the format below:
-
-```qasm
-cx q[3], q[2];
-cx q[8], q[7];
-cx q[14], q[13];
-cx q[21], q[20];
-h q[3];
-```
-
-For gates with symbolic parameters, you can write the circuit in OpenQASM 3.0:
-
-```qasm
-OPENQASM 3.0;
-include "stdgates.inc";
-input array[angle,2] p;
-qubit[2] q;
-rz(pi/2) q[0];
-rx(p[0]) q[1];
-rx(p[1]) q[1];
-```
-
-Similarly, all parameter arrays and qubit arrays should come before gates.
-
-To input a circuit in `qasm` file, you should first create a `Context` object
-with a `ParamInfo` object, providing the gate set you use in your input file as
-the argument as below:
-
-``` cpp
-ParamInfo param_info;
-Context src_ctx({GateType::h, GateType::ccz, GateType::x, GateType::cx,
-                GateType::input_qubit, GateType::input_param},
-                &param_info);
-```
-
-After that, you need a `QASMParser` object to parse the input `qasm` file. You
-can construct it as below:
-
-``` cpp
-QASMParser qasm_parser(&src_ctx);
-```
-
-By default, gates like `rz(pi/2)` are not symbolic. If you want to make them
-symbolic, please toggle this option:
-
-```c++
-qasm_parser.use_symbolic_pi(true);
-```
-
-Now you can use the `QASMParser` object to load the circuit from the `qasm` file
-to a `CircuitSeq` object, as below:
-
-``` cpp
-CircuitSeq *seq = nullptr;
-if (!qasm_parser.load_qasm(input_fn, seq)) {
-    std::cout << "Parser failed" << std::endl;
-}
-```
-
-After you have the circuit loaded into the `CircuitSeq` object, you can
-construct a `Graph` object from it. The `Graph` object is the final circuit
-representation used in our optimizer. You can construct it as below:
-
-``` cpp
-Graph graph(&src_ctx, seq);
-```
-
-#### Context shift
-
-If the input gate set is different from your target gate set, you should
-consider using the `context_shift` APIs to shift the context constructed with
-the gate sets to a context constructed with the target gate set.
-
-To shift the context, you should create three `Context` objects, one for input,
-one for target, and one for their union as below:
-
-``` cpp
-ParamInfo param_info;
-Context src_ctx({GateType::h, GateType::ccz, GateType::x, GateType::cx,
-                GateType::input_qubit, GateType::input_param},
-                &param_info);
-Context dst_ctx({GateType::h, GateType::x, GateType::rz, GateType::add,
-                GateType::cx, GateType::input_qubit, GateType::input_param},
-                &param_info);
-auto union_ctx = union_contexts(&src_ctx, &dst_ctx);
-```
-
-In order to shift contexts, you should provide the rules to express a gate in
-the input gate set to the target gate set. To do this, you should construct
-a `RuleParser` object. As follows:
-
-``` cpp
-RuleParser rules(
-    {"cx q0 q1 = rx q1 pi; rz q1 0.5pi; rx q1 0.5pi; rz q1 -0.5pi; cz q0 "
-        "q1; rx q1 pi; rz q1 0.5pi; rx q1 0.5pi; rz q1 -0.5pi;",
-        "h q0 = rx q0 pi; rz q0 0.5pi; rx q0 0.5pi; rz q0 -0.5pi;",
-        "x q0 = rx q0 pi;"});
-```
-
-As shown in the example above, the grammar for the rules is simple. Also, if a
-gate in the input gate set already appears in the target set, you don't have to
-provide a rule for it.
-
-#### Optimization
-
-You can use the API:
-
-```cpp
-std::shared_ptr<Graph> optimize(Context *ctx,
-                                const EquivalenceSet &eqs,
-                                const std::string &circuit_name,
-                                bool print_message,
-                                std::function<float(Graph *)> cost_function = nullptr,
-                                double cost_upper_bound = -1 /*default = current cost * 1.05*/,
-                                double timeout = 3600 /*1 hour*/,
-                                const std::string &store_all_steps_file_prefix = std::string());
-```
-
-Explanation for the parameters:
-
-- `ctx`: The context object.
-- `eqs`: The ECC set object, should be loaded before the circuit is loaded.
-- `circuit_name`: The name of the circuit, which will be printed with the
-  intermediate result.
-- `print_message`: Print debug message to the console.
-- `cost_function`: The cost function used in the search.
-- `cost_upper_bound`: Maximum circuit cost to be searched during optimization.
-- `timeout`: Timeout for optimization in seconds.
-- `store_all_steps_file_prefix`: Experimental, to store all optimization steps
-  in files. The default is not to store.
-
-Usage example:
-
-```c++
-// Construct contexts
-ParamInfo param_info;
-Context src_ctx({GateType::h, GateType::ccz, GateType::x, GateType::cx,
-                 GateType::input_qubit, GateType::input_param},
-                &param_info);
-Context dst_ctx({GateType::h, GateType::x, GateType::rz, GateType::add,
-                 GateType::cx, GateType::input_qubit, GateType::input_param},
-                &param_info);
-auto union_ctx = union_contexts(&src_ctx, &dst_ctx);
-EquivalenceSet eqs;
-// Load equivalent dags from file
-if (!eqs.load_json(&dst_ctx, eqset_fn, /*from_verifier=*/false)) {
-  std::cout << "Failed to load equivalence file \"" << eqset_fn << "\"."
-            << std::endl;
-  assert(false);
-}
-auto xfer_pair = GraphXfer::ccz_cx_rz_xfer(&src_ctx, &dst_ctx, &union_ctx);
-// Load qasm file
-QASMParser qasm_parser(&src_ctx);
-CircuitSeq *dag = nullptr;
-if (!qasm_parser.load_qasm(input_fn, dag)) {
-  std::cout << "Parser failed" << std::endl;
-  assert(false);
-}
-Graph graph_input(&src_ctx, dag);
-// Greedy toffoli flip
-auto graph = graph_input.toffoli_flip_greedy(
-    GateType::rz, xfer_pair.first, xfer_pair.second);
-// Optimize
-auto graph_optimized = graph->optimize(&dst_ctx,
-                                       eqs,
-                                       circuit_name,
-                                       /*print_message=*/true,
-                                       [] (Graph *graph) { return graph->total_cost(); },
-                                       /*cost_upper_bound=*/-1,
-                                       /*timeout=*/10);
-```
-
-You can also use the deprecated API for now (not recommended):
-
-``` cpp
-Graph::optimize_legacy(float alpha, int budget, bool print_subst, Context *ctx,
-                       const std::string &equiv_file_name, bool use_simulated_annealing,
-                       bool enable_early_stop, bool use_rotation_merging_in_searching,
-                       GateType target_rotation, std::string circuit_name = "",
-                       int timeout = 86400 /*1 day*/);
-```
-
-Explanation for some of the parameters:
-
-- `print_subst`: Deprecated will be removed in future version.
-- `equiv_file_name`: The file name of the ECC set.
-- `use_simulated_annealing`: Use simulated annealing in searching.
-- `use_rotation_merging_in_searching`: Enable rotation merging in each iteration
-  of the back-track searching.
-- `target_rotation`: The target rotation used if you enable rotation merging in
-  search.
-- `circuit_name`: The name of the circuit, which will be printed with the
-  intermediate result.
-- `timeout`: Timeout for optimization in seconds.
-
-## Verify circuit equivalence
-
-You can also use Quartz's verifier independently by
-calling `python src/python/verifier/verify_equivalences.py` with a Json file
-containing a batch of circuits to be verified, or (after installation) compile
-and run the following executable to verify the equivalence of two individual
-circuits `circuit1.qasm` and `circuit2.qasm`:
+## Build
 
 ```shell
-cd build
-make verify_openqasm
-./verify_openqasm circuit1.qasm circuit2.qasm [timeout] [tmpdir]
+cmake -S . -B build -DRust_TOOLCHAIN=1.94.1-x86_64-unknown-linux-gnu -DPython_EXECUTABLE=$(which python3)
+RUSTUP_TOOLCHAIN=1.94.1-x86_64-unknown-linux-gnu cmake --build build -j \
+  --target test_greedy_k_ablation test_qalm test_original
 ```
 
-If `[timeout]` is given, then the value (in milliseconds) will be used as a
-timeout for all Z3 (or SymPy) queries (otherwise a default value of 30 seconds is used,
-which should be enough for most Z3 queries). If `[tmpdir]` is given, the
-temporary files during verification will be put into this directory.
+This produces `build/test_greedy_k_ablation`, `build/test_qalm`, `build/test_original` and
+`build/libquartz_runtime.so`. `repro/env/build_info_paper.txt` records the exact toolchain and
+the hashes of the binaries that produced the paper's results.
 
-## Repository Organization
+## Quick test (a few minutes, no harness)
 
-See [code structure](CODE_STRUCTURE.md) for more information about the
-organization of the Quartz code base.
+Optimize one circuit of S26 with QALM for 60 seconds, in the paper's configuration
+(greedy pass with k <= 2, then the search with N_pool = 1, N_branch = 3 and advancing k):
 
-## Issues
+```shell
+build/test_greedy_k_ablation circuit/nam_circs/barenco_tof_4.qasm barenco_tof_4 60 \
+  2 1 3 1.5 0 0 1 0 eccset/Nam_5_3_complete_ECC_set.json 0 0 0 0
+```
 
-Please file an issue or contact mingkuan@cmu.edu if you encounter any problems.
+Arguments: input, name, time budget (s), greedy k, N_pool, N_branch, repeat tolerance,
+k-increase flag (0), strictly-reducing rules (0), local transformations only (1), two-way rotation
+merging (0), ECC set, fixed k (0 = advancing k, the paper's default; 1-5 for Sec. 5.6), enqueue
+intermediate circuits (0), cost mode (0 = total gate count), seed. The log shows one progress
+line per improvement (`[name] Best cost: ... CX: ...`) and ends with the best circuit in OpenQASM.
+barenco_tof_4 has 114 gates (48 CX); QALM reaches about 70 (32 CX) within the minute. The Quartz baseline is `build/test_original <input> <name> <budget>`.
 
-## Contributing
+## Regenerate the paper's tables, figures and numbers (minutes)
 
-Please let us know if you encounter any bugs or have any suggestions
-by [submitting an issue](https://github.com/quantum-compiler/quartz/issues).
+The collected results of all 3,676 runs are in `repro/results/` (`runs.csv`: one row per run;
+`timeseries.csv.gz`: every progress line; `kevents.csv`: start time and k of every QALM search pass).
 
-We welcome all contributions to Quartz from bug fixes to new features and
-extensions.
+```shell
+pip install -r repro/requirements.txt
+repro/inputs/fetch_guoq_benchmarks.sh   # optional: only the suite-size number needs it
+repro/analysis/make_all.sh              # writes repro/analysis/out/
+```
 
-Please follow [developer guidance](doc/dev_setup.md).
+| Paper | Output (`repro/analysis/out/`) | Experiment |
+|---|---|---|
+| Table 1 (avg-comparison) | `a/averages_table.tex` | E1 |
+| Fig. 2 (win rate) | `a/win_rate.png` | E1 |
+| Fig. 6 (gate scatter) | `a/gate_scatter.pdf` | E1 |
+| Fig. 7 (comparison 3x3) | `a/comparison_3x3.pdf` | E1 |
+| Table 2 (eval_end_to_end, Sec. 5.4) | `a/eval_end_to_end.tex` | E2 |
+| Fig. 8 (greedy k, Sec. 5.5) | `curves/greedy_k_reduction.pdf` | E3 |
+| Fig. 9 (single k, Sec. 5.6) | `curves/single_k_gk0.pdf`, `curves/single_k_gk2.pdf` | E4 |
+| Fig. 10 (N_pool / N_branch, Sec. 5.7) | `curves/N_pool_arith_mean_3600s_plain.pdf`, `curves/N_branch_arith_mean_3600s_plain.pdf` | E5 |
+| numbers in the text | `numbers/numbers.tex` (one macro per number), `numbers/numbers.json` (how each was computed) | all |
 
-## Citations
+`out/b/` holds the same tables and S248 figures for configuration (b), which is not in the paper.
+The committed `repro/analysis/out/` was produced this way.
+
+## Re-run the experiments (about 2,900 core-hours)
+
+See [`repro/README.md`](repro/README.md). In short: the harness expands `repro/config/E*.yaml`
+into 3,676 jobs (one core and at most 32 GiB each, 1 hour budget except the 60-second QALM runs),
+runs them on the cores listed in `repro/config/campaign.yaml` and collects the results into the
+same format as `repro/results/`. On the paper's machine (124 job slots) the campaign took about
+a day. Results are not bit-reproducible, because the budgets are wall-clock time; Sec. 5.7 reports the
+run-to-run spread over three seeds.
+
+## Quartz
+
+This repository is a fork of Quartz. Quartz:
 
 * Mingkuan Xu, Zikun Li, Oded Padon, Sina Lin, Jessica Pointing, Auguste Hirth,
   Henry Ma, Jens Palsberg, Alex Aiken, Umut A. Acar, and Zhihao Jia.
-  [Quartz: Superoptimization of Quantum Circuits](
-  https://arxiv.org/abs/2204.09033). In Proceedings of the Conference on
-  Programming Language Design and Implementation (PLDI), June 2022.
+  [Quartz: Superoptimization of Quantum Circuits](https://arxiv.org/abs/2204.09033).
+  In Proceedings of the Conference on Programming Language Design and Implementation (PLDI), June 2022.
 
 ## License
 
-Quartz uses Apache License 2.0.
+Apache License 2.0 (`LICENSE`), as Quartz.

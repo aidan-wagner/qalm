@@ -8,4 +8,4 @@ runs:
   - {optimizer: quartz, budget_s: 3600}
   - {optimizer: quartz, budget_s: 3600, suite: S26PP}          # Quartz with preprocessing (rotation-merged inputs)
   - {optimizer: qalm, budget_s: 3600, params: {greedy_k: 2, n_pool: 1, n_branch: 3, fixed_k: 0, enqueue: 0}}
-  - {optimizer: qalm_old, budget_s: 3600, priority: 3}
+  - {optimizer: qalm_old, budget_s: 3600, priority: 3}       # (b) supplementary, not in the paper

@@ -7,7 +7,7 @@ same random states with a small numpy statevector simulator and compared via
   pass_rounding   QALM/Quartz/VOQC only, overlap >= 1 - 1e-6: they print rotation angles with 6
                   decimals (QALM also round-trips every circuit through that text format when
                   calling ROQC), so arbitrary-angle circuits carry ~1e-6 rad angle rounding
-                  (the 7 VOQC outputs below 1 - 1e-9 in the interim check all had >= 1 - 1.5e-8)
+                  (VOQC outputs below 1 - 1e-9 had >= 1 - 1.5e-8 in the paper's runs)
   approx          GUOQ TWO_Q (approximate resynthesis, epsilon 1e-8), overlap >= 1 - 1e-6
   FAIL            anything else
   trivial         the reported result is the input circuit (nothing to check)
