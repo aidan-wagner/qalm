@@ -206,7 +206,6 @@ class Graph {
   [[nodiscard]] int specific_gate_count(GateType gate_type) const;
   [[nodiscard]] float total_cost() const;
   [[nodiscard]] float weighted_2q_cost() const;
-  [[nodiscard]] float hadamard_reduction_cost() const;
   [[nodiscard]] int gate_count() const;
   [[nodiscard]] int circuit_depth() const;
   std::size_t get_next_special_op_guid();
@@ -368,35 +367,10 @@ class Graph {
       // random stream also depends on exploration_steps, so passes with
       // different k do not replay each other.
       const unsigned seed = 0,
-      // > 0: return after this many consecutive rounds without a new best
-      // circuit. 0: no such limit.
-      const size_t stall_rounds = 0,
       // true: return when the queue becomes empty (a pass of the advancing-k
       // search ends there). false: re-seed the queue with the best circuit
       // and keep going until the timeout.
       const bool end_pass_on_empty_queue = false);
-
-  // Adaptive variant: same search loop but escalates N_pool, N_branch, and k
-  // in round-robin order whenever no improvement is found for stall_window_seconds.
-  // All other parameters (existing experiments) are unchanged.
-  std::shared_ptr<Graph> optimize_qalm_adaptive(
-      const std::vector<GraphXfer *> &xfers, double cost_upper_bound,
-      const std::string &circuit_name, const std::string &log_file_name,
-      bool print_message, std::function<float(Graph *)> cost_function = nullptr,
-      double timeout = 3600 /*1 hour*/,
-      const std::string &store_all_steps_file_prefix = std::string(),
-      bool continue_storing_all_steps = false,
-      std::chrono::time_point<std::chrono::steady_clock> time_start =
-          std::chrono::time_point<std::chrono::steady_clock>::min(),
-      size_t initial_pool_size = 1,
-      size_t exploration_pool_size = 1, size_t exploration_steps = 3,
-      float repeat_tolerance = 1.5,
-      bool only_do_local_transformations = false,
-      bool two_way_rotation_merging = false,
-      double stall_window_seconds = 60.0,
-      size_t max_pool_size = 5,
-      size_t max_branch_size = 5,
-      size_t max_steps = 5);
 
   /**
    * Run ROQC on this circuit.

@@ -1,7 +1,7 @@
 """Run one native job inside its own systemd transient unit.
 
 Launched by the scheduler as
-  sudo systemd-run --unit=qalmrepro-<id> --slice=qalmrepro.slice --uid=cc ... \
+  sudo systemd-run --unit=qalmrepro-<id> --slice=qalmrepro.slice --uid=<uid> ... \
       /usr/bin/python3 -I repro/harness/jobwrap.py <jobdir>
 It starts the optimizer binary (stdout/stderr to files), enforces the wall
 limit, and finally records rusage plus its own cgroup's memory.peak,

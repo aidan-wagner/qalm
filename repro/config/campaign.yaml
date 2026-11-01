@@ -1,6 +1,7 @@
-# Global settings for the re-run campaign (see repro/README.md).
-repo_root: /home/cc/mingkuan/qalm
-runs_dir: /home/cc/mingkuan/qalm/repro/runs
+# Global settings of the campaign (see repro/README.md). Paths are relative to the repository
+# root. The core, NUMA and memory settings are those of the paper's machine (2x AMD EPYC 7763,
+# 128 physical cores, 251 GiB); adapt them to yours.
+runs_dir: repro/runs
 cores:
   jobs: "2-63,66-127"          # one logical CPU per physical core; SMT siblings (n+128) stay idle
   housekeeping: "0,1,64,65,128,129,192,193"   # system, user sessions, docker daemon, scheduler
@@ -19,11 +20,11 @@ wall_margin_s: {default: 900, short: 300}   # wall limit = budget + margin (shor
 stagger_s: {short: 0.5, long: 5}   # minimum gap between launches (short: 60 s jobs and VOQC)
 order_seed: 20261030
 docker_image: "amxu/guoq@sha256:310905ead964978676921d191819ce21f9ccdd06e5709a6b6b5dbec4777780e9"
-native_build: v4                # tag of the native build; part of every native job id (repro/harness/jobs.py)
+native_build: v4                # tag of the native build of the paper's results; part of every native job id
 binaries:
-  qalm: build/repro4/test_greedy_k_ablation
-  qalm_old: build/repro4/test_qalm
-  quartz: build/repro4/test_original
-lib: build/repro4/libquartz_runtime.so   # runtime library the binaries load (RUNPATH); hashed per job
+  qalm: build/test_greedy_k_ablation
+  qalm_old: build/test_qalm
+  quartz: build/test_original
+lib: build/libquartz_runtime.so    # runtime library the binaries load (RUNPATH); hashed per job
 ecc: eccset/Nam_5_3_complete_ECC_set.json
 ecc_md5: 4f36694c2367eec8d9551e372af753c7

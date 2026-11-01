@@ -285,7 +285,9 @@ class Scheduler:
             assert os.path.dirname(p) == os.path.dirname(lib), f"{p} does not belong to {lib}"
         recorded = {}
         in_block = False
-        for line in open(os.path.join(REPO, "repro", "env", "build_info.txt")):
+        info = os.path.join(REPO, "repro", "env", "build_info.txt")
+        assert os.path.exists(info), "no repro/env/build_info.txt: run repro/env/record_build.sh after building"
+        for line in open(info):
             if line.startswith("## binaries"):
                 in_block = True
                 continue
@@ -296,7 +298,8 @@ class Scheduler:
                 recorded[p] = h
         for p in list(self.cfg["binaries"].values()) + [lib]:
             h = sha256(os.path.join(REPO, p))
-            assert recorded.get(p) == h, f"{p} differs from repro/env/build_info.txt (rebuild?)"
+            assert recorded.get(p) == h, \
+                f"{p} differs from repro/env/build_info.txt (rebuilt? run repro/env/record_build.sh)"
             self.binary_hashes[p] = h
         assert all("nam-benchmarks" not in j["input_path"] for j in self.plan)
         builds = {j.get("build") for j in self.plan if j["kind"] == "native"}
@@ -407,7 +410,7 @@ class Scheduler:
             spec["lib"] = jobsmod.lib_path(self.cfg)
             write_json(os.path.join(d, "job.json"), spec, indent=1)
             cmd = ["sudo", "-n", "systemd-run", f"--unit={self.unit(jid)}", "--slice=qalmrepro.slice",
-                   "--uid=cc", "--gid=cc", "--collect", "--no-block", "--quiet",
+                   f"--uid={os.getuid()}", f"--gid={os.getgid()}", "--collect", "--no-block", "--quiet",
                    f"--working-directory={REPO}",
                    "-p", f"AllowedCPUs={core}", "-p", f"MemoryMax={cap_str}",
                    "-p", "MemorySwapMax=0", "-p", "OOMPolicy=continue", "-p", "OOMScoreAdjust=500",
@@ -425,7 +428,7 @@ class Scheduler:
                    "--cgroup-parent=qalmrepro.slice",
                    f"--cpuset-cpus={core}", f"--memory={cap_str.lower()}",
                    f"--memory-swap={cap_str.lower()}", "--network=none", "--ulimit", "core=0",
-                   "--oom-score-adj=500",
+                   "--oom-score-adj=500", "-e", f"HOST_UID={os.getuid()}", "-e", f"HOST_GID={os.getgid()}",
                    "-v", f"{os.path.dirname(job['input_path'])}:/in:ro",
                    "-v", f"{os.path.join(REPO, 'repro/baselines')}:/repro:ro",
                    "-v", f"{d}/out:/out", "-w", "/out", self.cfg["docker_image"],

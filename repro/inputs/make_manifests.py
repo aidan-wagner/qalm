@@ -1,6 +1,8 @@
 """Build the input manifests S248, S26, S26PP (name, path, sha256, n_qubits, total, cx).
 
-Run from the repo root: python3 -I repro/inputs/make_manifests.py
+Run from the repo root after repro/inputs/fetch_guoq_benchmarks.sh:
+    python3 -I repro/inputs/make_manifests.py
+Paths in the manifests are relative to the repository root.
 """
 import csv
 import glob
@@ -11,7 +13,7 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "harness"))
 from qasm_count import count_file  # noqa: E402
 
-S248_DIR = os.path.expanduser("~/guoq/benchmarks/nam_rz")
+S248_DIR = "benchmarks/guoq_nam_rz"
 S248_EXCLUDE = {"qft_10", "qft_16"}  # exact identity circuits
 S26 = ["adder_8", "barenco_tof_3", "barenco_tof_4", "barenco_tof_5", "barenco_tof_10",
        "csla_mux_3", "csum_mux_9", "gf2^4_mult", "gf2^5_mult", "gf2^6_mult", "gf2^7_mult",
@@ -24,7 +26,7 @@ def row(name, path):
     with open(path, "rb") as f:
         sha = hashlib.sha256(f.read()).hexdigest()
     c = count_file(path)
-    return {"name": name, "path": os.path.abspath(path), "sha256": sha,
+    return {"name": name, "path": path, "sha256": sha,
             "n_qubits": c["n_qubits"], "total": c["total"], "cx": c["cx"]}
 
 

@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
-# Exit (to wake the agent) on: scheduler not active, CPU mode not ok, new anomaly statuses,
-# low memory, or after MAX_S seconds (heartbeat). Prints a summary either way.
+# Wait until the scheduler stops, the CPU mode changes, a job ends in an anomalous status,
+# memory runs low, or MAX_S seconds pass (heartbeat); then print a summary.
 # Usage: repro/harness/monitor.sh [max_seconds]
-R=/home/cc/mingkuan/qalm/repro/runs
+REPO=$(cd "$(dirname "$0")/../.." && pwd)
+R=$REPO/repro/runs
 MAX_S=${1:-7200}
 start=$(date +%s)
 base_bad=$(grep -h -o -E '"status": "(INFRA_GAVE_UP|COLLECT_ERROR|CRASH)"' $R/jobs/*/done.json 2>/dev/null | wc -l)
@@ -21,5 +22,5 @@ PY
 done
 echo "monitor exit: $reason at $(date -u +%FT%TZ)"
 cat $R/status.json; echo
-REPRO_RUNS_DIR=$R python3 /home/cc/mingkuan/qalm/repro/harness/run.py status
+REPRO_RUNS_DIR=$R python3 $REPO/repro/harness/run.py status
 tail -5 $R/sched.log

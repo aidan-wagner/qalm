@@ -8,12 +8,8 @@ import gzip
 import json
 import math
 import os
-import sys
 from collections import defaultdict
 
-REPRO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-sys.path.insert(0, os.path.join(REPRO, "harness"))
-from jobs import full_params  # noqa: E402
 
 F1Q, F2Q = 0.999, 0.99
 FID_TIE = 1e-12
@@ -131,8 +127,7 @@ def load_runs(results_dir):
                 continue
             for k in INT_FIELDS:
                 r[k] = int(r[k])
-            # rows of plans older than a parameter get the value those runs implicitly used
-            r["params"] = full_params(r["optimizer"], json.loads(r["params"]))
+            r["params"] = json.loads(r["params"])
             r["experiments"] = r["experiments"].split(";")
             rows.append(r)
     return rows

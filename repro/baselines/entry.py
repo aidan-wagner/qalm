@@ -22,7 +22,9 @@ import time
 JAR = "/home/GUOQ-1.0-jar-with-dependencies.jar"
 GUOQ_PY = "/opt/conda/envs/guoq/bin/python"
 VOQC_PY = "/opt/conda/envs/voqc/bin/python"
-HOST_UID = 1000
+# owner of the output files on the host (the scheduler passes its own uid and gid)
+HOST_UID = int(os.environ.get("HOST_UID", 1000))
+HOST_GID = int(os.environ.get("HOST_GID", 1000))
 
 
 def tool_args(tool, mode, seed):
@@ -145,8 +147,8 @@ def main():
         os.replace(f"{out_dir}/result.json.tmp", f"{out_dir}/result.json")
         for root, dirs, files in os.walk(out_dir):
             for p in dirs + files:
-                os.chown(os.path.join(root, p), HOST_UID, HOST_UID)
-        os.chown(out_dir, HOST_UID, HOST_UID)
+                os.chown(os.path.join(root, p), HOST_UID, HOST_GID)
+        os.chown(out_dir, HOST_UID, HOST_GID)
 
 
 if __name__ == "__main__":

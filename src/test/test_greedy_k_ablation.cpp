@@ -31,12 +31,6 @@
  *            1 = weighted: 1Q gates count 1, 2Q gates count 10.
  *   argv[16] (optional) seed — RNG seed for optimize_qalm. 0 or omitted =
  *            the legacy fixed seed; every k gets its own random stream.
- *   argv[17] (optional) stall_rounds — advancing mode only (ignored when
- *            fixed_k > 0). In advancing mode a k-pass ends when its queue
- *            becomes empty and the next pass starts from the best circuit with
- *            k+1; stall_rounds > 0 also ends it after this many consecutive
- *            rounds without a new best circuit. 0 or omitted = no such limit.
- *            Cannot be combined with exploration_increase.
  */
 
 #include "quartz/tasograph/substitution.h"
@@ -86,18 +80,6 @@ int main(int argc, char **argv) {
     seed = (unsigned)std::stoul(argv[16]);
   }
   std::cout << "Seed: " << seed << std::endl;
-  // Optional: stall rounds for advancing k (0 = a pass ends at the timeout)
-  std::size_t stall_rounds = 0;
-  if (argc >= 18 && fixed_k == 0) {
-    stall_rounds = (std::size_t)std::stoul(argv[17]);
-  }
-  std::cout << "Stall rounds: " << stall_rounds << std::endl;
-  if (exploration_increase && stall_rounds > 0) {
-    std::cerr << "exploration_increase cannot be combined with stall_rounds > "
-                 "0."
-              << std::endl;
-    return 1;
-  }
 
   std::function<float(Graph *)> cost_function =
       (cost_mode == 1)
@@ -230,8 +212,7 @@ int main(int argc, char **argv) {
   // fixed_k > 0  → one pass with that exploration depth until the timeout
   //                (an empty queue is re-seeded with the best circuit).
   // fixed_k == 0 → advancing mode: start at greedy_k+1; a pass ends when its
-  //                queue becomes empty (or after stall_rounds rounds without
-  //                improvement, if > 0), then k is incremented.
+  //                queue becomes empty, then k is incremented.
   if (fixed_k > 0) {
     std::size_t k = (std::size_t)fixed_k;
     double elapsed = elapsed_seconds();
@@ -245,7 +226,7 @@ int main(int argc, char **argv) {
           /*continue_storing_all_steps=*/false, start, initial_pool_size,
           exploration_pool_size, k, repeat_tolerance, exploration_increase,
           only_do_local_transformations, two_way_rotation_merging,
-          enqueue_intermediate, seed, /*stall_rounds=*/0);
+          enqueue_intermediate, seed);
     }
   } else {
     std::size_t k = exploration_steps;
@@ -268,8 +249,7 @@ int main(int argc, char **argv) {
           /*continue_storing_all_steps=*/false, start, initial_pool_size,
           exploration_pool_size, k, repeat_tolerance, exploration_increase,
           only_do_local_transformations, two_way_rotation_merging,
-          enqueue_intermediate, seed, stall_rounds,
-          /*end_pass_on_empty_queue=*/true);
+          enqueue_intermediate, seed, /*end_pass_on_empty_queue=*/true);
       graph = new_graph;
       k++;
     }

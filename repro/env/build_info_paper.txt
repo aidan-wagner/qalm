@@ -1,0 +1,25 @@
+# Native build that produced the results in repro/results (native_build "v4" in repro/config/campaign.yaml),
+# built on the paper's machine (Ubuntu 24.04, 2x AMD EPYC 7763) on 2026-10-31.
+#
+# This release branch differs from the source of that build only by removals that do not change
+# the behaviour of any experiment configuration: unused test drivers and optimizer functions
+# (optimize_qalm_adaptive, hadamard_reduction_cost), an optional pass-ending rule that was used only
+# in pilot runs and was off in every reported run, and dead code and stale unit tests in roqc/.
+## configure and build
+cmake -S . -B build/repro4 -DRust_TOOLCHAIN=1.94.1-x86_64-unknown-linux-gnu -DPython_EXECUTABLE=/usr/bin/python3
+RUSTUP_TOOLCHAIN=1.94.1-x86_64-unknown-linux-gnu cmake --build build/repro4 --target test_greedy_k_ablation test_qalm test_original
+## compile flags (quartz_runtime)
+CXX_FLAGS = -O3 -Wall -fPIC -std=c++17  -fopenmp -O3 -DNDEBUG -fPIC
+## toolchain
+rustc 1.94.1 (e408947bf 2026-03-25)
+cargo 1.94.1 (29ea6fb6a 2026-03-24)
+gcc (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0
+cmake version 3.28.3
+corrosion v0.5 (a1a1aaa057a5da656c06c3d8505b767a4e941709)
+## binaries
+dcf13902dd8385974e094951b50a0593da1534373648815a1db5bab296ffc312  build/repro4/test_greedy_k_ablation
+bd857f452636a7459f3d3e97d281df8cd0a77ca3fe6fb2490f3fb6aa1164b723  build/repro4/test_qalm
+05c3261002b99c804f451ed1aa4017a85ff5a60fe8b2e2b7d083a9af834f2afd  build/repro4/test_original
+80558fd2ab4b566463040e152cfd9234b17933fc5a67b2f9534a09abafc3f3d8  build/repro4/libquartz_runtime.so
+## baseline image
+amxu/guoq@sha256:310905ead964978676921d191819ce21f9ccdd06e5709a6b6b5dbec4777780e9

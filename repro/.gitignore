@@ -6,3 +6,4 @@ runs/
 # root .gitignore ignores *.json; we commit small JSON reference/config files
 !*.json
 runs_*/
+repro/env/build_info.txt

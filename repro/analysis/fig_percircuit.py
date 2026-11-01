@@ -1,14 +1,12 @@
 """Per-circuit figures of the 248-circuit comparison (paper Sec. 5).
 
-Inputs: result rows in the ``metrics.load_runs`` schema, either
-``<results>/runs.csv`` written by ``repro/harness/run.py collect`` or, with
-``--legacy``, the pre-campaign rows of ``legacy.load_legacy()``.  Only suite
+Inputs: result rows in the ``metrics.load_runs`` schema, from
+``<results>/runs.csv`` written by ``repro/harness/run.py collect``.  Only suite
 S248, ``budget_s=3600``, ``seed=0`` rows are used:
 
 * QALM: config ``a`` (optimizer ``qalm``, greedy_k=2, n_pool=1, n_branch=3,
-  fixed_k=0, enqueue=0, stall_rounds of ``jobs.DEFAULTS``) or config ``b``
-  (optimizer ``qalm_old``).  The default is ``a``; with ``--legacy`` it is
-  ``b`` (the only 1 h legacy QALM).
+  fixed_k=0, enqueue=0) or config ``b`` (optimizer ``qalm_old``).  The
+  default is ``a``.
 * Baselines: GUOQ and QUESO with ``params.opt`` TWO_Q / TOTAL, VOQC, Quartz.
 
 The circuit set is the suite manifest ``repro/inputs/S248.csv``; circuits
@@ -31,8 +29,7 @@ Outputs (in ``--out``):
 
 All metric definitions come from ``metrics.py``.  Failed runs already count
 as the original circuit (collect.py does that).  A baseline without any rows
-(e.g. GUOQ/QUESO TOTAL and VOQC in the legacy data) is drawn as an empty panel
-or bar group labelled "no data".
+is drawn as an empty panel or bar group labelled "no data".
 
 The paper's figure scripts are lost, so their look (axes sizes and gaps,
 fonts, colours, marker sizes, label offsets) was measured from the paper's
@@ -43,7 +40,7 @@ for pixel except for 1-2 px text snapping.  Output is byte-reproducible.
 Usage (from the repo root)::
 
     python3 repro/analysis/fig_percircuit.py --results repro/results \\
-        --out repro/analysis/out [--legacy] [--qalm-config a|b]
+        --out repro/analysis/out [--qalm-config a|b]
 """
 
 import argparse
@@ -64,9 +61,7 @@ from matplotlib.patches import Patch  # noqa: E402
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
-sys.path.insert(0, os.path.join(os.path.dirname(HERE), "harness"))
 import metrics  # noqa: E402
-from jobs import DEFAULTS  # noqa: E402
 
 log = logging.getLogger("fig_percircuit")
 
@@ -83,7 +78,6 @@ QALM_CONFIGS = {
             n_branch=3,
             fixed_k=0,
             enqueue=0,
-            stall_rounds=DEFAULTS["qalm"]["stall_rounds"],
         ),
     ),
     "b": ("qalm_old", {}),
@@ -667,27 +661,17 @@ def main():
     ap.add_argument("--results", default="repro/results", help="dir with runs.csv")
     ap.add_argument("--out", default="repro/analysis/out", help="output dir")
     ap.add_argument(
-        "--legacy",
-        action="store_true",
-        help="use legacy.load_legacy() rows instead of --results",
-    )
-    ap.add_argument(
         "--qalm-config",
         choices=sorted(QALM_CONFIGS),
-        help="QALM configuration (default: a; b with --legacy)",
+        default="a",
+        help="QALM configuration (default: a)",
     )
     args = ap.parse_args()
     logging.basicConfig(
         level=logging.INFO, format="%(name)s: %(levelname)s: %(message)s"
     )
-    if args.legacy:
-        import legacy
-
-        rows = legacy.load_legacy()
-    else:
-        rows = metrics.load_runs(args.results)
-    config = args.qalm_config or ("b" if args.legacy else "a")
-    res = build(rows, args.out, config)
+    rows = metrics.load_runs(args.results)
+    res = build(rows, args.out, args.qalm_config)
     for line in summary_lines(res):
         print(line)
 

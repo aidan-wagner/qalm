@@ -9,9 +9,7 @@ circuits (e.g. 9symml_195 / sym9_193) that the paper counts separately.
 
 Native jobs also carry the campaign's `native_build` tag (when it is set), which
 is part of their key: re-running the native optimizers on a new build gives new
-ids while docker jobs keep theirs. A parameter added after the first campaign is
-left out of the key while it has the value every earlier job ran with
-(IMPLICIT_PARAMS), so plans of earlier campaigns keep their ids.
+ids while docker jobs keep theirs.
 """
 import csv
 import hashlib
@@ -26,11 +24,9 @@ REPRO = os.path.dirname(HERE)
 
 # Full default parameters per optimizer. Every job records all of them.
 DEFAULTS = {
-    # stall_rounds R (argv[17], build v2): with advancing k, a pass ends after R rounds without
-    # a new best circuit and the next k starts; 0 = only at the time limit (build v1 behaviour)
     "qalm": {"greedy_k": 2, "n_pool": 1, "n_branch": 3, "repeat_tol": 1.5, "exp_increase": 0,
              "strictly_reducing": 0, "local_only": 1, "two_way": 0, "fixed_k": 0,
-             "enqueue": 0, "cost_mode": 0, "stall_rounds": 0},
+             "enqueue": 0, "cost_mode": 0},
     # BEST_CONFIG = (1, 1, 3, 1.5, 0, 0, 1, 1, 0) of benchmark_guoq.py@b10f6ec, via test_qalm
     "qalm_old": {"n_pool": 1, "n_branch": 1, "k": 3, "repeat_tol": 1.5, "exp_increase": 0,
                  "strictly_reducing": 0, "local_only": 1, "preprocess": 1, "two_way": 0},
@@ -43,10 +39,8 @@ KIND = {"qalm": "native", "qalm_old": "native", "quartz": "native",
         "guoq": "docker", "queso": "docker", "voqc": "docker"}
 # Optimizers whose result does not depend on a seed get seed 0 only.
 SEEDED = {"qalm", "guoq", "queso"}
-# Parameters added after the first campaign, with the value every earlier job implicitly ran with.
-IMPLICIT_PARAMS = {"qalm": {"stall_rounds": 0}}
-# Runtime library of the native binaries when campaign.yaml has no `lib` (build v1).
-DEFAULT_LIB = "build/repro/libquartz_runtime.so"
+# Runtime library of the native binaries when campaign.yaml has no `lib`.
+DEFAULT_LIB = "build/libquartz_runtime.so"
 
 
 def load_yaml(path):
@@ -56,23 +50,25 @@ def load_yaml(path):
 
 def load_campaign(path=None):
     cfg = load_yaml(path or os.path.join(REPRO, "config", "campaign.yaml"))
-    if os.environ.get("REPRO_RUNS_DIR"):  # smoke tests use a separate runs dir
+    # repo_root defaults to this checkout; a relative runs_dir is relative to it
+    cfg["repo_root"] = os.path.abspath(cfg.get("repo_root") or os.path.dirname(REPRO))
+    if os.environ.get("REPRO_RUNS_DIR"):  # e.g. a separate runs dir for a test plan
         cfg["runs_dir"] = os.environ["REPRO_RUNS_DIR"]
+    cfg["runs_dir"] = os.path.join(cfg["repo_root"], cfg.get("runs_dir", "repro/runs"))
     return cfg
 
 
 def load_suite(name):
+    """Manifest rows of a suite; their paths (relative to the repository root) are made absolute."""
     with open(os.path.join(REPRO, "inputs", f"{name}.csv")) as f:
-        return list(csv.DictReader(f))
+        rows = list(csv.DictReader(f))
+    for r in rows:
+        r["path"] = os.path.join(os.path.dirname(REPRO), r["path"])
+    return rows
 
 
 def lib_path(campaign):
     return campaign.get("lib", DEFAULT_LIB)
-
-
-def full_params(optimizer, params):
-    """Parameters of a job or result row, completed with IMPLICIT_PARAMS (rows of earlier plans)."""
-    return dict(IMPLICIT_PARAMS.get(optimizer, {}), **params)
 
 
 def _as_list(v):
@@ -94,8 +90,7 @@ def argv_for(job, campaign):
         return [bins["qalm"], job["input_path"], c, T, str(p["greedy_k"]), str(p["n_pool"]),
                 str(p["n_branch"]), str(p["repeat_tol"]), str(p["exp_increase"]),
                 str(p["strictly_reducing"]), str(p["local_only"]), str(p["two_way"]), ecc,
-                str(p["fixed_k"]), str(p["enqueue"]), str(p["cost_mode"]), str(job["seed"]),
-                str(p.get("stall_rounds", 0))]
+                str(p["fixed_k"]), str(p["enqueue"]), str(p["cost_mode"]), str(job["seed"])]
     if opt == "qalm_old":
         return [bins["qalm_old"], job["input_path"], c, T, str(p["n_pool"]), str(p["n_branch"]),
                 str(p["k"]), str(p["repeat_tol"]), str(p["exp_increase"]),
@@ -115,8 +110,6 @@ def docker_args_for(job):
 
 def job_id(job):
     key = {k: job[k] for k in ("optimizer", "params", "circuit", "input_sha256", "budget_s", "seed")}
-    implicit = IMPLICIT_PARAMS.get(job["optimizer"], {})
-    key["params"] = {k: v for k, v in job["params"].items() if k not in implicit or v != implicit[k]}
     if "build" in job:
         key["build"] = job["build"]
     return hashlib.sha1(json.dumps(key, sort_keys=True).encode()).hexdigest()[:12]
@@ -153,8 +146,6 @@ def expand(config_paths, campaign=None):
                     if unknown:
                         raise ValueError(f"{path}: unknown params {unknown} for {opt}")
                     full.update(params)
-                    if opt == "qalm" and full["fixed_k"] > 0:
-                        full["stall_rounds"] = 0  # the driver ignores it with a fixed k
                     for seed in (seeds if opt in SEEDED else [0]):
                         for c in circuits:
                             job = {"optimizer": opt, "kind": KIND[opt], "params": full,

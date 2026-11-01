@@ -84,3 +84,8 @@ circuit_step*
 comparison_results/*
 past_results/*
 **/*.pkl
+# Build directories and downloaded benchmark circuits (repro/inputs/fetch_guoq_benchmarks.sh)
+/build/
+/benchmarks/
+# Paper checkout used during development
+/seach_and_rule_based_opt/

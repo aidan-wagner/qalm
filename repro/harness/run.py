@@ -1,7 +1,7 @@
 """Campaign CLI. Run from the repo root.
 
   python3 repro/harness/run.py plan [--configs repro/config/E*.yaml] [--experiments E3_greedy ...]
-                                    [--native-experiments P0_stall,...] [--campaign CAMPAIGN_YAML]
+                                    [--native-experiments E4_single_k,...] [--campaign CAMPAIGN_YAML]
                                     [--circuits a,b] [--budget-override 60] [--shard i/n] -o PLAN
   python3 repro/harness/run.py launch --plan PLAN [--max-running N]     (usually via launch_sched.sh)
   python3 repro/harness/run.py status

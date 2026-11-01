@@ -1,2 +1,0 @@
-circuit/nam_circs/adder_8.qasm
-circuit/nam_circs/barenco_tof_3.qasm

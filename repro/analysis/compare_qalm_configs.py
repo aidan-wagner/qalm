@@ -15,8 +15,7 @@ Outputs (in ``--out``, default ``repro/analysis/out``)
 
 Configurations (``tables.QALM_CONFIGS``), seed 0 unless stated otherwise:
     a  optimizer ``qalm`` with greedy_k=2, n_pool=1, n_branch=3, fixed_k=0,
-       enqueue=0 and the stall_rounds of ``jobs.DEFAULTS``: the configuration
-       the paper describes.
+       enqueue=0: the configuration the paper describes.
     b  optimizer ``qalm_old`` (``test_qalm 1 1 3 1.5 0 0 1 1 0``): the
        configuration of the previous main run.
 
@@ -95,8 +94,7 @@ import tables  # noqa: E402
 CONFIGS = ("a", "b")
 CONFIG_DESC = {
     "a": "optimizer `qalm`, greedy_k=2, n_pool=1, n_branch=3, fixed_k=0, "
-    f"enqueue=0, stall_rounds={tables.QALM_CONFIGS['a'][1]['stall_rounds']} "
-    "(the configuration the paper describes)",
+    "enqueue=0 (the configuration the paper describes)",
     "b": "optimizer `qalm_old` (`test_qalm 1 1 3 1.5 0 0 1 1 0`, the previous "
     "main run's configuration)",
 }

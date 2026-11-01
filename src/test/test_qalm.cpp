@@ -184,8 +184,9 @@ int main(int argc, char **argv) {
   }
 
   // exploration_steps counts every transformation of a branch, including the
-  // pool step. stall_rounds = 0: the search runs until the timeout. It is
-  // skipped when the greedy passes already used up the time.
+  // pool step. The search runs until the timeout (an empty queue is re-seeded
+  // with the best circuit); it is skipped when the greedy passes already used
+  // up the time.
   auto graph_optimized =
       time_is_up()
           ? graph
@@ -195,8 +196,7 @@ int main(int argc, char **argv) {
                 exploration_pool_size, exploration_steps, repeat_tolerance,
                 exploration_increase, only_do_local_transformations,
                 two_way_rotation_merging,
-                /*enqueue_intermediate=*/true, /*seed=*/0,
-                /*stall_rounds=*/0);
+                /*enqueue_intermediate=*/true, /*seed=*/0);
   std::cout << "Optimized graph:" << std::endl;
   std::cout << graph_optimized->to_qasm();
   return 0;
