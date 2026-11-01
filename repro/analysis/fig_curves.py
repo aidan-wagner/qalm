@@ -4,7 +4,7 @@ All curves use the 26-circuit suite S26, optimizer ``qalm`` and one time budget
 (``--budget``, default 3600 s). Every QALM parameter not named below keeps its
 default from ``repro/harness/jobs.py``.
 
-Figures (written to ``--out``), styled like the current paper figures:
+Figures (written to ``--out``), styled like the paper's figures:
     greedy_k_reduction.pdf       E3: greedy_k in {0,1,2,3} (N_pool=1, N_branch=3,
                                  fixed_k=0, enqueue=0, seed 0)
     single_k_gk0.pdf             E4: fixed_k 1..5 with greedy_k=0 (resp. 2), plus

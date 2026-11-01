@@ -1,1383 +1,4 @@
 {
- "claims": [
-  {
-   "check": "10^5 <= max/min original total gate count < 10^6",
-   "id": "five_orders_of_magnitude",
-   "inputs": [
-    "manifest:S248"
-   ],
-   "numbers": {
-    "log10_ratio": 5.186445,
-    "max_total": 768096,
-    "min_total": 5
-   },
-   "paper_location": "texts/5-eval.tex:39-40",
-   "provisional": false,
-   "result": true,
-   "section": "setup",
-   "wording": "The 248 circuits span five orders of magnitude in gate count."
-  },
-  {
-   "check": "no reported run hit its memory limit (OOM_CAP / JVM_OOM) and the largest RSS is below 32 GiB",
-   "id": "memory_never_limiting",
-   "inputs": [
-    "runs:all",
-    "config:campaign"
-   ],
-   "numbers": {
-    "max_rss_gib": 31.936798,
-    "status_counts": {
-     "JVM_OOM": 13,
-     "OK": 3654,
-     "OOM_CAP": 2,
-     "TIMEOUT": 7
-    }
-   },
-   "paper_location": "texts/5-eval.tex:85-86",
-   "provisional": false,
-   "result": false,
-   "section": "setup",
-   "wording": "Each optimizer is given one CPU core, 32 GiB of RAM"
-  },
-  {
-   "check": "every host snapshot in repro/env reports 'AMD EPYC 7763 64-Core Processor'",
-   "id": "cpu_model",
-   "inputs": [
-    "runs:all"
-   ],
-   "numbers": {
-    "hosts_in_runs_csv": [
-     "qalm"
-    ],
-    "models": [
-     "AMD EPYC 7763 64-Core Processor"
-    ]
-   },
-   "paper_location": "texts/5-eval.tex:84-85",
-   "provisional": false,
-   "result": true,
-   "section": "setup",
-   "wording": "All experiments were conducted on servers equipped with AMD EPYC 7763 processors."
-  },
-  {
-   "check": "the baseline the sentence means (GUOQ (2Q Gate)) is still the one with the lowest fidelity win-or-tie rate; the percentage is \\numWinFidGuoqTwoQ",
-   "id": "abstract_strongest_baseline_fidelity",
-   "inputs": [
-    "avg:qalm",
-    "avg:guoq_2q",
-    "avg:guoq_total",
-    "avg:queso_2q",
-    "avg:queso_total",
-    "avg:voqc",
-    "avg:quartz"
-   ],
-   "numbers": {
-    "fidelity_win_or_tie": {
-     "guoq_2q": 91.532258,
-     "guoq_total": 86.693548,
-     "quartz": 99.193548,
-     "queso_2q": 99.193548,
-     "queso_total": 98.790323,
-     "voqc": 100.0
-    },
-    "lowest": "guoq_total"
-   },
-   "paper_location": "texts/0-abstract.tex:38-40; texts/1-introduction.tex:134-137",
-   "provisional": false,
-   "result": false,
-   "section": "claims: abstract / introduction / main results",
-   "wording": "\\optName{} matches or exceeds the fidelity of the strongest baseline on $83.9\\%$ of these circuits"
-  },
-  {
-   "check": "GUOQ (2Q Gate) is the strongest baseline by per-circuit fidelity (lowest win-or-tie rate); other senses listed (the intro's 5.97% margin uses the highest mean total reduction, \\numStrongestTotalRedBaseline)",
-   "id": "gate_scatter_strongest_baseline",
-   "inputs": [
-    "avg:qalm",
-    "avg:guoq_2q",
-    "avg:guoq_total",
-    "avg:queso_2q",
-    "avg:queso_total",
-    "avg:voqc",
-    "avg:quartz"
-   ],
-   "numbers": {
-    "highest_mean_cx_red": "guoq_2q",
-    "highest_mean_fidelity": "guoq_total",
-    "highest_mean_total_red": "voqc",
-    "lowest_fidelity_win_or_tie": "guoq_total"
-   },
-   "paper_location": "figtex/gate_scatter.tex:9-11; texts/1-introduction.tex:124-127",
-   "provisional": false,
-   "result": false,
-   "section": "claims: abstract / introduction / main results",
-   "wording": "\\guoq{} with two-qubit gate optimization mode, which is the strongest baseline in our evaluation"
-  },
-  {
-   "check": "QALM (1 h) mean total reduction > every baseline's; margin \\numTotalRedMarginOneHour points",
-   "id": "intro_outperforms_all_total",
-   "inputs": [
-    "avg:qalm",
-    "avg:guoq_2q",
-    "avg:guoq_total",
-    "avg:queso_2q",
-    "avg:queso_total",
-    "avg:voqc",
-    "avg:quartz"
-   ],
-   "numbers": {
-    "margin_pp": 11.152729,
-    "strongest_by_total_red": "voqc"
-   },
-   "paper_location": "texts/0-abstract.tex:34-37; texts/1-introduction.tex:121-122; texts/7-conclusion.tex:20-22",
-   "provisional": false,
-   "result": true,
-   "section": "claims: abstract / introduction / main results",
-   "wording": "\\optName{} significantly outperforms all existing rule-based and search-based optimizers (on total gate count reduction)"
-  },
-  {
-   "check": "total_red(qalm) - max baseline total_red > 0 (the strongest baseline by total reduction must be named, or 'strongest' reworded: the abstract uses the per-circuit fidelity sense)",
-   "id": "intro_margin_positive_qalm",
-   "inputs": [
-    "avg:qalm",
-    "avg:guoq_2q",
-    "avg:guoq_total",
-    "avg:queso_2q",
-    "avg:queso_total",
-    "avg:voqc",
-    "avg:quartz"
-   ],
-   "numbers": {
-    "margin_pp": 11.152729,
-    "same_as_fidelity_sense": false,
-    "strongest_by_total_red": "voqc"
-   },
-   "paper_location": "texts/1-introduction.tex:123-125",
-   "provisional": false,
-   "result": true,
-   "section": "claims: abstract / introduction / main results",
-   "wording": "\\optName{} achieves 5.97\\% more gate count reduction than the strongest baseline"
-  },
-  {
-   "check": "total_red(qalm_1min) - max baseline total_red > 0 (the strongest baseline by total reduction must be named, or 'strongest' reworded: the abstract uses the per-circuit fidelity sense)",
-   "id": "intro_margin_positive_qalm_1min",
-   "inputs": [
-    "avg:qalm_1min",
-    "avg:guoq_2q",
-    "avg:guoq_total",
-    "avg:queso_2q",
-    "avg:queso_total",
-    "avg:voqc",
-    "avg:quartz"
-   ],
-   "numbers": {
-    "margin_pp": 9.860256,
-    "same_as_fidelity_sense": false,
-    "strongest_by_total_red": "voqc"
-   },
-   "paper_location": "texts/1-introduction.tex:125-127",
-   "provisional": false,
-   "result": true,
-   "section": "claims: abstract / introduction / main results",
-   "wording": "\\optName{} achieves 4.98\\% more gate count reduction than the strongest baseline"
-  },
-  {
-   "check": "every one of the 15 win-or-tie rates >= 95% ('nearly every'); lowest is \\numWinMinOthers",
-   "id": "intro_nearly_every_circuit",
-   "inputs": [
-    "avg:qalm",
-    "avg:queso_2q",
-    "avg:queso_total",
-    "avg:voqc",
-    "avg:quartz",
-    "avg:guoq_total"
-   ],
-   "numbers": {
-    "below_95": [
-     "guoq_total/cx",
-     "guoq_total/fidelity"
-    ],
-    "win_or_tie": {
-     "guoq_total/cx": 81.048387,
-     "guoq_total/fidelity": 86.693548,
-     "guoq_total/total": 95.16129,
-     "quartz/cx": 96.774194,
-     "quartz/fidelity": 99.193548,
-     "quartz/total": 99.596774,
-     "queso_2q/cx": 96.774194,
-     "queso_2q/fidelity": 99.193548,
-     "queso_2q/total": 99.596774,
-     "queso_total/cx": 96.370968,
-     "queso_total/fidelity": 98.790323,
-     "queso_total/total": 99.596774,
-     "voqc/cx": 97.580645,
-     "voqc/fidelity": 100.0,
-     "voqc/total": 100.0
-    }
-   },
-   "paper_location": "texts/1-introduction.tex:130-135",
-   "provisional": false,
-   "result": false,
-   "section": "claims: abstract / introduction / main results",
-   "wording": "Compared with \\queso{} (both modes), \\voqc{}, \\quartz{}, and \\guoq{} (total gate mode), \\optName{} wins or ties on nearly every circuit across all three metrics"
-  },
-  {
-   "check": "|cx_red(QALM) - cx_red(GUOQ 2Q)| <= 1 point",
-   "id": "guoq2q_cx_on_par",
-   "inputs": [
-    "avg:qalm",
-    "avg:guoq_2q"
-   ],
-   "numbers": {
-    "cx_win_or_tie": 55.241935,
-    "diff_pp": 0.804849,
-    "guoq_2q_cx_red": 24.784105,
-    "qalm_cx_red": 25.588954
-   },
-   "paper_location": "texts/1-introduction.tex:135-136; texts/5-eval.tex:115-117",
-   "provisional": false,
-   "result": true,
-   "section": "claims: abstract / introduction / main results",
-   "wording": "the two-qubit gate reduction is on par with \\guoq{} (2Q mode) / nearly identical $CX$ reduction ($24.61\\%$ vs. $25.41\\%$)"
-  },
-  {
-   "check": "total_red(QALM) - total_red(GUOQ 2Q) >= 10 points",
-   "id": "guoq2q_total_dramatically_better",
-   "inputs": [
-    "avg:qalm",
-    "avg:guoq_2q"
-   ],
-   "numbers": {
-    "diff_pp": 58.163188,
-    "guoq_2q_total_red": -1.965273,
-    "qalm_total_red": 56.197915,
-    "total_win_or_tie": 95.16129
-   },
-   "paper_location": "texts/1-introduction.tex:136-137; texts/5-eval.tex:117-118",
-   "provisional": false,
-   "result": true,
-   "section": "claims: abstract / introduction / main results",
-   "wording": "dramatically better total gate reduction ($52.34\\%$ vs. $-2.63\\%$) / significantly lower total gate count"
-  },
-  {
-   "check": "GUOQ (2Q) has more gates than the input on >= 10% of circuits (\\numNegTotalGuoqTwoQ circuits)",
-   "id": "guoq2q_negative_on_many",
-   "inputs": [
-    "avg:guoq_2q"
-   ],
-   "numbers": {
-    "n": 248,
-    "n_negative": 111
-   },
-   "paper_location": "texts/5-eval.tex:118-120",
-   "provisional": false,
-   "result": true,
-   "section": "claims: abstract / introduction / main results",
-   "wording": "\\guoq{}'s resynthesis ... yielding negative total gate reduction on many circuits"
-  },
-  {
-   "check": "no QALM (1 h) output has more gates than its input",
-   "id": "qalm_never_negative",
-   "inputs": [
-    "avg:qalm"
-   ],
-   "numbers": {
-    "n_negative": 0
-   },
-   "paper_location": "texts/5-eval.tex:120",
-   "provisional": false,
-   "result": true,
-   "section": "claims: abstract / introduction / main results",
-   "wording": "whereas \\optName{} avoids this entirely"
-  },
-  {
-   "check": "0 <= total_red(QALM) - total_red(VOQC) <= 10 points",
-   "id": "voqc_similar_total",
-   "inputs": [
-    "avg:qalm",
-    "avg:voqc"
-   ],
-   "numbers": {
-    "diff_pp": 11.152729,
-    "qalm": 56.197915,
-    "voqc": 45.045187
-   },
-   "paper_location": "texts/5-eval.tex:121-122",
-   "provisional": false,
-   "result": false,
-   "section": "claims: abstract / introduction / main results",
-   "wording": "Against \\voqc{} ... both achieve similar total gate reductions ($52.34\\%$ vs. $46.37\\%$)"
-  },
-  {
-   "check": "cx_red(QALM) - cx_red(VOQC) >= 10 points",
-   "id": "voqc_much_greater_cx",
-   "inputs": [
-    "avg:qalm",
-    "avg:voqc"
-   ],
-   "numbers": {
-    "diff_pp": 21.526756,
-    "qalm": 25.588954,
-    "voqc": 4.062198
-   },
-   "paper_location": "texts/5-eval.tex:122-124",
-   "provisional": false,
-   "result": true,
-   "section": "claims: abstract / introduction / main results",
-   "wording": "\\optName{} yields significantly greater $CX$ reduction ($24.61\\%$ vs. $4.24\\%$)"
-  },
-  {
-   "check": "mean fidelity QALM > VOQC and > GUOQ (2Q)",
-   "id": "fidelity_beats_voqc_guoq2q",
-   "inputs": [
-    "avg:qalm",
-    "avg:voqc",
-    "avg:guoq_2q"
-   ],
-   "numbers": {
-    "guoq_2q": 0.347604,
-    "qalm": 0.40166,
-    "voqc": 0.337306
-   },
-   "paper_location": "texts/5-eval.tex:124-127",
-   "provisional": false,
-   "result": true,
-   "section": "claims: abstract / introduction / main results",
-   "wording": "\\optName{} (average $0.3864$) outperforms both \\voqc{} ($0.3428$) and \\guoq{} in two-qubit mode ($0.3475$)"
-  },
-  {
-   "check": "QALM (1 h) mean fidelity >= every other column of the table (incl. QALM 1 min)",
-   "id": "table_qalm_best_fidelity",
-   "inputs": [
-    "avg:qalm",
-    "avg:qalm_1min",
-    "avg:guoq_2q",
-    "avg:guoq_total",
-    "avg:queso_2q",
-    "avg:queso_total",
-    "avg:voqc",
-    "avg:quartz"
-   ],
-   "numbers": {
-    "best_other": "qalm_1min",
-    "qalm": 0.40166,
-    "values": {
-     "guoq_2q": 0.347604,
-     "guoq_total": 0.369247,
-     "qalm_1min": 0.389826,
-     "quartz": 0.351387,
-     "queso_2q": 0.334827,
-     "queso_total": 0.354356,
-     "voqc": 0.337306
-    }
-   },
-   "paper_location": "figtex/averages_table.tex:14-19 (bold); texts/5-eval.tex:124-127",
-   "provisional": false,
-   "result": true,
-   "section": "claims: abstract / introduction / main results",
-   "wording": "Fidelity & \\textbf{0.3864} & ... (QALM column bold: the highest average fidelity); text: 'as it balances single- and two-qubit gate reduction most effectively'"
-  },
-  {
-   "check": "QALM (1 h) mean total_red >= every other column of the table (incl. QALM 1 min)",
-   "id": "table_qalm_best_total_red",
-   "inputs": [
-    "avg:qalm",
-    "avg:qalm_1min",
-    "avg:guoq_2q",
-    "avg:guoq_total",
-    "avg:queso_2q",
-    "avg:queso_total",
-    "avg:voqc",
-    "avg:quartz"
-   ],
-   "numbers": {
-    "best_other": "qalm_1min",
-    "qalm": 56.197915,
-    "values": {
-     "guoq_2q": -1.965273,
-     "guoq_total": 44.396286,
-     "qalm_1min": 54.905442,
-     "quartz": 39.19923,
-     "queso_2q": 27.342087,
-     "queso_total": 38.826641,
-     "voqc": 45.045187
-    }
-   },
-   "paper_location": "figtex/averages_table.tex:14-19 (bold); texts/5-eval.tex:124-127",
-   "provisional": false,
-   "result": true,
-   "section": "claims: abstract / introduction / main results",
-   "wording": "Total Gate Reduction (\\%) & \\textbf{52.34} & ... (QALM column bold: the highest total gate reduction)"
-  },
-  {
-   "check": "QALM mean > baseline mean for fidelity, cx_red and total_red, for each of the four",
-   "id": "remaining_baselines_all_three",
-   "inputs": [
-    "avg:qalm",
-    "avg:queso_2q",
-    "avg:queso_total",
-    "avg:quartz",
-    "avg:guoq_total"
-   ],
-   "numbers": {
-    "guoq_total": {
-     "cx_red": 20.062838,
-     "fidelity": 0.369247,
-     "total_red": 44.396286
-    },
-    "qalm": {
-     "cx_red": 25.588954,
-     "fidelity": 0.40166,
-     "total_red": 56.197915
-    },
-    "quartz": {
-     "cx_red": 12.036372,
-     "fidelity": 0.351387,
-     "total_red": 39.19923
-    },
-    "queso_2q": {
-     "cx_red": 12.927236,
-     "fidelity": 0.334827,
-     "total_red": 27.342087
-    },
-    "queso_total": {
-     "cx_red": 12.951303,
-     "fidelity": 0.354356,
-     "total_red": 38.826641
-    }
-   },
-   "paper_location": "texts/5-eval.tex:129-132",
-   "provisional": false,
-   "result": true,
-   "section": "claims: abstract / introduction / main results",
-   "wording": "Against the remaining baselines, \\queso{} (in both optimization modes), \\quartz{}, and \\guoq{} in total gate optimization mode, \\optName{} achieves better results on all three metrics"
-  },
-  {
-   "check": "strict fidelity win > 50% against each of the six baseline columns",
-   "id": "majority_strict_fidelity",
-   "inputs": [
-    "avg:qalm",
-    "avg:guoq_2q",
-    "avg:guoq_total",
-    "avg:queso_2q",
-    "avg:queso_total",
-    "avg:voqc",
-    "avg:quartz"
-   ],
-   "numbers": {
-    "strict_fidelity_win_pct": {
-     "guoq_2q": 88.709677,
-     "guoq_total": 75.806452,
-     "quartz": 91.935484,
-     "queso_2q": 94.354839,
-     "queso_total": 92.741935,
-     "voqc": 95.564516
-    }
-   },
-   "paper_location": "texts/5-eval.tex:105-109",
-   "provisional": false,
-   "result": true,
-   "section": "claims: abstract / introduction / main results",
-   "wording": "\\optName{} achieves higher fidelity than all four baselines on the majority of circuits"
-  },
-  {
-   "check": "relative fidelity drop < 1% AND cx_red drop < 1 point AND total_red drop < 1 point",
-   "id": "one_minute_degrades_lt_1pct",
-   "inputs": [
-    "avg:qalm",
-    "avg:qalm_1min"
-   ],
-   "numbers": {
-    "cx_red_pp": 3.881197,
-    "each_lt_1": {
-     "cx_red_pp": false,
-     "fid_rel_pct": false,
-     "total_red_pp": false
-    },
-    "fid_abs": 0.011834,
-    "fid_rel_pct": 2.946216,
-    "total_red_pp": 1.292473
-   },
-   "paper_location": "texts/5-eval.tex:138-140",
-   "provisional": false,
-   "result": false,
-   "section": "claims: optimization efficiency (one minute)",
-   "wording": "reducing the time budget by a factor of $60$ degrades \\optName{}'s average fidelity and gate reduction by less than $1\\%$"
-  },
-  {
-   "check": "QALM (1 min) mean fidelity > max baseline fidelity AND total_red > max baseline total_red",
-   "id": "one_minute_beats_every_baseline",
-   "inputs": [
-    "avg:qalm_1min",
-    "avg:guoq_2q",
-    "avg:guoq_total",
-    "avg:queso_2q",
-    "avg:queso_total",
-    "avg:voqc",
-    "avg:quartz"
-   ],
-   "numbers": {
-    "max_baseline": {
-     "cx_red": 24.784105,
-     "fidelity": 0.369247,
-     "total_red": 45.045187
-    },
-    "qalm_1min": {
-     "cx_red": 21.707757,
-     "fidelity": 0.389826,
-     "total_red": 54.905442
-    }
-   },
-   "paper_location": "texts/5-eval.tex:140-141",
-   "provisional": false,
-   "result": true,
-   "section": "claims: optimization efficiency (one minute)",
-   "wording": "yet it still surpasses the one-hour fidelity and total gate reduction of every baseline"
-  },
-  {
-   "check": "QALM (1 min) mean > max over GUOQ (both), QUESO (both), Quartz, for all three metrics",
-   "id": "conclusion_one_minute_beats_search_based",
-   "inputs": [
-    "avg:qalm_1min",
-    "avg:guoq_2q",
-    "avg:guoq_total",
-    "avg:queso_2q",
-    "avg:queso_total",
-    "avg:quartz"
-   ],
-   "numbers": {
-    "max_search_based": {
-     "cx_red": 24.784105,
-     "fidelity": 0.369247,
-     "total_red": 44.396286
-    },
-    "per_metric": {
-     "cx_red": false,
-     "fidelity": true,
-     "total_red": true
-    },
-    "qalm_1min": {
-     "cx_red": 21.707757,
-     "fidelity": 0.389826,
-     "total_red": 54.905442
-    }
-   },
-   "paper_location": "texts/7-conclusion.tex:23-24",
-   "provisional": false,
-   "result": false,
-   "section": "claims: optimization efficiency (one minute)",
-   "wording": "it surpasses the one-hour results of all search-based baselines within the first minute"
-  },
-  {
-   "check": "exactly one circuit where QALM is not (co-)lowest, and Quartz w/ preprocessing is (one of) the lowest there",
-   "id": "ete_lowest_all_but_one",
-   "inputs": [
-    "ete:voqc",
-    "ete:queso",
-    "ete:guoq",
-    "ete:quartz_nopp",
-    "ete:quartz_pp",
-    "ete:qalm"
-   ],
-   "numbers": {
-    "n_best": 22,
-    "not_best": {
-     "gf2^4_mult": [
-      "guoq"
-     ],
-     "gf2^5_mult": [
-      "guoq"
-     ],
-     "gf2^6_mult": [
-      "guoq"
-     ],
-     "qcla_adder_10": [
-      "guoq"
-     ]
-    }
-   },
-   "paper_location": "texts/5-eval.tex:155-159",
-   "provisional": false,
-   "result": false,
-   "section": "claims: Quartz's benchmark (tab:eval_end_to_end)",
-   "wording": "\\optName{} achieves the lowest or equally lowest gate count on all of them except for one circuit compared to \\quartz with preprocessing"
-  },
-  {
-   "check": "QALM gate count > Quartz w/ PP on exactly one circuit",
-   "id": "ete_matches_quartz_pp_all_but_one",
-   "inputs": [
-    "ete:qalm",
-    "ete:quartz_pp"
-   ],
-   "numbers": {
-    "better": 20,
-    "equal": 6,
-    "worse": 0
-   },
-   "paper_location": "texts/5-eval.tex:169-172",
-   "provisional": false,
-   "result": false,
-   "section": "claims: Quartz's benchmark (tab:eval_end_to_end)",
-   "wording": "\\optName{} still matches or outperforms it [\\quartz{} with preprocessing] on all but one circuit"
-  },
-  {
-   "check": "QALM <= Quartz w/ PP on more than half of the 26 circuits",
-   "id": "ete_subsumes_preprocessing",
-   "inputs": [
-    "ete:qalm",
-    "ete:quartz_pp"
-   ],
-   "numbers": {
-    "better": 20,
-    "equal": 6,
-    "worse": 0
-   },
-   "paper_location": "texts/5-eval.tex:174-176",
-   "provisional": false,
-   "result": true,
-   "section": "claims: Quartz's benchmark (tab:eval_end_to_end)",
-   "wording": "typically subsumes the optimizations found by \\quartz{}'s preprocessing pass"
-  },
-  {
-   "check": "every geomean delta (QALM - baseline, unrounded) > 0",
-   "id": "ete_outperforms_by_positive",
-   "inputs": [
-    "ete:voqc",
-    "ete:queso",
-    "ete:guoq",
-    "ete:quartz_nopp",
-    "ete:quartz_pp",
-    "ete:qalm"
-   ],
-   "note": "the deltas are differences of geometric-mean reductions (points), not arithmetic means of per-circuit differences",
-   "numbers": {
-    "deltas_pp": {
-     "guoq": 5.197081,
-     "quartz_nopp": 17.131088,
-     "quartz_pp": 4.133292,
-     "queso": 9.261661,
-     "voqc": 6.905613
-    }
-   },
-   "paper_location": "texts/5-eval.tex:159-164",
-   "provisional": false,
-   "result": true,
-   "section": "claims: Quartz's benchmark (tab:eval_end_to_end)",
-   "wording": "Compared to the purely rule-based \\voqc{}, \\optName{} reduces gate count by an additional $7.3\\%$ ...; outperforms \\quartz{} (without preprocessing) by $17.8\\%$, \\queso{} by $10.4\\%$, \\guoq{} by $5.1\\%$, and \\quartz{} (with preprocessing) by $4.6\\%$"
-  },
-  {
-   "check": "QALM has the highest geomean reduction of the six columns",
-   "id": "ete_consistently_better",
-   "inputs": [
-    "ete:voqc",
-    "ete:queso",
-    "ete:guoq",
-    "ete:quartz_nopp",
-    "ete:quartz_pp",
-    "ete:qalm"
-   ],
-   "numbers": {
-    "geomean_red": {
-     "guoq": 28.661825,
-     "qalm": 33.858905,
-     "quartz_nopp": 16.727817,
-     "quartz_pp": 29.725614,
-     "queso": 24.597244,
-     "voqc": 26.953292
-    },
-    "labels": {
-     "guoq": "\\guoq{}",
-     "qalm": "\\optName{}",
-     "quartz_nopp": "\\quartz{} w/o preprocessing",
-     "quartz_pp": "\\quartz{} w/ preprocessing",
-     "queso": "\\queso{}",
-     "voqc": "\\voqc{}"
-    }
-   },
-   "paper_location": "texts/5-eval.tex:172-175",
-   "provisional": false,
-   "result": true,
-   "section": "claims: Quartz's benchmark (tab:eval_end_to_end)",
-   "wording": "yields consistently better circuit quality than either approach alone"
-  },
-  {
-   "check": "|final(greedy_k=2) - final(greedy_k=0)| < 0.5 points",
-   "id": "greedy_final_diff_lt_half",
-   "inputs": [
-    "curve:greedy_k:greedy_k=0",
-    "curve:greedy_k:greedy_k=2"
-   ],
-   "numbers": {
-    "diff_pp": 0.659073,
-    "gk0": 32.248765,
-    "gk2": 32.907838,
-    "noise": {
-     "critical": 2.100922,
-     "resolved": true,
-     "sd_run_to_run": 0.091002,
-     "se_diff": 0.128697,
-     "z": 5.121135
-    }
-   },
-   "paper_location": "texts/5-eval.tex:319-322",
-   "provisional": false,
-   "result": false,
-   "section": "claims: greedy mode",
-   "wording": "the final gate count reductions differ by less than 0.5\\% on average (32.80\\% without greedy mode versus 33.27\\% with greedy mode for $k\\le 2$)"
-  },
-  {
-   "check": "final(greedy_k=2) > final(greedy_k=0)",
-   "id": "greedy_gk2_above_gk0",
-   "inputs": [
-    "curve:greedy_k:greedy_k=0",
-    "curve:greedy_k:greedy_k=2"
-   ],
-   "numbers": {
-    "diff_pp": 0.659073,
-    "noise": {
-     "critical": 2.100922,
-     "resolved": true,
-     "sd_run_to_run": 0.091002,
-     "se_diff": 0.128697,
-     "z": 5.121135
-    }
-   },
-   "paper_location": "texts/5-eval.tex:321-322",
-   "provisional": false,
-   "result": true,
-   "section": "claims: greedy mode",
-   "wording": "32.80\\% without greedy mode versus 33.27\\% with greedy mode for $k\\le 2$"
-  },
-  {
-   "check": "both greedy_k=0 and greedy_k=1 reach 32% within the budget, and the speedup t(gk0)/t(gk1) >= 2",
-   "id": "greedy_k1_reaches_threshold_much_faster",
-   "inputs": [
-    "curve:greedy_k:greedy_k=0",
-    "curve:greedy_k:greedy_k=1"
-   ],
-   "numbers": {
-    "speedup": 13.061053,
-    "suggested_max_threshold": 32,
-    "threshold_pct": 32.0,
-    "time_s": {
-     "0": 1489.378,
-     "1": 114.032,
-     "2": 196.777,
-     "3": 149.349
-    }
-   },
-   "paper_location": "texts/5-eval.tex:322-326",
-   "provisional": false,
-   "result": true,
-   "section": "claims: greedy mode",
-   "wording": "the speed of convergence varies substantially ... takes 968 seconds to reach ... 32\\% ... Enabling the greedy mode for $k=1$ alone reaches the same threshold in 89 seconds, an 11$\\times$ speedup"
-  },
-  {
-   "check": "mean greedy-phase end increases: greedy_k=1 < 2 < 3",
-   "id": "greedy_phase_grows_with_k",
-   "inputs": [
-    "curve:greedy_k:greedy_k=1",
-    "curve:greedy_k:greedy_k=2",
-    "curve:greedy_k:greedy_k=3"
-   ],
-   "numbers": {
-    "mean_end_s": {
-     "1": 7.261231,
-     "2": 106.623769,
-     "3": 839.944885
-    }
-   },
-   "paper_location": "texts/5-eval.tex:328-331",
-   "provisional": false,
-   "result": true,
-   "section": "claims: greedy mode",
-   "wording": "When the greedy mode is only enabled for $k=1$, the greedy phase takes 5.5 seconds on average. For $k \\le 2$, it takes 82 seconds ... $k \\le 3$ pushes the greedy phase to 724 seconds"
-  },
-  {
-   "check": "at least one circuit does not finish the greedy_k=3 greedy phase within the budget (count and list are macros)",
-   "id": "greedy_k3_some_not_finished",
-   "inputs": [
-    "curve:greedy_k:greedy_k=3"
-   ],
-   "numbers": {
-    "budget_s": 3600,
-    "circuits": [
-     "gf2^8_mult",
-     "gf2^9_mult",
-     "gf2^10_mult"
-    ],
-    "n_not_finished": 3,
-    "same_as_paper": false
-   },
-   "paper_location": "texts/5-eval.tex:331-333",
-   "provisional": false,
-   "result": true,
-   "section": "claims: greedy mode",
-   "wording": "two of the 26 circuits (\\texttt{gf2\\^{}9\\_mult} and \\texttt{gf2\\^{}10\\_mult}) fail to finish the greedy phase within the one-hour budget"
-  },
-  {
-   "check": "final(greedy_k=3) < final(greedy_k=2)",
-   "id": "greedy_k3_below_k2",
-   "inputs": [
-    "curve:greedy_k:greedy_k=2",
-    "curve:greedy_k:greedy_k=3"
-   ],
-   "numbers": {
-    "diff_pp": 0.116693,
-    "gk2": 32.907838,
-    "gk3": 33.024531,
-    "noise": {
-     "critical": 2.100922,
-     "resolved": false,
-     "sd_run_to_run": 0.091002,
-     "se_diff": 0.128697,
-     "z": 0.906728
-    }
-   },
-   "paper_location": "texts/5-eval.tex:334-336",
-   "provisional": false,
-   "result": false,
-   "section": "claims: greedy mode",
-   "wording": "The resulting final reduction (33.12\\%) is also slightly below the $k \\le 2$ setting (33.27\\%)"
-  },
-  {
-   "check": "greedy_k=2 has the highest final reduction of greedy_k in {0,1,2,3}",
-   "id": "greedy_k2_best_of_four",
-   "inputs": [
-    "curve:greedy_k:greedy_k=0",
-    "curve:greedy_k:greedy_k=1",
-    "curve:greedy_k:greedy_k=2",
-    "curve:greedy_k:greedy_k=3"
-   ],
-   "numbers": {
-    "best": 1,
-    "finals": {
-     "0": 32.248765,
-     "1": 33.12216,
-     "2": 32.907838,
-     "3": 33.024531
-    },
-    "margin_to_second_pp": 0.097629,
-    "noise": {
-     "critical": 2.100922,
-     "resolved": false,
-     "sd_run_to_run": 0.091002,
-     "se_diff": 0.128697,
-     "z": 0.758598
-    }
-   },
-   "paper_location": "texts/5-eval.tex:337-339",
-   "provisional": false,
-   "result": false,
-   "section": "claims: greedy mode",
-   "wording": "With a time limit of one hour, enabling greedy mode for $k \\le 2$ strikes a balance"
-  },
-  {
-   "check": "final(k) > final(k+1) for k = 1..4 (greedy_k=0)",
-   "id": "fixed_k_gk0_monotone",
-   "inputs": [
-    "curve:single_k_gk0:k=1",
-    "curve:single_k_gk0:k=2",
-    "curve:single_k_gk0:k=3",
-    "curve:single_k_gk0:k=4",
-    "curve:single_k_gk0:k=5"
-   ],
-   "numbers": {
-    "finals": {
-     "1": 31.489995,
-     "2": 32.36487,
-     "3": 31.368491,
-     "4": 31.380673,
-     "5": 31.235767
-    },
-    "smallest_step_noise": {
-     "critical": 2.100922,
-     "resolved": true,
-     "sd_run_to_run": 0.091002,
-     "se_diff": 0.128697,
-     "z": -6.797967
-    },
-    "steps_pp": {
-     "k1-k2": -0.874875,
-     "k2-k3": 0.996379,
-     "k3-k4": -0.012182,
-     "k4-k5": 0.144906
-    }
-   },
-   "paper_location": "texts/5-eval.tex:365-368",
-   "provisional": false,
-   "result": false,
-   "section": "claims: fixed exploration depth",
-   "wording": "Without the greedy mode (\\Cref{fig:single_k_gk0}), the final average reduction decreases monotonically with $k$, from 32.83\\% at $k=1$ down to 31.46\\% at $k=5$"
-  },
-  {
-   "check": "argmax over fixed k of final(greedy_k=2) is 3",
-   "id": "fixed_k_gk2_k3_best",
-   "inputs": [
-    "curve:single_k_gk2:k=1",
-    "curve:single_k_gk2:k=2",
-    "curve:single_k_gk2:k=3",
-    "curve:single_k_gk2:k=4",
-    "curve:single_k_gk2:k=5"
-   ],
-   "numbers": {
-    "best_k": 2,
-    "finals": {
-     "1": 31.59557,
-     "2": 33.170967,
-     "3": 32.907838,
-     "4": 33.05768,
-     "5": 32.778425
-    },
-    "margin_to_second_pp": 0.113286,
-    "noise": {
-     "critical": 2.100922,
-     "resolved": false,
-     "sd_run_to_run": 0.091002,
-     "se_diff": 0.128697,
-     "z": 0.88026
-    }
-   },
-   "paper_location": "texts/5-eval.tex:372-375",
-   "provisional": false,
-   "result": false,
-   "section": "claims: fixed exploration depth",
-   "wording": "With the greedy mode enabled for $k \\le 2$ and a fixed $k$ after that ..., $k=3$ becomes the best single fixed depth (33.11\\%)"
-  },
-  {
-   "check": "the best fixed k differs between greedy_k=0 and greedy_k=2",
-   "id": "fixed_k_ordering_shifts",
-   "inputs": [
-    "curve:single_k_gk0:k=1",
-    "curve:single_k_gk0:k=2",
-    "curve:single_k_gk0:k=3",
-    "curve:single_k_gk0:k=4",
-    "curve:single_k_gk0:k=5",
-    "curve:single_k_gk2:k=1",
-    "curve:single_k_gk2:k=2",
-    "curve:single_k_gk2:k=3",
-    "curve:single_k_gk2:k=4",
-    "curve:single_k_gk2:k=5"
-   ],
-   "numbers": {
-    "best_k_gk0": 2,
-    "best_k_gk2": 2
-   },
-   "paper_location": "texts/5-eval.tex:373-374",
-   "provisional": false,
-   "result": false,
-   "section": "claims: fixed exploration depth",
-   "wording": "the ordering shifts"
-  },
-  {
-   "check": "advancing-k final > every fixed-k final (greedy_k=0)",
-   "id": "fixed_k_gk0_none_matches_advancing",
-   "inputs": [
-    "curve:single_k_gk0:k=1",
-    "curve:single_k_gk0:k=2",
-    "curve:single_k_gk0:k=3",
-    "curve:single_k_gk0:k=4",
-    "curve:single_k_gk0:k=5",
-    "curve:single_k_gk0:advancing_k"
-   ],
-   "note": "the sentence is in the greedy_k=2 paragraph; greedy_k=0 is listed because the sentence can be read as general",
-   "numbers": {
-    "advancing": 32.248765,
-    "best_fixed": 32.36487,
-    "gap_pp": -0.116105,
-    "noise": {
-     "critical": 2.100922,
-     "resolved": false,
-     "sd_run_to_run": 0.091002,
-     "se_diff": 0.128697,
-     "z": -0.902158
-    }
-   },
-   "paper_location": "texts/5-eval.tex:377-379",
-   "provisional": false,
-   "result": false,
-   "section": "claims: fixed exploration depth",
-   "wording": "Note that no single fixed $k$ matches the advancing-$k$ baseline (33.27\\%)"
-  },
-  {
-   "check": "advancing-k final > every fixed-k final (greedy_k=2)",
-   "id": "fixed_k_gk2_none_matches_advancing",
-   "inputs": [
-    "curve:single_k_gk2:k=1",
-    "curve:single_k_gk2:k=2",
-    "curve:single_k_gk2:k=3",
-    "curve:single_k_gk2:k=4",
-    "curve:single_k_gk2:k=5",
-    "curve:single_k_gk2:advancing_k"
-   ],
-   "numbers": {
-    "advancing": 32.907838,
-    "best_fixed": 33.170967,
-    "gap_pp": -0.263129,
-    "noise": {
-     "critical": 2.100922,
-     "resolved": false,
-     "sd_run_to_run": 0.091002,
-     "se_diff": 0.128697,
-     "z": -2.044565
-    }
-   },
-   "paper_location": "texts/5-eval.tex:377-379",
-   "provisional": false,
-   "result": false,
-   "section": "claims: fixed exploration depth",
-   "wording": "Note that no single fixed $k$ matches the advancing-$k$ baseline (33.27\\%)"
-  },
-  {
-   "check": "spread of the seed-averaged N_pool finals < Tukey HSD (\\numSeedHsd) from the pooled seed SD",
-   "id": "npool_no_meaningful_effect",
-   "inputs": [
-    "curve:N_pool:N_pool=1",
-    "curve:N_pool:N_pool=2",
-    "curve:N_pool:N_pool=3",
-    "curve:N_pool:N_pool=4",
-    "curve:N_pool:N_pool=5",
-    "curve:N_branch:N_branch=1",
-    "curve:N_branch:N_branch=2",
-    "curve:N_branch:N_branch=3",
-    "curve:N_branch:N_branch=4",
-    "curve:N_branch:N_branch=5"
-   ],
-   "numbers": {
-    "anova_p": 0.008893,
-    "finals": {
-     "1": 32.935201,
-     "2": 32.649654,
-     "3": 32.680379,
-     "4": 32.681366,
-     "5": 32.693241
-    },
-    "hsd_pp": 0.224677,
-    "sd_pooled": 0.091002,
-    "spread_pp": 0.285547
-   },
-   "paper_location": "texts/5-eval.tex:416-420; texts/5-eval.tex:410-411 (caption)",
-   "provisional": false,
-   "result": false,
-   "section": "claims: exploration strategy",
-   "wording": "Pool size $N_\\text{pool}$ has no meaningful effect on optimization quality: ... ranges from 33.03\\% to 33.16\\% (a spread of 0.13\\%), well within run-to-run variance"
-  },
-  {
-   "check": "spread of the seed-averaged N_branch finals > Tukey HSD",
-   "id": "nbranch_material_effect",
-   "inputs": [
-    "curve:N_pool:N_pool=1",
-    "curve:N_pool:N_pool=2",
-    "curve:N_pool:N_pool=3",
-    "curve:N_pool:N_pool=4",
-    "curve:N_pool:N_pool=5",
-    "curve:N_branch:N_branch=1",
-    "curve:N_branch:N_branch=2",
-    "curve:N_branch:N_branch=3",
-    "curve:N_branch:N_branch=4",
-    "curve:N_branch:N_branch=5"
-   ],
-   "numbers": {
-    "anova_p": 0.0,
-    "hsd_pp": 0.224677,
-    "spread_pp": 1.591091
-   },
-   "paper_location": "texts/5-eval.tex:425-426",
-   "provisional": false,
-   "result": true,
-   "section": "claims: exploration strategy",
-   "wording": "Branch factor $N_\\text{branch}$, in contrast, materially affects final quality"
-  },
-  {
-   "check": "argmax over N_branch of the seed-averaged final is 3",
-   "id": "nbranch_sweet_spot_at_3",
-   "inputs": [
-    "curve:N_branch:N_branch=1",
-    "curve:N_branch:N_branch=2",
-    "curve:N_branch:N_branch=3",
-    "curve:N_branch:N_branch=4",
-    "curve:N_branch:N_branch=5"
-   ],
-   "numbers": {
-    "argmax": 5,
-    "finals": {
-     "1": 31.514841,
-     "2": 32.357406,
-     "3": 32.935201,
-     "4": 32.905773,
-     "5": 33.105932
-    },
-    "margin_to_second_pp": 0.170731,
-    "noise": {
-     "critical": 2.100922,
-     "resolved": true,
-     "sd_run_to_run": 0.091002,
-     "se_diff": 0.074303,
-     "z": 2.297767
-    }
-   },
-   "paper_location": "texts/5-eval.tex:411-412 (caption); texts/5-eval.tex:426-427; texts/5-eval.tex:434",
-   "provisional": false,
-   "result": false,
-   "section": "claims: exploration strategy",
-   "wording": "$N_\\text{branch}$ exhibits a sweet spot at $N_\\text{branch}=3$ ... peaks at 33.37\\% at $N_\\text{branch}=3$"
-  },
-  {
-   "check": "final(N_branch=3) exceeds both neighbours (2 and 4) by more than the Tukey HSD, i.e. the peak is not run-to-run noise",
-   "id": "nbranch_sweet_spot_resolved",
-   "inputs": [
-    "curve:N_pool:N_pool=1",
-    "curve:N_pool:N_pool=2",
-    "curve:N_pool:N_pool=3",
-    "curve:N_pool:N_pool=4",
-    "curve:N_pool:N_pool=5",
-    "curve:N_branch:N_branch=1",
-    "curve:N_branch:N_branch=2",
-    "curve:N_branch:N_branch=3",
-    "curve:N_branch:N_branch=4",
-    "curve:N_branch:N_branch=5"
-   ],
-   "numbers": {
-    "hsd_pp": 0.224677,
-    "n3_minus_n2": 0.577795,
-    "n3_minus_n4": 0.029428
-   },
-   "paper_location": "texts/5-eval.tex:411-412, 426-427, 435-438",
-   "provisional": false,
-   "result": false,
-   "section": "claims: exploration strategy",
-   "wording": "sweet spot at 3 ... slightly degrading quality (33.30\\% and 33.21\\% at $N_\\text{branch}=4$ and $5$)"
-  },
-  {
-   "check": "final(1) < final(2) < final(3), and N_branch=1 is the lowest",
-   "id": "nbranch_climbs_to_3",
-   "inputs": [
-    "curve:N_branch:N_branch=1",
-    "curve:N_branch:N_branch=2",
-    "curve:N_branch:N_branch=3",
-    "curve:N_branch:N_branch=4",
-    "curve:N_branch:N_branch=5"
-   ],
-   "numbers": {
-    "finals": {
-     "1": 31.514841,
-     "2": 32.357406,
-     "3": 32.935201,
-     "4": 32.905773,
-     "5": 33.105932
-    }
-   },
-   "paper_location": "texts/5-eval.tex:431-434",
-   "provisional": false,
-   "result": true,
-   "section": "claims: exploration strategy",
-   "wording": "the average reduction drops to 31.33\\% [at 1] ... quality climbs to 32.75\\% at $N_\\text{branch}=2$ and peaks at 33.37\\% at $N_\\text{branch}=3$"
-  },
-  {
-   "check": "final(3) > final(4) > final(5)",
-   "id": "nbranch_degrades_after_3",
-   "inputs": [
-    "curve:N_branch:N_branch=1",
-    "curve:N_branch:N_branch=2",
-    "curve:N_branch:N_branch=3",
-    "curve:N_branch:N_branch=4",
-    "curve:N_branch:N_branch=5"
-   ],
-   "numbers": {
-    "finals": {
-     "1": 31.514841,
-     "2": 32.357406,
-     "3": 32.935201,
-     "4": 32.905773,
-     "5": 33.105932
-    }
-   },
-   "paper_location": "texts/5-eval.tex:435-438",
-   "provisional": false,
-   "result": false,
-   "section": "claims: exploration strategy",
-   "wording": "Beyond this point ... slightly degrading quality (33.30\\% and 33.21\\% at $N_\\text{branch}=4$ and $5$)"
-  },
-  {
-   "check": "N_branch=3 is the argmax of N_branch AND N_pool=1 is within Tukey HSD of the best N_pool",
-   "id": "default_config_justified",
-   "inputs": [
-    "curve:N_pool:N_pool=1",
-    "curve:N_pool:N_pool=2",
-    "curve:N_pool:N_pool=3",
-    "curve:N_pool:N_pool=4",
-    "curve:N_pool:N_pool=5",
-    "curve:N_branch:N_branch=1",
-    "curve:N_branch:N_branch=2",
-    "curve:N_branch:N_branch=3",
-    "curve:N_branch:N_branch=4",
-    "curve:N_branch:N_branch=5"
-   ],
-   "numbers": {
-    "hsd_pp": 0.224677,
-    "npool1_gap_to_best_pp": 0.0
-   },
-   "paper_location": "texts/5-eval.tex:438-440",
-   "provisional": false,
-   "result": false,
-   "section": "claims: exploration strategy",
-   "wording": "We therefore use $N_\\text{pool}=1$ and $N_\\text{branch}=3$ as the default configuration for all other experiments"
-  },
-  {
-   "check": "the greedy_k=2 / advancing-k final equals the seed-0 final of the E5 default configuration (same runs); E5 prints the mean over seeds",
-   "id": "default_config_one_value",
-   "inputs": [
-    "curve:greedy_k:greedy_k=2",
-    "curve:N_branch:N_branch=3"
-   ],
-   "note": "E5 values in the text are means over seeds, so \\numNbranchThree and \\numGreedyFinalGkTwo differ by design; say so in the text",
-   "numbers": {
-    "e5_default_mean_over_seeds": 32.935201,
-    "e5_default_seed0_final": 32.907838,
-    "greedy_k2_final": 32.907838
-   },
-   "paper_location": "texts/5-eval.tex:322,335,378 vs texts/5-eval.tex:419,434",
-   "provisional": false,
-   "result": true,
-   "section": "claims: exploration strategy",
-   "wording": "33.27\\% (greedy, single-k sections) vs 33.37\\% (N_branch=3) vs ~33.16\\% (N_pool=1): the default configuration should give one value"
-  },
-  {
-   "check": "the main-comparison QALM (--qalm-config) is configuration a (greedy k<=2, N_pool=1, N_branch=3, advancing k, no enqueue), i.e. the one the paper describes",
-   "id": "qalm_is_described_default",
-   "inputs": [
-    "avg:qalm"
-   ],
-   "numbers": {
-    "qalm_config": "a",
-    "selection": {
-     "optimizer": "qalm",
-     "params": {
-      "enqueue": 0,
-      "fixed_k": 0,
-      "greedy_k": 2,
-      "n_branch": 3,
-      "n_pool": 1
-     }
-    }
-   },
-   "paper_location": "texts/5-eval.tex:438-440; texts/3-method.tex:122-125",
-   "provisional": false,
-   "result": true,
-   "section": "claims: configuration and coverage",
-   "wording": "We therefore use $N_\\text{pool}=1$ and $N_\\text{branch}=3$ as the default configuration for all other experiments"
-  },
-  {
-   "check": "the QALM column of tab:eval_end_to_end and the greedy_k=2 / advancing-k curve are the same runs (same job ids)",
-   "id": "table_qalm_is_ablation_default",
-   "inputs": [
-    "ete:qalm",
-    "curve:greedy_k:greedy_k=2"
-   ],
-   "numbers": {
-    "ete_qalm": "931d99012ff712e6",
-    "greedy_k2": "931d99012ff712e6"
-   },
-   "paper_location": "texts/5-eval.tex:178-179; texts/5-eval.tex:378",
-   "provisional": false,
-   "result": true,
-   "section": "claims: configuration and coverage",
-   "wording": "The following ablation studies use the same circuits as \\Cref{tab:eval_end_to_end} (and the advancing-$k$ baseline is the table's \\optName{})"
-  },
-  {
-   "check": "every column of tab:avg-comparison has a result for every S248 circuit",
-   "id": "every_column_all_248",
-   "inputs": [
-    "avg:qalm",
-    "avg:qalm_1min",
-    "avg:guoq_2q",
-    "avg:guoq_total",
-    "avg:queso_2q",
-    "avg:queso_total",
-    "avg:voqc",
-    "avg:quartz"
-   ],
-   "numbers": {
-    "avg:guoq_2q": 248,
-    "avg:guoq_total": 248,
-    "avg:qalm": 248,
-    "avg:qalm_1min": 248,
-    "avg:quartz": 248,
-    "avg:queso_2q": 248,
-    "avg:queso_total": 248,
-    "avg:voqc": 248
-   },
-   "paper_location": "texts/0-abstract.tex:38; texts/5-eval.tex:26-28; figtex/averages_table.tex:22",
-   "provisional": false,
-   "result": true,
-   "section": "claims: configuration and coverage",
-   "wording": "In a comprehensive evaluation across 248 circuits ... Per-metric averages across the benchmark suite"
-  },
-  {
-   "check": "every ablation curve covers all 26 circuits (and all seeds)",
-   "id": "ablations_all_26",
-   "inputs": [
-    "curve:greedy_k:greedy_k=0",
-    "curve:greedy_k:greedy_k=1",
-    "curve:greedy_k:greedy_k=2",
-    "curve:greedy_k:greedy_k=3",
-    "curve:single_k_gk0:k=1",
-    "curve:single_k_gk0:k=2",
-    "curve:single_k_gk0:k=3",
-    "curve:single_k_gk0:k=4",
-    "curve:single_k_gk0:k=5",
-    "curve:single_k_gk0:advancing_k",
-    "curve:single_k_gk2:k=1",
-    "curve:single_k_gk2:k=2",
-    "curve:single_k_gk2:k=3",
-    "curve:single_k_gk2:k=4",
-    "curve:single_k_gk2:k=5",
-    "curve:single_k_gk2:advancing_k",
-    "curve:N_pool:N_pool=1",
-    "curve:N_pool:N_pool=2",
-    "curve:N_pool:N_pool=3",
-    "curve:N_pool:N_pool=4",
-    "curve:N_pool:N_pool=5",
-    "curve:N_branch:N_branch=1",
-    "curve:N_branch:N_branch=2",
-    "curve:N_branch:N_branch=3",
-    "curve:N_branch:N_branch=4",
-    "curve:N_branch:N_branch=5"
-   ],
-   "numbers": {
-    "curve:N_branch:N_branch=1": 78,
-    "curve:N_branch:N_branch=2": 78,
-    "curve:N_branch:N_branch=3": 78,
-    "curve:N_branch:N_branch=4": 78,
-    "curve:N_branch:N_branch=5": 78,
-    "curve:N_pool:N_pool=1": 78,
-    "curve:N_pool:N_pool=2": 78,
-    "curve:N_pool:N_pool=3": 78,
-    "curve:N_pool:N_pool=4": 78,
-    "curve:N_pool:N_pool=5": 78,
-    "curve:greedy_k:greedy_k=0": 26,
-    "curve:greedy_k:greedy_k=1": 26,
-    "curve:greedy_k:greedy_k=2": 26,
-    "curve:greedy_k:greedy_k=3": 26,
-    "curve:single_k_gk0:advancing_k": 26,
-    "curve:single_k_gk0:k=1": 26,
-    "curve:single_k_gk0:k=2": 26,
-    "curve:single_k_gk0:k=3": 26,
-    "curve:single_k_gk0:k=4": 26,
-    "curve:single_k_gk0:k=5": 26,
-    "curve:single_k_gk2:advancing_k": 26,
-    "curve:single_k_gk2:k=1": 26,
-    "curve:single_k_gk2:k=2": 26,
-    "curve:single_k_gk2:k=3": 26,
-    "curve:single_k_gk2:k=4": 26,
-    "curve:single_k_gk2:k=5": 26
-   },
-   "paper_location": "texts/5-eval.tex:178-179, 358, 409-410; figure titles",
-   "provisional": false,
-   "result": true,
-   "section": "claims: configuration and coverage",
-   "wording": "averaged over 26 benchmark circuits"
-  }
- ],
  "macros": {
   "numBudgetFactor": {
    "decimals": null,
@@ -1385,10 +6,6 @@
    "inputs": [],
    "kind": "int",
    "n": null,
-   "paper": {
-    "location": "texts/5-eval.tex:139",
-    "value": "60"
-   },
    "printed": "60",
    "provisional": false,
    "section": "S248 one-minute QALM",
@@ -1403,7 +20,6 @@
    ],
    "kind": "number",
    "n": 7358,
-   "paper": null,
    "printed": "42",
    "provisional": false,
    "section": "setup",
@@ -1418,10 +34,6 @@
    ],
    "kind": "number",
    "n": 248,
-   "paper": {
-    "location": "figtex/averages_table.tex:16-17",
-    "value": "18.83"
-   },
    "printed": "20.06",
    "provisional": false,
    "section": "S248 averages (tab:avg-comparison)",
@@ -1436,10 +48,6 @@
    ],
    "kind": "number",
    "n": 248,
-   "paper": {
-    "location": "figtex/averages_table.tex:16-17; texts/5-eval.tex:117",
-    "value": "25.41"
-   },
    "printed": "24.78",
    "provisional": false,
    "section": "S248 averages (tab:avg-comparison)",
@@ -1454,10 +62,6 @@
    ],
    "kind": "number",
    "n": 248,
-   "paper": {
-    "location": "figtex/averages_table.tex:16-17; texts/5-eval.tex:116,123",
-    "value": "24.61"
-   },
    "printed": "25.59",
    "provisional": false,
    "section": "S248 averages (tab:avg-comparison)",
@@ -1472,10 +76,6 @@
    ],
    "kind": "number",
    "n": 248,
-   "paper": {
-    "location": "figtex/averages_table.tex:16-17",
-    "value": "21.18"
-   },
    "printed": "21.71",
    "provisional": false,
    "section": "S248 averages (tab:avg-comparison)",
@@ -1490,10 +90,6 @@
    ],
    "kind": "number",
    "n": 248,
-   "paper": {
-    "location": "figtex/averages_table.tex:16-17",
-    "value": "12.42"
-   },
    "printed": "12.04",
    "provisional": false,
    "section": "S248 averages (tab:avg-comparison)",
@@ -1508,10 +104,6 @@
    ],
    "kind": "number",
    "n": 248,
-   "paper": {
-    "location": "figtex/averages_table.tex:16-17",
-    "value": "13.37"
-   },
    "printed": "12.95",
    "provisional": false,
    "section": "S248 averages (tab:avg-comparison)",
@@ -1526,10 +118,6 @@
    ],
    "kind": "number",
    "n": 248,
-   "paper": {
-    "location": "figtex/averages_table.tex:16-17",
-    "value": "13.19"
-   },
    "printed": "12.93",
    "provisional": false,
    "section": "S248 averages (tab:avg-comparison)",
@@ -1544,10 +132,6 @@
    ],
    "kind": "number",
    "n": 248,
-   "paper": {
-    "location": "figtex/averages_table.tex:16-17; texts/5-eval.tex:124",
-    "value": "4.24"
-   },
    "printed": "4.06",
    "provisional": false,
    "section": "S248 averages (tab:avg-comparison)",
@@ -1567,10 +151,6 @@
    ],
    "kind": "int",
    "n": 26,
-   "paper": {
-    "location": "texts/5-eval.tex:156-158",
-    "value": "implied 25 ('all of them except for one')"
-   },
    "printed": "22",
    "provisional": false,
    "section": "S26 table (tab:eval_end_to_end)",
@@ -1586,7 +166,6 @@
    ],
    "kind": "int",
    "n": 26,
-   "paper": null,
    "printed": "22",
    "provisional": false,
    "section": "S26 table (tab:eval_end_to_end)",
@@ -1602,7 +181,6 @@
    ],
    "kind": "int",
    "n": 26,
-   "paper": null,
    "printed": "26",
    "provisional": false,
    "section": "S26 table (tab:eval_end_to_end)",
@@ -1618,10 +196,6 @@
    ],
    "kind": "int",
    "n": 26,
-   "paper": {
-    "location": "texts/5-eval.tex:171-172",
-    "value": "implied 25 ('all but one circuit')"
-   },
    "printed": "26",
    "provisional": false,
    "section": "S26 table (tab:eval_end_to_end)",
@@ -1637,7 +211,6 @@
    ],
    "kind": "int",
    "n": 26,
-   "paper": null,
    "printed": "26",
    "provisional": false,
    "section": "S26 table (tab:eval_end_to_end)",
@@ -1653,7 +226,6 @@
    ],
    "kind": "int",
    "n": 26,
-   "paper": null,
    "printed": "26",
    "provisional": false,
    "section": "S26 table (tab:eval_end_to_end)",
@@ -1673,10 +245,6 @@
    ],
    "kind": "int",
    "n": 26,
-   "paper": {
-    "location": "texts/5-eval.tex:158",
-    "value": "implied 1 ('except for one circuit')"
-   },
    "printed": "4",
    "provisional": false,
    "section": "S26 table (tab:eval_end_to_end)",
@@ -1696,10 +264,6 @@
    ],
    "kind": "text",
    "n": 26,
-   "paper": {
-    "location": "texts/5-eval.tex:158",
-    "value": "one"
-   },
    "printed": "four",
    "provisional": false,
    "section": "S26 table (tab:eval_end_to_end)",
@@ -1715,7 +279,6 @@
    ],
    "kind": "int",
    "n": 26,
-   "paper": null,
    "printed": "4",
    "provisional": false,
    "section": "S26 table (tab:eval_end_to_end)",
@@ -1731,7 +294,6 @@
    ],
    "kind": "int",
    "n": 26,
-   "paper": null,
    "printed": "0",
    "provisional": false,
    "section": "S26 table (tab:eval_end_to_end)",
@@ -1747,10 +309,6 @@
    ],
    "kind": "int",
    "n": 26,
-   "paper": {
-    "location": "texts/5-eval.tex:171-172",
-    "value": "implied 1 ('all but one circuit')"
-   },
    "printed": "0",
    "provisional": false,
    "section": "S26 table (tab:eval_end_to_end)",
@@ -1766,10 +324,6 @@
    ],
    "kind": "text",
    "n": 26,
-   "paper": {
-    "location": "texts/5-eval.tex:171-172 ('on all but one circuit')",
-    "value": "one"
-   },
    "printed": "zero",
    "provisional": false,
    "section": "S26 table (tab:eval_end_to_end)",
@@ -1785,7 +339,6 @@
    ],
    "kind": "int",
    "n": 26,
-   "paper": null,
    "printed": "0",
    "provisional": false,
    "section": "S26 table (tab:eval_end_to_end)",
@@ -1801,7 +354,6 @@
    ],
    "kind": "int",
    "n": 26,
-   "paper": null,
    "printed": "0",
    "provisional": false,
    "section": "S26 table (tab:eval_end_to_end)",
@@ -1816,7 +368,6 @@
    ],
    "kind": "int",
    "n": 26,
-   "paper": null,
    "printed": "0",
    "provisional": false,
    "section": "S26 table (tab:eval_end_to_end)",
@@ -1831,7 +382,6 @@
    ],
    "kind": "int",
    "n": 26,
-   "paper": null,
    "printed": "0",
    "provisional": false,
    "section": "S26 table (tab:eval_end_to_end)",
@@ -1846,7 +396,6 @@
    ],
    "kind": "int",
    "n": 26,
-   "paper": null,
    "printed": "0",
    "provisional": false,
    "section": "S26 table (tab:eval_end_to_end)",
@@ -1861,7 +410,6 @@
    ],
    "kind": "int",
    "n": 26,
-   "paper": null,
    "printed": "0",
    "provisional": false,
    "section": "S26 table (tab:eval_end_to_end)",
@@ -1876,7 +424,6 @@
    ],
    "kind": "int",
    "n": 26,
-   "paper": null,
    "printed": "0",
    "provisional": false,
    "section": "S26 table (tab:eval_end_to_end)",
@@ -1891,7 +438,6 @@
    ],
    "kind": "int",
    "n": 26,
-   "paper": null,
    "printed": "0",
    "provisional": false,
    "section": "S26 table (tab:eval_end_to_end)",
@@ -1906,7 +452,6 @@
    ],
    "kind": "int",
    "n": 248,
-   "paper": null,
    "printed": "4",
    "provisional": false,
    "section": "S248 averages (tab:avg-comparison)",
@@ -1921,7 +466,6 @@
    ],
    "kind": "int",
    "n": 248,
-   "paper": null,
    "printed": "3",
    "provisional": false,
    "section": "S248 averages (tab:avg-comparison)",
@@ -1936,7 +480,6 @@
    ],
    "kind": "int",
    "n": 248,
-   "paper": null,
    "printed": "0",
    "provisional": false,
    "section": "S248 averages (tab:avg-comparison)",
@@ -1951,7 +494,6 @@
    ],
    "kind": "int",
    "n": 248,
-   "paper": null,
    "printed": "0",
    "provisional": false,
    "section": "S248 averages (tab:avg-comparison)",
@@ -1966,7 +508,6 @@
    ],
    "kind": "int",
    "n": 248,
-   "paper": null,
    "printed": "2",
    "provisional": false,
    "section": "S248 averages (tab:avg-comparison)",
@@ -1981,7 +522,6 @@
    ],
    "kind": "int",
    "n": 248,
-   "paper": null,
    "printed": "4",
    "provisional": false,
    "section": "S248 averages (tab:avg-comparison)",
@@ -1996,7 +536,6 @@
    ],
    "kind": "int",
    "n": 248,
-   "paper": null,
    "printed": "2",
    "provisional": false,
    "section": "S248 averages (tab:avg-comparison)",
@@ -2011,7 +550,6 @@
    ],
    "kind": "int",
    "n": 248,
-   "paper": null,
    "printed": "7",
    "provisional": false,
    "section": "S248 averages (tab:avg-comparison)",
@@ -2026,10 +564,6 @@
    ],
    "kind": "number",
    "n": 248,
-   "paper": {
-    "location": "figtex/averages_table.tex:14-15",
-    "value": "0.3676"
-   },
    "printed": "0.3692",
    "provisional": false,
    "section": "S248 averages (tab:avg-comparison)",
@@ -2044,10 +578,6 @@
    ],
    "kind": "number",
    "n": 248,
-   "paper": {
-    "location": "figtex/averages_table.tex:14-15; texts/5-eval.tex:126",
-    "value": "0.3475"
-   },
    "printed": "0.3476",
    "provisional": false,
    "section": "S248 averages (tab:avg-comparison)",
@@ -2062,10 +592,6 @@
    ],
    "kind": "number",
    "n": 248,
-   "paper": {
-    "location": "figtex/averages_table.tex:14-15; texts/5-eval.tex:124",
-    "value": "0.3864"
-   },
    "printed": "0.4017",
    "provisional": false,
    "section": "S248 averages (tab:avg-comparison)",
@@ -2080,10 +606,6 @@
    ],
    "kind": "number",
    "n": 248,
-   "paper": {
-    "location": "figtex/averages_table.tex:14-15",
-    "value": "0.3747"
-   },
    "printed": "0.3898",
    "provisional": false,
    "section": "S248 averages (tab:avg-comparison)",
@@ -2098,10 +620,6 @@
    ],
    "kind": "number",
    "n": 248,
-   "paper": {
-    "location": "figtex/averages_table.tex:14-15",
-    "value": "0.3526"
-   },
    "printed": "0.3514",
    "provisional": false,
    "section": "S248 averages (tab:avg-comparison)",
@@ -2116,10 +634,6 @@
    ],
    "kind": "number",
    "n": 248,
-   "paper": {
-    "location": "figtex/averages_table.tex:14-15",
-    "value": "0.3554"
-   },
    "printed": "0.3544",
    "provisional": false,
    "section": "S248 averages (tab:avg-comparison)",
@@ -2134,10 +648,6 @@
    ],
    "kind": "number",
    "n": 248,
-   "paper": {
-    "location": "figtex/averages_table.tex:14-15",
-    "value": "0.3362"
-   },
    "printed": "0.3348",
    "provisional": false,
    "section": "S248 averages (tab:avg-comparison)",
@@ -2152,10 +662,6 @@
    ],
    "kind": "number",
    "n": 248,
-   "paper": {
-    "location": "figtex/averages_table.tex:14-15; texts/5-eval.tex:125",
-    "value": "0.3428"
-   },
    "printed": "0.3373",
    "provisional": false,
    "section": "S248 averages (tab:avg-comparison)",
@@ -2170,10 +676,6 @@
    ],
    "kind": "number",
    "n": 26,
-   "paper": {
-    "location": "texts/5-eval.tex:378",
-    "value": "33.27"
-   },
    "printed": "32.91",
    "provisional": false,
    "section": "fixed exploration depth (fig:single_k)",
@@ -2192,10 +694,6 @@
    ],
    "kind": "number",
    "n": 26,
-   "paper": {
-    "location": "texts/5-eval.tex:375",
-    "value": "33.11"
-   },
    "printed": "33.17",
    "provisional": false,
    "section": "fixed exploration depth (fig:single_k)",
@@ -2214,10 +712,6 @@
    ],
    "kind": "int",
    "n": 26,
-   "paper": {
-    "location": "texts/5-eval.tex:374-375",
-    "value": "3"
-   },
    "printed": "2",
    "provisional": false,
    "section": "fixed exploration depth (fig:single_k)",
@@ -2237,7 +731,6 @@
    ],
    "kind": "number",
    "n": 26,
-   "paper": null,
    "printed": "\\ensuremath{-}0.26",
    "provisional": false,
    "section": "fixed exploration depth (fig:single_k)",
@@ -2252,10 +745,6 @@
    ],
    "kind": "number",
    "n": 26,
-   "paper": {
-    "location": "figure/single_k_gk2.pdf",
-    "value": null
-   },
    "printed": "32.78",
    "provisional": false,
    "section": "fixed exploration depth (fig:single_k)",
@@ -2270,10 +759,6 @@
    ],
    "kind": "number",
    "n": 26,
-   "paper": {
-    "location": "figure/single_k_gk2.pdf",
-    "value": null
-   },
    "printed": "33.06",
    "provisional": false,
    "section": "fixed exploration depth (fig:single_k)",
@@ -2288,10 +773,6 @@
    ],
    "kind": "number",
    "n": 26,
-   "paper": {
-    "location": "figure/single_k_gk2.pdf",
-    "value": null
-   },
    "printed": "31.60",
    "provisional": false,
    "section": "fixed exploration depth (fig:single_k)",
@@ -2306,10 +787,6 @@
    ],
    "kind": "number",
    "n": 26,
-   "paper": {
-    "location": "figure/single_k_gk2.pdf",
-    "value": null
-   },
    "printed": "32.91",
    "provisional": false,
    "section": "fixed exploration depth (fig:single_k)",
@@ -2324,10 +801,6 @@
    ],
    "kind": "number",
    "n": 26,
-   "paper": {
-    "location": "figure/single_k_gk2.pdf",
-    "value": null
-   },
    "printed": "33.17",
    "provisional": false,
    "section": "fixed exploration depth (fig:single_k)",
@@ -2342,7 +815,6 @@
    ],
    "kind": "number",
    "n": 26,
-   "paper": null,
    "printed": "32.25",
    "provisional": false,
    "section": "fixed exploration depth (fig:single_k)",
@@ -2361,7 +833,6 @@
    ],
    "kind": "number",
    "n": 26,
-   "paper": null,
    "printed": "32.36",
    "provisional": false,
    "section": "fixed exploration depth (fig:single_k)",
@@ -2380,7 +851,6 @@
    ],
    "kind": "int",
    "n": 26,
-   "paper": null,
    "printed": "2",
    "provisional": false,
    "section": "fixed exploration depth (fig:single_k)",
@@ -2400,7 +870,6 @@
    ],
    "kind": "number",
    "n": 26,
-   "paper": null,
    "printed": "\\ensuremath{-}0.12",
    "provisional": false,
    "section": "fixed exploration depth (fig:single_k)",
@@ -2415,10 +884,6 @@
    ],
    "kind": "number",
    "n": 26,
-   "paper": {
-    "location": "texts/5-eval.tex:368",
-    "value": "31.46"
-   },
    "printed": "31.24",
    "provisional": false,
    "section": "fixed exploration depth (fig:single_k)",
@@ -2433,10 +898,6 @@
    ],
    "kind": "number",
    "n": 26,
-   "paper": {
-    "location": "figure/single_k_gk0.pdf",
-    "value": "32.100 (figure only)"
-   },
    "printed": "31.38",
    "provisional": false,
    "section": "fixed exploration depth (fig:single_k)",
@@ -2451,10 +912,6 @@
    ],
    "kind": "number",
    "n": 26,
-   "paper": {
-    "location": "texts/5-eval.tex:367",
-    "value": "32.83"
-   },
    "printed": "31.49",
    "provisional": false,
    "section": "fixed exploration depth (fig:single_k)",
@@ -2469,10 +926,6 @@
    ],
    "kind": "number",
    "n": 26,
-   "paper": {
-    "location": "figure/single_k_gk0.pdf",
-    "value": "32.528 (figure only)"
-   },
    "printed": "31.37",
    "provisional": false,
    "section": "fixed exploration depth (fig:single_k)",
@@ -2487,10 +940,6 @@
    ],
    "kind": "number",
    "n": 26,
-   "paper": {
-    "location": "figure/single_k_gk0.pdf",
-    "value": "32.652 (figure only)"
-   },
    "printed": "32.36",
    "provisional": false,
    "section": "fixed exploration depth (fig:single_k)",
@@ -2505,10 +954,6 @@
    ],
    "kind": "text",
    "n": 248,
-   "paper": {
-    "location": "texts/5-eval.tex:40",
-    "value": "five"
-   },
    "printed": "five",
    "provisional": false,
    "section": "setup",
@@ -2524,10 +969,6 @@
    ],
    "kind": "number",
    "n": 26,
-   "paper": {
-    "location": "texts/5-eval.tex:163",
-    "value": "5.1"
-   },
    "printed": "5.2",
    "provisional": false,
    "section": "S26 table (tab:eval_end_to_end)",
@@ -2543,10 +984,6 @@
    ],
    "kind": "number",
    "n": 26,
-   "paper": {
-    "location": "texts/5-eval.tex:162",
-    "value": "17.8"
-   },
    "printed": "17.1",
    "provisional": false,
    "section": "S26 table (tab:eval_end_to_end)",
@@ -2562,10 +999,6 @@
    ],
    "kind": "number",
    "n": 26,
-   "paper": {
-    "location": "texts/5-eval.tex:164",
-    "value": "4.6"
-   },
    "printed": "4.1",
    "provisional": false,
    "section": "S26 table (tab:eval_end_to_end)",
@@ -2581,10 +1014,6 @@
    ],
    "kind": "number",
    "n": 26,
-   "paper": {
-    "location": "texts/5-eval.tex:163",
-    "value": "10.4"
-   },
    "printed": "9.3",
    "provisional": false,
    "section": "S26 table (tab:eval_end_to_end)",
@@ -2600,10 +1029,6 @@
    ],
    "kind": "number",
    "n": 26,
-   "paper": {
-    "location": "texts/5-eval.tex:160",
-    "value": "7.3"
-   },
    "printed": "6.9",
    "provisional": false,
    "section": "S26 table (tab:eval_end_to_end)",
@@ -2618,10 +1043,6 @@
    ],
    "kind": "number",
    "n": 26,
-   "paper": {
-    "location": "figtex/eval_end_to_end.tex:37",
-    "value": "29.2"
-   },
    "printed": "28.7",
    "provisional": false,
    "section": "S26 table (tab:eval_end_to_end)",
@@ -2636,10 +1057,6 @@
    ],
    "kind": "number",
    "n": 26,
-   "paper": {
-    "location": "figtex/eval_end_to_end.tex:37",
-    "value": "34.3"
-   },
    "printed": "33.9",
    "provisional": false,
    "section": "S26 table (tab:eval_end_to_end)",
@@ -2654,10 +1071,6 @@
    ],
    "kind": "number",
    "n": 26,
-   "paper": {
-    "location": "figtex/eval_end_to_end.tex:37",
-    "value": "16.5"
-   },
    "printed": "16.7",
    "provisional": false,
    "section": "S26 table (tab:eval_end_to_end)",
@@ -2672,10 +1085,6 @@
    ],
    "kind": "number",
    "n": 26,
-   "paper": {
-    "location": "figtex/eval_end_to_end.tex:37",
-    "value": "29.7"
-   },
    "printed": "29.7",
    "provisional": false,
    "section": "S26 table (tab:eval_end_to_end)",
@@ -2690,10 +1099,6 @@
    ],
    "kind": "number",
    "n": 26,
-   "paper": {
-    "location": "figtex/eval_end_to_end.tex:37",
-    "value": "23.9"
-   },
    "printed": "24.6",
    "provisional": false,
    "section": "S26 table (tab:eval_end_to_end)",
@@ -2708,10 +1113,6 @@
    ],
    "kind": "number",
    "n": 26,
-   "paper": {
-    "location": "figtex/eval_end_to_end.tex:37",
-    "value": "27.0"
-   },
    "printed": "27.0",
    "provisional": false,
    "section": "S26 table (tab:eval_end_to_end)",
@@ -2727,10 +1128,6 @@
    ],
    "kind": "number",
    "n": 26,
-   "paper": {
-    "location": "texts/5-eval.tex:320-321 ('by less than 0.5\\%')",
-    "value": "<0.5"
-   },
    "printed": "0.66",
    "provisional": false,
    "section": "greedy mode (fig:greedy_k)",
@@ -2745,10 +1142,6 @@
    ],
    "kind": "number",
    "n": 26,
-   "paper": {
-    "location": "figure/greedy_k_reduction.pdf",
-    "value": null
-   },
    "printed": "33.12",
    "provisional": false,
    "section": "greedy mode (fig:greedy_k)",
@@ -2763,10 +1156,6 @@
    ],
    "kind": "number",
    "n": 26,
-   "paper": {
-    "location": "texts/5-eval.tex:334",
-    "value": "33.12"
-   },
    "printed": "33.02",
    "provisional": false,
    "section": "greedy mode (fig:greedy_k)",
@@ -2781,10 +1170,6 @@
    ],
    "kind": "number",
    "n": 26,
-   "paper": {
-    "location": "texts/5-eval.tex:322,335",
-    "value": "33.27"
-   },
    "printed": "32.91",
    "provisional": false,
    "section": "greedy mode (fig:greedy_k)",
@@ -2799,10 +1184,6 @@
    ],
    "kind": "number",
    "n": 26,
-   "paper": {
-    "location": "texts/5-eval.tex:321",
-    "value": "32.80"
-   },
    "printed": "32.25",
    "provisional": false,
    "section": "greedy mode (fig:greedy_k)",
@@ -2817,7 +1198,6 @@
    ],
    "kind": "int",
    "n": 26,
-   "paper": null,
    "printed": "0",
    "provisional": false,
    "section": "greedy mode (fig:greedy_k)",
@@ -2832,10 +1212,6 @@
    ],
    "kind": "int",
    "n": 26,
-   "paper": {
-    "location": "texts/5-eval.tex:331",
-    "value": "two"
-   },
    "printed": "3",
    "provisional": false,
    "section": "greedy mode (fig:greedy_k)",
@@ -2850,10 +1226,6 @@
    ],
    "kind": "text",
    "n": 26,
-   "paper": {
-    "location": "texts/5-eval.tex:332",
-    "value": "gf2^9_mult and gf2^10_mult"
-   },
    "printed": "\\texttt{gf2\\^{}8\\_mult}, \\texttt{gf2\\^{}9\\_mult}, and \\texttt{gf2\\^{}10\\_mult}",
    "provisional": false,
    "section": "greedy mode (fig:greedy_k)",
@@ -2868,10 +1240,6 @@
    ],
    "kind": "text",
    "n": 26,
-   "paper": {
-    "location": "texts/5-eval.tex:331",
-    "value": "two"
-   },
    "printed": "three",
    "provisional": false,
    "section": "greedy mode (fig:greedy_k)",
@@ -2886,7 +1254,6 @@
    ],
    "kind": "int",
    "n": 26,
-   "paper": null,
    "printed": "0",
    "provisional": false,
    "section": "greedy mode (fig:greedy_k)",
@@ -2901,10 +1268,6 @@
    ],
    "kind": "time",
    "n": 26,
-   "paper": {
-    "location": "texts/5-eval.tex:329",
-    "value": "5.5"
-   },
    "printed": "7.3",
    "provisional": false,
    "section": "greedy mode (fig:greedy_k)",
@@ -2919,10 +1282,6 @@
    ],
    "kind": "time",
    "n": 26,
-   "paper": {
-    "location": "texts/5-eval.tex:331",
-    "value": "724"
-   },
    "printed": "840",
    "provisional": false,
    "section": "greedy mode (fig:greedy_k)",
@@ -2937,10 +1296,6 @@
    ],
    "kind": "time",
    "n": 26,
-   "paper": {
-    "location": "texts/5-eval.tex:329-330",
-    "value": "82"
-   },
    "printed": "107",
    "provisional": false,
    "section": "greedy mode (fig:greedy_k)",
@@ -2956,10 +1311,6 @@
    ],
    "kind": "time",
    "n": 26,
-   "paper": {
-    "location": "texts/5-eval.tex:326",
-    "value": "11"
-   },
    "printed": "13",
    "provisional": false,
    "section": "greedy mode (fig:greedy_k)",
@@ -2975,7 +1326,6 @@
    ],
    "kind": "time",
    "n": 26,
-   "paper": null,
    "printed": "10",
    "provisional": false,
    "section": "greedy mode (fig:greedy_k)",
@@ -2991,7 +1341,6 @@
    ],
    "kind": "time",
    "n": 26,
-   "paper": null,
    "printed": "7.6",
    "provisional": false,
    "section": "greedy mode (fig:greedy_k)",
@@ -3004,10 +1353,6 @@
    "inputs": [],
    "kind": "text",
    "n": null,
-   "paper": {
-    "location": "texts/5-eval.tex:324",
-    "value": "32"
-   },
    "printed": "32",
    "provisional": false,
    "section": "greedy mode (fig:greedy_k)",
@@ -3022,10 +1367,6 @@
    ],
    "kind": "time",
    "n": 26,
-   "paper": {
-    "location": "texts/5-eval.tex:326",
-    "value": "89"
-   },
    "printed": "114",
    "provisional": false,
    "section": "greedy mode (fig:greedy_k)",
@@ -3040,7 +1381,6 @@
    ],
    "kind": "time",
    "n": 26,
-   "paper": null,
    "printed": "149",
    "provisional": false,
    "section": "greedy mode (fig:greedy_k)",
@@ -3055,7 +1395,6 @@
    ],
    "kind": "time",
    "n": 26,
-   "paper": null,
    "printed": "197",
    "provisional": false,
    "section": "greedy mode (fig:greedy_k)",
@@ -3070,10 +1409,6 @@
    ],
    "kind": "time",
    "n": 26,
-   "paper": {
-    "location": "texts/5-eval.tex:323-324",
-    "value": "968"
-   },
    "printed": "1489",
    "provisional": false,
    "section": "greedy mode (fig:greedy_k)",
@@ -3088,7 +1423,6 @@
    ],
    "kind": "int",
    "n": 3676,
-   "paper": null,
    "printed": "1",
    "provisional": false,
    "section": "setup",
@@ -3103,7 +1437,6 @@
    ],
    "kind": "int",
    "n": 7358,
-   "paper": null,
    "printed": "3",
    "provisional": false,
    "section": "setup",
@@ -3118,7 +1451,6 @@
    ],
    "kind": "int",
    "n": 1,
-   "paper": null,
    "printed": "124",
    "provisional": false,
    "section": "setup",
@@ -3133,7 +1465,6 @@
    ],
    "kind": "int",
    "n": 3676,
-   "paper": null,
    "printed": "3676",
    "provisional": false,
    "section": "setup",
@@ -3148,7 +1479,6 @@
    ],
    "kind": "int",
    "n": 3676,
-   "paper": null,
    "printed": "3",
    "provisional": false,
    "section": "setup",
@@ -3163,7 +1493,6 @@
    ],
    "kind": "int",
    "n": 7358,
-   "paper": null,
    "printed": "124",
    "provisional": false,
    "section": "setup",
@@ -3178,10 +1507,6 @@
    ],
    "kind": "int",
    "n": 7358,
-   "paper": {
-    "location": "texts/5-eval.tex:84-86 (setup paragraph; plan: 'about N concurrent jobs')",
-    "value": null
-   },
    "printed": "96",
    "provisional": false,
    "section": "setup",
@@ -3196,10 +1521,6 @@
    ],
    "kind": "int",
    "n": 1,
-   "paper": {
-    "location": "texts/5-eval.tex:86",
-    "value": "32"
-   },
    "printed": "32",
    "provisional": false,
    "section": "setup",
@@ -3214,7 +1535,6 @@
    ],
    "kind": "int",
    "n": 7358,
-   "paper": null,
    "printed": "0",
    "provisional": false,
    "section": "setup",
@@ -3229,10 +1549,6 @@
    ],
    "kind": "number",
    "n": 78,
-   "paper": {
-    "location": "texts/5-eval.tex:438",
-    "value": "33.21"
-   },
    "printed": "33.11",
    "provisional": false,
    "section": "exploration strategy (fig:exploration_ablation)",
@@ -3247,10 +1563,6 @@
    ],
    "kind": "number",
    "n": 78,
-   "paper": {
-    "location": "texts/5-eval.tex:437",
-    "value": "33.30"
-   },
    "printed": "32.91",
    "provisional": false,
    "section": "exploration strategy (fig:exploration_ablation)",
@@ -3265,10 +1577,6 @@
    ],
    "kind": "number",
    "n": 78,
-   "paper": {
-    "location": "texts/5-eval.tex:431",
-    "value": "31.33"
-   },
    "printed": "31.51",
    "provisional": false,
    "section": "exploration strategy (fig:exploration_ablation)",
@@ -3287,7 +1595,6 @@
    ],
    "kind": "number",
    "n": 78,
-   "paper": null,
    "printed": "1.59",
    "provisional": false,
    "section": "exploration strategy (fig:exploration_ablation)",
@@ -3302,10 +1609,6 @@
    ],
    "kind": "number",
    "n": 78,
-   "paper": {
-    "location": "texts/5-eval.tex:434",
-    "value": "33.37"
-   },
    "printed": "32.94",
    "provisional": false,
    "section": "exploration strategy (fig:exploration_ablation)",
@@ -3320,10 +1623,6 @@
    ],
    "kind": "number",
    "n": 78,
-   "paper": {
-    "location": "texts/5-eval.tex:433",
-    "value": "32.75"
-   },
    "printed": "32.36",
    "provisional": false,
    "section": "exploration strategy (fig:exploration_ablation)",
@@ -3338,10 +1637,6 @@
    ],
    "kind": "int",
    "n": 248,
-   "paper": {
-    "location": "texts/5-eval.tex:119-120 ('on many circuits')",
-    "value": "many"
-   },
    "printed": "111",
    "provisional": false,
    "section": "S248 per-circuit win rates (fig:win_rate)",
@@ -3356,7 +1651,6 @@
    ],
    "kind": "number",
    "n": 248,
-   "paper": null,
    "printed": "44.8",
    "provisional": false,
    "section": "S248 per-circuit win rates (fig:win_rate)",
@@ -3371,10 +1665,6 @@
    ],
    "kind": "int",
    "n": 248,
-   "paper": {
-    "location": "texts/5-eval.tex:120",
-    "value": "implied 0 ('avoids this entirely')"
-   },
    "printed": "0",
    "provisional": false,
    "section": "S248 per-circuit win rates (fig:win_rate)",
@@ -3389,7 +1679,6 @@
    ],
    "kind": "number",
    "n": 78,
-   "paper": null,
    "printed": "32.69",
    "provisional": false,
    "section": "exploration strategy (fig:exploration_ablation)",
@@ -3404,10 +1693,6 @@
    ],
    "kind": "number",
    "n": 78,
-   "paper": {
-    "location": "figure/N_pool_arith_mean_3600s_plain.pdf; texts/5-eval.tex:419 (range end)",
-    "value": "33.03"
-   },
    "printed": "32.68",
    "provisional": false,
    "section": "exploration strategy (fig:exploration_ablation)",
@@ -3426,10 +1711,6 @@
    ],
    "kind": "number",
    "n": 78,
-   "paper": {
-    "location": "texts/5-eval.tex:418-419",
-    "value": "33.16"
-   },
    "printed": "32.94",
    "provisional": false,
    "section": "exploration strategy (fig:exploration_ablation)",
@@ -3448,10 +1729,6 @@
    ],
    "kind": "number",
    "n": 78,
-   "paper": {
-    "location": "texts/5-eval.tex:418-419",
-    "value": "33.03"
-   },
    "printed": "32.65",
    "provisional": false,
    "section": "exploration strategy (fig:exploration_ablation)",
@@ -3466,10 +1743,6 @@
    ],
    "kind": "number",
    "n": 78,
-   "paper": {
-    "location": "figure/N_pool_arith_mean_3600s_plain.pdf; texts/5-eval.tex:419 (range end)",
-    "value": "33.16"
-   },
    "printed": "32.94",
    "provisional": false,
    "section": "exploration strategy (fig:exploration_ablation)",
@@ -3488,10 +1761,6 @@
    ],
    "kind": "number",
    "n": 78,
-   "paper": {
-    "location": "texts/5-eval.tex:418-419",
-    "value": "0.13"
-   },
    "printed": "0.29",
    "provisional": false,
    "section": "exploration strategy (fig:exploration_ablation)",
@@ -3506,7 +1775,6 @@
    ],
    "kind": "number",
    "n": 78,
-   "paper": null,
    "printed": "32.68",
    "provisional": false,
    "section": "exploration strategy (fig:exploration_ablation)",
@@ -3521,7 +1789,6 @@
    ],
    "kind": "number",
    "n": 78,
-   "paper": null,
    "printed": "32.65",
    "provisional": false,
    "section": "exploration strategy (fig:exploration_ablation)",
@@ -3537,10 +1804,6 @@
    ],
    "kind": "number",
    "n": 248,
-   "paper": {
-    "location": "texts/5-eval.tex:139-140 ('by less than 1\\%')",
-    "value": "<1"
-   },
    "printed": "3.88",
    "provisional": false,
    "section": "S248 one-minute QALM",
@@ -3556,10 +1819,6 @@
    ],
    "kind": "number",
    "n": 248,
-   "paper": {
-    "location": "texts/5-eval.tex:139-140 ('by less than 1\\%')",
-    "value": "<1"
-   },
    "printed": "0.0118",
    "provisional": false,
    "section": "S248 one-minute QALM",
@@ -3575,10 +1834,6 @@
    ],
    "kind": "number",
    "n": 248,
-   "paper": {
-    "location": "texts/5-eval.tex:139-140 ('by less than 1\\%')",
-    "value": "<1"
-   },
    "printed": "2.9",
    "provisional": false,
    "section": "S248 one-minute QALM",
@@ -3594,10 +1849,6 @@
    ],
    "kind": "number",
    "n": 248,
-   "paper": {
-    "location": "texts/5-eval.tex:139-140 ('by less than 1\\%')",
-    "value": "<1"
-   },
    "printed": "1.29",
    "provisional": false,
    "section": "S248 one-minute QALM",
@@ -3612,7 +1863,6 @@
    ],
    "kind": "number",
    "n": 3676,
-   "paper": null,
    "printed": "32.0",
    "provisional": false,
    "section": "setup",
@@ -3627,7 +1877,6 @@
    ],
    "kind": "number",
    "n": 3676,
-   "paper": null,
    "printed": "31.9",
    "provisional": false,
    "section": "setup",
@@ -3642,7 +1891,6 @@
    ],
    "kind": "int",
    "n": 7358,
-   "paper": null,
    "printed": "0",
    "provisional": false,
    "section": "setup",
@@ -3657,10 +1905,6 @@
    ],
    "kind": "int",
    "n": 26,
-   "paper": {
-    "location": "texts/5-eval.tex:150,156,331,358,409; figtex/eval_end_to_end.tex:3; ablation figure titles",
-    "value": "26"
-   },
    "printed": "26",
    "provisional": false,
    "section": "S26 table (tab:eval_end_to_end)",
@@ -3684,7 +1928,6 @@
    ],
    "kind": "number",
    "n": 78,
-   "paper": null,
    "printed": "0.22",
    "provisional": false,
    "section": "exploration strategy (fig:exploration_ablation)",
@@ -3699,7 +1942,6 @@
    ],
    "kind": "number",
    "n": 78,
-   "paper": null,
    "printed": "0.24",
    "provisional": false,
    "section": "exploration strategy (fig:exploration_ablation)",
@@ -3714,10 +1956,6 @@
    ],
    "kind": "number",
    "n": 78,
-   "paper": {
-    "location": "texts/5-eval.tex:419-420 ('well within run-to-run variance')",
-    "value": null
-   },
    "printed": "0.12",
    "provisional": false,
    "section": "exploration strategy (fig:exploration_ablation)",
@@ -3741,7 +1979,6 @@
    ],
    "kind": "number",
    "n": 9,
-   "paper": null,
    "printed": "0.09",
    "provisional": false,
    "section": "exploration strategy (fig:exploration_ablation)",
@@ -3754,7 +1991,6 @@
    "inputs": [],
    "kind": "int",
    "n": null,
-   "paper": null,
    "printed": "3",
    "provisional": false,
    "section": "exploration strategy (fig:exploration_ablation)",
@@ -3770,7 +2006,6 @@
    ],
    "kind": "number",
    "n": 248,
-   "paper": null,
    "printed": "58.1",
    "provisional": false,
    "section": "S248 per-circuit win rates (fig:win_rate)",
@@ -3786,7 +2021,6 @@
    ],
    "kind": "number",
    "n": 248,
-   "paper": null,
    "printed": "46.8",
    "provisional": false,
    "section": "S248 per-circuit win rates (fig:win_rate)",
@@ -3802,7 +2036,6 @@
    ],
    "kind": "number",
    "n": 248,
-   "paper": null,
    "printed": "78.6",
    "provisional": false,
    "section": "S248 per-circuit win rates (fig:win_rate)",
@@ -3818,7 +2051,6 @@
    ],
    "kind": "number",
    "n": 248,
-   "paper": null,
    "printed": "80.6",
    "provisional": false,
    "section": "S248 per-circuit win rates (fig:win_rate)",
@@ -3834,7 +2066,6 @@
    ],
    "kind": "number",
    "n": 248,
-   "paper": null,
    "printed": "80.2",
    "provisional": false,
    "section": "S248 per-circuit win rates (fig:win_rate)",
@@ -3850,7 +2081,6 @@
    ],
    "kind": "number",
    "n": 248,
-   "paper": null,
    "printed": "85.9",
    "provisional": false,
    "section": "S248 per-circuit win rates (fig:win_rate)",
@@ -3866,7 +2096,6 @@
    ],
    "kind": "number",
    "n": 248,
-   "paper": null,
    "printed": "75.8",
    "provisional": false,
    "section": "S248 per-circuit win rates (fig:win_rate)",
@@ -3882,7 +2111,6 @@
    ],
    "kind": "number",
    "n": 248,
-   "paper": null,
    "printed": "88.7",
    "provisional": false,
    "section": "S248 per-circuit win rates (fig:win_rate)",
@@ -3903,10 +2131,6 @@
    ],
    "kind": "number",
    "n": 248,
-   "paper": {
-    "location": "texts/5-eval.tex:107-109 ('on the majority of circuits')",
-    "value": ">50"
-   },
    "printed": "75.8",
    "provisional": false,
    "section": "S248 per-circuit win rates (fig:win_rate)",
@@ -3922,7 +2146,6 @@
    ],
    "kind": "number",
    "n": 248,
-   "paper": null,
    "printed": "91.9",
    "provisional": false,
    "section": "S248 per-circuit win rates (fig:win_rate)",
@@ -3938,7 +2161,6 @@
    ],
    "kind": "number",
    "n": 248,
-   "paper": null,
    "printed": "92.7",
    "provisional": false,
    "section": "S248 per-circuit win rates (fig:win_rate)",
@@ -3954,7 +2176,6 @@
    ],
    "kind": "number",
    "n": 248,
-   "paper": null,
    "printed": "94.4",
    "provisional": false,
    "section": "S248 per-circuit win rates (fig:win_rate)",
@@ -3970,7 +2191,6 @@
    ],
    "kind": "number",
    "n": 248,
-   "paper": null,
    "printed": "95.6",
    "provisional": false,
    "section": "S248 per-circuit win rates (fig:win_rate)",
@@ -3986,7 +2206,6 @@
    ],
    "kind": "number",
    "n": 248,
-   "paper": null,
    "printed": "83.5",
    "provisional": false,
    "section": "S248 per-circuit win rates (fig:win_rate)",
@@ -4002,7 +2221,6 @@
    ],
    "kind": "number",
    "n": 248,
-   "paper": null,
    "printed": "92.3",
    "provisional": false,
    "section": "S248 per-circuit win rates (fig:win_rate)",
@@ -4018,7 +2236,6 @@
    ],
    "kind": "number",
    "n": 248,
-   "paper": null,
    "printed": "92.3",
    "provisional": false,
    "section": "S248 per-circuit win rates (fig:win_rate)",
@@ -4034,7 +2251,6 @@
    ],
    "kind": "number",
    "n": 248,
-   "paper": null,
    "printed": "93.5",
    "provisional": false,
    "section": "S248 per-circuit win rates (fig:win_rate)",
@@ -4050,7 +2266,6 @@
    ],
    "kind": "number",
    "n": 248,
-   "paper": null,
    "printed": "94.8",
    "provisional": false,
    "section": "S248 per-circuit win rates (fig:win_rate)",
@@ -4066,7 +2281,6 @@
    ],
    "kind": "number",
    "n": 248,
-   "paper": null,
    "printed": "95.6",
    "provisional": false,
    "section": "S248 per-circuit win rates (fig:win_rate)",
@@ -4087,10 +2301,6 @@
    ],
    "kind": "text",
    "n": 248,
-   "paper": {
-    "location": "texts/0-abstract.tex:39; figtex/gate_scatter.tex:10-11",
-    "value": "GUOQ (2Q)"
-   },
    "printed": "\\guoq{} (Total Gate)",
    "provisional": false,
    "section": "S248 per-circuit win rates (fig:win_rate)",
@@ -4110,10 +2320,6 @@
    ],
    "kind": "text",
    "n": 248,
-   "paper": {
-    "location": "texts/1-introduction.tex:124-125 ('the strongest baseline')",
-    "value": "VOQC"
-   },
    "printed": "\\voqc{}",
    "provisional": false,
    "section": "S248 averages (tab:avg-comparison)",
@@ -4128,10 +2334,6 @@
    ],
    "kind": "int",
    "n": 248,
-   "paper": {
-    "location": "texts/0-abstract.tex:38; texts/1-introduction.tex:121; texts/5-eval.tex:27,40",
-    "value": "248"
-   },
    "printed": "248",
    "provisional": false,
    "section": "setup",
@@ -4150,10 +2352,6 @@
     250,
     248
    ],
-   "paper": {
-    "location": "texts/5-eval.tex:28-29 (qft_10, qft_16)",
-    "value": "2"
-   },
    "printed": "2",
    "provisional": false,
    "section": "setup",
@@ -4168,10 +2366,6 @@
    ],
    "kind": "int",
    "n": 250,
-   "paper": {
-    "location": "texts/5-eval.tex:28",
-    "value": "250"
-   },
    "printed": "250",
    "provisional": false,
    "section": "setup",
@@ -4186,10 +2380,6 @@
    ],
    "kind": "number",
    "n": 248,
-   "paper": {
-    "location": "figtex/averages_table.tex:18-19",
-    "value": "43.89"
-   },
    "printed": "44.40",
    "provisional": false,
    "section": "S248 averages (tab:avg-comparison)",
@@ -4204,10 +2394,6 @@
    ],
    "kind": "number",
    "n": 248,
-   "paper": {
-    "location": "figtex/averages_table.tex:18-19; texts/5-eval.tex:118",
-    "value": "-2.63"
-   },
    "printed": "\\ensuremath{-}1.97",
    "provisional": false,
    "section": "S248 averages (tab:avg-comparison)",
@@ -4228,10 +2414,6 @@
    ],
    "kind": "number",
    "n": 248,
-   "paper": {
-    "location": "texts/1-introduction.tex:123",
-    "value": "5.97"
-   },
    "printed": "11.15",
    "provisional": false,
    "section": "S248 averages (tab:avg-comparison)",
@@ -4252,10 +2434,6 @@
    ],
    "kind": "number",
    "n": 248,
-   "paper": {
-    "location": "texts/1-introduction.tex:125",
-    "value": "4.98"
-   },
    "printed": "9.86",
    "provisional": false,
    "section": "S248 averages (tab:avg-comparison)",
@@ -4270,10 +2448,6 @@
    ],
    "kind": "number",
    "n": 248,
-   "paper": {
-    "location": "figtex/averages_table.tex:18-19; texts/5-eval.tex:117,122",
-    "value": "52.34"
-   },
    "printed": "56.20",
    "provisional": false,
    "section": "S248 averages (tab:avg-comparison)",
@@ -4288,10 +2462,6 @@
    ],
    "kind": "number",
    "n": 248,
-   "paper": {
-    "location": "figtex/averages_table.tex:18-19",
-    "value": "51.35"
-   },
    "printed": "54.91",
    "provisional": false,
    "section": "S248 averages (tab:avg-comparison)",
@@ -4306,10 +2476,6 @@
    ],
    "kind": "number",
    "n": 248,
-   "paper": {
-    "location": "figtex/averages_table.tex:18-19",
-    "value": "40.73"
-   },
    "printed": "39.20",
    "provisional": false,
    "section": "S248 averages (tab:avg-comparison)",
@@ -4324,10 +2490,6 @@
    ],
    "kind": "number",
    "n": 248,
-   "paper": {
-    "location": "figtex/averages_table.tex:18-19",
-    "value": "39.72"
-   },
    "printed": "38.83",
    "provisional": false,
    "section": "S248 averages (tab:avg-comparison)",
@@ -4342,10 +2504,6 @@
    ],
    "kind": "number",
    "n": 248,
-   "paper": {
-    "location": "figtex/averages_table.tex:18-19",
-    "value": "27.40"
-   },
    "printed": "27.34",
    "provisional": false,
    "section": "S248 averages (tab:avg-comparison)",
@@ -4360,10 +2518,6 @@
    ],
    "kind": "number",
    "n": 248,
-   "paper": {
-    "location": "figtex/averages_table.tex:18-19; texts/5-eval.tex:122",
-    "value": "46.37"
-   },
    "printed": "45.05",
    "provisional": false,
    "section": "S248 averages (tab:avg-comparison)",
@@ -4379,10 +2533,6 @@
    ],
    "kind": "number",
    "n": 248,
-   "paper": {
-    "location": "figure/win_rate.png",
-    "value": "95.6"
-   },
    "printed": "81.0",
    "provisional": false,
    "section": "S248 per-circuit win rates (fig:win_rate)",
@@ -4398,10 +2548,6 @@
    ],
    "kind": "number",
    "n": 248,
-   "paper": {
-    "location": "figure/win_rate.png",
-    "value": "54.4"
-   },
    "printed": "55.2",
    "provisional": false,
    "section": "S248 per-circuit win rates (fig:win_rate)",
@@ -4417,10 +2563,6 @@
    ],
    "kind": "number",
    "n": 248,
-   "paper": {
-    "location": "figure/win_rate.png",
-    "value": "99.2"
-   },
    "printed": "96.8",
    "provisional": false,
    "section": "S248 per-circuit win rates (fig:win_rate)",
@@ -4436,10 +2578,6 @@
    ],
    "kind": "number",
    "n": 248,
-   "paper": {
-    "location": "figure/win_rate.png",
-    "value": "99.6"
-   },
    "printed": "96.4",
    "provisional": false,
    "section": "S248 per-circuit win rates (fig:win_rate)",
@@ -4455,10 +2593,6 @@
    ],
    "kind": "number",
    "n": 248,
-   "paper": {
-    "location": "figure/win_rate.png",
-    "value": "99.6"
-   },
    "printed": "96.8",
    "provisional": false,
    "section": "S248 per-circuit win rates (fig:win_rate)",
@@ -4474,10 +2608,6 @@
    ],
    "kind": "number",
    "n": 248,
-   "paper": {
-    "location": "figure/win_rate.png",
-    "value": "100.0"
-   },
    "printed": "97.6",
    "provisional": false,
    "section": "S248 per-circuit win rates (fig:win_rate)",
@@ -4493,10 +2623,6 @@
    ],
    "kind": "number",
    "n": 248,
-   "paper": {
-    "location": "figure/win_rate.png",
-    "value": "95.2"
-   },
    "printed": "86.7",
    "provisional": false,
    "section": "S248 per-circuit win rates (fig:win_rate)",
@@ -4512,10 +2638,6 @@
    ],
    "kind": "number",
    "n": 248,
-   "paper": {
-    "location": "figure/win_rate.png; texts/0-abstract.tex:40; texts/1-introduction.tex:136",
-    "value": "83.9"
-   },
    "printed": "91.5",
    "provisional": false,
    "section": "S248 per-circuit win rates (fig:win_rate)",
@@ -4531,10 +2653,6 @@
    ],
    "kind": "number",
    "n": 248,
-   "paper": {
-    "location": "figure/win_rate.png",
-    "value": "97.6"
-   },
    "printed": "99.2",
    "provisional": false,
    "section": "S248 per-circuit win rates (fig:win_rate)",
@@ -4550,10 +2668,6 @@
    ],
    "kind": "number",
    "n": 248,
-   "paper": {
-    "location": "figure/win_rate.png",
-    "value": "98.4"
-   },
    "printed": "98.8",
    "provisional": false,
    "section": "S248 per-circuit win rates (fig:win_rate)",
@@ -4569,10 +2683,6 @@
    ],
    "kind": "number",
    "n": 248,
-   "paper": {
-    "location": "figure/win_rate.png",
-    "value": "98.8"
-   },
    "printed": "99.2",
    "provisional": false,
    "section": "S248 per-circuit win rates (fig:win_rate)",
@@ -4593,10 +2703,6 @@
    ],
    "kind": "number",
    "n": 248,
-   "paper": {
-    "location": "texts/0-abstract.tex:40; texts/1-introduction.tex:136",
-    "value": "83.9"
-   },
    "printed": "86.7",
    "provisional": false,
    "section": "S248 per-circuit win rates (fig:win_rate)",
@@ -4612,10 +2718,6 @@
    ],
    "kind": "number",
    "n": 248,
-   "paper": {
-    "location": "figure/win_rate.png",
-    "value": "86.5"
-   },
    "printed": "100.0",
    "provisional": false,
    "section": "S248 per-circuit win rates (fig:win_rate)",
@@ -4635,10 +2737,6 @@
    ],
    "kind": "number",
    "n": 248,
-   "paper": {
-    "location": "texts/1-introduction.tex:133-134; figure/win_rate.png",
-    "value": "'nearly every circuit' (figure: lowest 82.0, VOQC total)"
-   },
    "printed": "81.0",
    "provisional": false,
    "section": "S248 per-circuit win rates (fig:win_rate)",
@@ -4654,10 +2752,6 @@
    ],
    "kind": "number",
    "n": 248,
-   "paper": {
-    "location": "figure/win_rate.png",
-    "value": "96.0"
-   },
    "printed": "95.2",
    "provisional": false,
    "section": "S248 per-circuit win rates (fig:win_rate)",
@@ -4673,10 +2767,6 @@
    ],
    "kind": "number",
    "n": 248,
-   "paper": {
-    "location": "figure/win_rate.png",
-    "value": "88.3"
-   },
    "printed": "95.2",
    "provisional": false,
    "section": "S248 per-circuit win rates (fig:win_rate)",
@@ -4692,10 +2782,6 @@
    ],
    "kind": "number",
    "n": 248,
-   "paper": {
-    "location": "figure/win_rate.png",
-    "value": "96.8"
-   },
    "printed": "99.6",
    "provisional": false,
    "section": "S248 per-circuit win rates (fig:win_rate)",
@@ -4711,10 +2797,6 @@
    ],
    "kind": "number",
    "n": 248,
-   "paper": {
-    "location": "figure/win_rate.png",
-    "value": "98.0"
-   },
    "printed": "99.6",
    "provisional": false,
    "section": "S248 per-circuit win rates (fig:win_rate)",
@@ -4730,10 +2812,6 @@
    ],
    "kind": "number",
    "n": 248,
-   "paper": {
-    "location": "figure/win_rate.png",
-    "value": "98.8"
-   },
    "printed": "99.6",
    "provisional": false,
    "section": "S248 per-circuit win rates (fig:win_rate)",
@@ -4749,10 +2827,6 @@
    ],
    "kind": "number",
    "n": 248,
-   "paper": {
-    "location": "figure/win_rate.png",
-    "value": "82.0"
-   },
    "printed": "100.0",
    "provisional": false,
    "section": "S248 per-circuit win rates (fig:win_rate)",
@@ -4766,9 +2840,7 @@
   "complete": true,
   "conventions": [
    "values are unrounded; differences are taken before rounding",
-   "printed: fixed decimals as in the current paper; times and speedups with 1 decimal below 10, else 0; a trailing '?' marks a provisional value",
-   "claims: result null = undetermined (missing data); 'noise' fields give z = difference / (pooled E5 seed SD * sqrt(2/n_runs_per_mean))",
-   "paper locations refer to the paper sources as of the 2026-10-30 audit"
+   "printed: fixed decimals as in the paper; times and speedups with 1 decimal below 10, else 0; a trailing '?' marks a provisional value"
   ],
   "curve_data_issues": {
    "duplicate_runs_rows": 0,
@@ -4787,9 +2859,6 @@
    "runs.csv": "49d2b357b63396a63a61099aa2cbb445c8762f2d51385a0efe3bcd71cdf43570",
    "timeseries.csv.gz": "e113e69b7bb85349249a3211cea961545f8fdafd0e250f525a3c9404c9d99f08"
   },
-  "n_claims": 52,
-  "n_claims_false": 22,
-  "n_claims_undetermined": 0,
   "n_macros": 190,
   "n_missing": 0,
   "n_provisional": 0,

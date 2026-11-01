@@ -7,13 +7,13 @@ Inputs
     circuit set of each suite and its original gate counts.
 
 Outputs (written to ``--out``, default ``repro/analysis/out``)
-    averages_table.tex   replaces the paper's figtex/averages_table.tex
+    averages_table.tex   the paper's figtex/averages_table.tex
                          (Table tab:avg-comparison, 248-circuit averages).
-    eval_end_to_end.tex  replaces the paper's figtex/eval_end_to_end.tex
+    eval_end_to_end.tex  the paper's figtex/eval_end_to_end.tex
                          (Table tab:eval_end_to_end, 26 circuits of Quartz).
 
-Both files keep the exact layout of the current paper tables; only numbers,
-bold marks and an optional caption sentence about failed runs change.
+Both files have the layout of the paper's tables; an optional caption sentence
+lists failed runs.
 ``averages_table_data`` and ``eval_end_to_end_data`` return the numbers used
 (unrounded) as plain dicts, for numbers.tex.
 
@@ -310,7 +310,7 @@ def gen_averages_table(
 # ---------------------------------------------------------------------------
 
 E2E_SUITE = "S26"
-# Row order of the current paper table.
+# Row order of the paper's table.
 E2E_CIRCUITS = [
     "adder_8",
     "barenco_tof_3",
