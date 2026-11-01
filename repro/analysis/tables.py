@@ -38,7 +38,7 @@ row (highest for the averages table, lowest gate count incl. ties for the
 26-circuit table); "--" cells and the Orig. column never count.
 
 CLI (from the repo root):
-    python3 repro/analysis/tables.py --results repro/results \
+    uv run repro/analysis/tables.py --results repro/results \
         --out repro/analysis/out [--qalm-config a|b] [--allow-partial]
 """
 

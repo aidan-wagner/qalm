@@ -1,12 +1,12 @@
 """Campaign CLI. Run from the repo root.
 
-  python3 repro/harness/run.py plan [--configs repro/config/E*.yaml] [--experiments E3_greedy ...]
+  uv run repro/harness/run.py plan [--configs repro/config/E*.yaml] [--experiments E3_greedy ...]
                                     [--native-experiments E4_single_k,...] [--campaign CAMPAIGN_YAML]
                                     [--circuits a,b] [--budget-override 60] [--shard i/n] -o PLAN
-  python3 repro/harness/run.py launch --plan PLAN [--max-running N]     (usually via launch_sched.sh)
-  python3 repro/harness/run.py status
-  python3 repro/harness/run.py drain | resume | stop
-  python3 repro/harness/run.py collect [--plan PLAN] [--out repro/results]
+  uv run repro/harness/run.py launch --plan PLAN [--max-running N]     (usually via launch_sched.sh)
+  uv run repro/harness/run.py status
+  uv run repro/harness/run.py drain | resume | stop
+  uv run repro/harness/run.py collect [--plan PLAN] [--out repro/results]
 """
 import argparse
 import csv

@@ -39,7 +39,7 @@ for pixel except for 1-2 px text snapping.  Output is byte-reproducible.
 
 Usage (from the repo root)::
 
-    python3 repro/analysis/fig_percircuit.py --results repro/results \\
+    uv run repro/analysis/fig_percircuit.py --results repro/results \\
         --out repro/analysis/out [--qalm-config a|b]
 """
 

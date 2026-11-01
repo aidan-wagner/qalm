@@ -6,7 +6,9 @@
 set -euo pipefail
 REPO=$(cd "$(dirname "$0")/../.." && pwd)
 cd "$REPO"
-paths=$(python3 -c "
+PY=$REPO/.venv/bin/python   # the uv environment (uv sync)
+[ -x "$PY" ] || { echo "no $PY: run 'uv sync' in $REPO first" >&2; exit 1; }
+paths=$("$PY" -c "
 import yaml
 c = yaml.safe_load(open('repro/config/campaign.yaml'))
 print(' '.join(list(c['binaries'].values()) + [c['lib']]))")

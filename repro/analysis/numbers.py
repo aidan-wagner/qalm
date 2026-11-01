@@ -55,7 +55,7 @@ trailing "?" (a missing value prints "??").
 as "one hour" and "one minute"; other values are only for smoke tests.
 
 CLI (from the repo root):
-    python3 repro/analysis/numbers.py --results repro/results \\
+    uv run repro/analysis/numbers.py --results repro/results \\
         --out repro/analysis/out [--qalm-config a|b] [--threshold 32] \\
         [--events repro/runs/events.csv] [--plan repro/runs/plan.jsonl] \\
         [--allow-partial]

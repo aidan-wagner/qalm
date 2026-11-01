@@ -6,10 +6,12 @@
 # so that job cores and their SMT siblings run nothing but the job.
 set -euo pipefail
 REPO=$(cd "$(dirname "$0")/../.." && pwd)
+PY=$REPO/.venv/bin/python   # the uv environment (uv sync)
+[ -x "$PY" ] || { echo "no $PY: run 'uv sync' in $REPO first" >&2; exit 1; }
 PLAN=$(realpath "$1"); shift
 RUNS=${1:-$REPO/repro/runs}; shift || true
 mkdir -p "$RUNS"
-HK=$(python3 -c "import yaml;print(yaml.safe_load(open('$REPO/repro/config/campaign.yaml'))['cores']['housekeeping'])")
+HK=$("$PY" -c "import yaml;print(yaml.safe_load(open('$REPO/repro/config/campaign.yaml'))['cores']['housekeeping'])")
 sudo -n install -m644 "$REPO/repro/env/qalmrepro.slice" /run/systemd/system/qalmrepro.slice
 sudo -n systemctl daemon-reload
 # never stop or restart the slice here: running jobs live in it and must survive a scheduler restart
@@ -27,5 +29,5 @@ sudo -n systemd-run --unit=qalmrepro-sched --uid="$(id -un)" --gid="$(id -gn)" -
   ${REPRO_CAP_TIERS_GIB:+-E REPRO_CAP_TIERS_GIB=$REPRO_CAP_TIERS_GIB} ${REPRO_PRIOR_SCALE:+-E REPRO_PRIOR_SCALE=$REPRO_PRIOR_SCALE} \
   ${REPRO_ALLOW_CPU_MODE:+-E REPRO_ALLOW_CPU_MODE=$REPRO_ALLOW_CPU_MODE} \
   -p StandardOutput=append:"$RUNS"/sched.log -p StandardError=append:"$RUNS"/sched.log \
-  /usr/bin/python3 $REPO/repro/harness/run.py launch --plan "$PLAN" "$@"
+  "$PY" $REPO/repro/harness/run.py launch --plan "$PLAN" "$@"
 echo "scheduler started; log: $RUNS/sched.log"

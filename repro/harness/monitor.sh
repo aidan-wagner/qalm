@@ -3,6 +3,7 @@
 # memory runs low, or MAX_S seconds pass (heartbeat); then print a summary.
 # Usage: repro/harness/monitor.sh [max_seconds]
 REPO=$(cd "$(dirname "$0")/../.." && pwd)
+PY=$REPO/.venv/bin/python   # the uv environment (uv sync)
 R=$REPO/repro/runs
 MAX_S=${1:-7200}
 start=$(date +%s)
@@ -22,5 +23,5 @@ PY
 done
 echo "monitor exit: $reason at $(date -u +%FT%TZ)"
 cat $R/status.json; echo
-REPRO_RUNS_DIR=$R python3 $REPO/repro/harness/run.py status
+REPRO_RUNS_DIR=$R "$PY" $REPO/repro/harness/run.py status
 tail -5 $R/sched.log

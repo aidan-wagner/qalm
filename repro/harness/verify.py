@@ -16,7 +16,7 @@ same random states with a small numpy statevector simulator and compared via
 A verdict is prefixed "final_only:" when the checked circuit is the run's final circuit but
 the reported counts come from an earlier point of its log (killed or improved after T).
 Usage (repo root):
-  python3 repro/harness/verify.py --plan PLAN [--runs RUNS_DIR] [--results DIR] [--max-qubits 16]
+  uv run repro/harness/verify.py --plan PLAN [--runs RUNS_DIR] [--results DIR] [--max-qubits 16]
                                   [--workers 16] [--out CSV]
 """
 import argparse

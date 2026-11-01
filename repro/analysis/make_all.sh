@@ -7,12 +7,15 @@
 # Needs the GUOQ benchmarks (repro/inputs/fetch_guoq_benchmarks.sh) only for numSuiteSourceCircuits.
 set -euo pipefail
 cd "$(dirname "$0")/../.."
+REPO=$PWD
+PY=$REPO/.venv/bin/python   # the uv environment (uv sync)
+[ -x "$PY" ] || { echo "no $PY: run 'uv sync' in $REPO first" >&2; exit 1; }
 OUT=${1:-repro/analysis/out}
 A=repro/analysis
 R=repro/results
 for c in a b; do
-  python3 $A/tables.py --results $R --qalm-config $c --out "$OUT/$c"
-  python3 $A/fig_percircuit.py --results $R --qalm-config $c --out "$OUT/$c"
+  "$PY" $A/tables.py --results $R --qalm-config $c --out "$OUT/$c"
+  "$PY" $A/fig_percircuit.py --results $R --qalm-config $c --out "$OUT/$c"
 done
-python3 $A/fig_curves.py --results $R --out "$OUT/curves"
-python3 $A/numbers.py --results $R --events $R/events.csv --out "$OUT/numbers"
+"$PY" $A/fig_curves.py --results $R --out "$OUT/curves"
+"$PY" $A/numbers.py --results $R --events $R/events.csv --out "$OUT/numbers"

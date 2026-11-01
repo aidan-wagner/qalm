@@ -89,3 +89,6 @@ past_results/*
 /benchmarks/
 # Paper checkout used during development
 /seach_and_rule_based_opt/
+
+# uv environment (uv sync)
+/.venv/

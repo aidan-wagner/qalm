@@ -122,14 +122,14 @@ sudo docker pull amxu/guoq@sha256:310905ead964978676921d191819ce21f9ccdd06e5709a
 repro/env/set_cpu_mode.sh fixed                       # once per boot; "restore" undoes it
 
 # plan and launch; the scheduler is a systemd unit and survives logout
-python3 repro/harness/run.py plan -o repro/runs/plan.jsonl          # add --shard i/n to split over n machines
+uv run repro/harness/run.py plan -o repro/runs/plan.jsonl          # add --shard i/n to split over n machines
 repro/harness/launch_sched.sh repro/runs/plan.jsonl
-python3 repro/harness/run.py status                                  # also: drain, resume, stop
+uv run repro/harness/run.py status                                  # also: drain, resume, stop
 repro/harness/monitor.sh                                             # optional: wait for anomalies
 
 # afterwards: collect the results (overwrites repro/results/) and check equivalence
-python3 repro/harness/run.py collect --plan repro/runs/plan.jsonl --gzip-logs
-python3 repro/harness/verify.py --plan repro/runs/plan.jsonl --max-qubits 12 --out repro/results/verify_q12.csv
+uv run repro/harness/run.py collect --plan repro/runs/plan.jsonl --gzip-logs
+uv run repro/harness/verify.py --plan repro/runs/plan.jsonl --max-qubits 12 --out repro/results/verify_q12.csv
 repro/analysis/make_all.sh
 
 # give the machine back (launch_sched.sh confined everything else to the housekeeping CPUs;
@@ -145,13 +145,13 @@ Smaller runs: `run.py plan` accepts `--experiments E3_greedy`, `--circuits tof_3
 a smoke test of a few minutes:
 
 ```shell
-python3 repro/harness/run.py plan --circuits tof_3,barenco_tof_3 --budget-override 60 \
+uv run repro/harness/run.py plan --circuits tof_3,barenco_tof_3 --budget-override 60 \
   -o /tmp/plan_smoke.jsonl                                          # 108 jobs, every experiment
 REPRO_ALLOW_CPU_MODE=1 repro/harness/launch_sched.sh /tmp/plan_smoke.jsonl $PWD/repro/runs_smoke
 export REPRO_RUNS_DIR=$PWD/repro/runs_smoke                         # runs dir must be absolute
-python3 repro/harness/run.py status                                 # done after ~3 minutes
-python3 repro/harness/run.py collect --plan /tmp/plan_smoke.jsonl --out /tmp/smoke_results
-python3 repro/harness/verify.py --plan /tmp/plan_smoke.jsonl --results /tmp/smoke_results
+uv run repro/harness/run.py status                                 # done after ~3 minutes
+uv run repro/harness/run.py collect --plan /tmp/plan_smoke.jsonl --out /tmp/smoke_results
+uv run repro/harness/verify.py --plan /tmp/plan_smoke.jsonl --results /tmp/smoke_results
 ```
 
 `runs/HOLD` (a JSON list of rules such as `[{"kind": "docker"}]`) keeps matching queued jobs

@@ -58,8 +58,8 @@ a warning, each figure uses the circuits common to all of its curves, and
 inconsistencies become warnings (all listed in curves_numbers.json).
 
 Usage (from the repo root):
-    python3 repro/analysis/fig_curves.py --results repro/results --out repro/analysis/out
-    python3 repro/analysis/fig_curves.py --results repro/runs_smoke/results \\
+    uv run repro/analysis/fig_curves.py --results repro/results --out repro/analysis/out
+    uv run repro/analysis/fig_curves.py --results repro/runs_smoke/results \\
         --out /tmp/smoke_out --budget 60
 """
 

@@ -1,0 +1,30 @@
+[project]
+name = "qalm-artifact"
+version = "1.0.0"
+description = "Python environment of the QALM artifact: experiment harness, analysis scripts, and pybind11 for the build"
+requires-python = ">=3.12"
+# the versions that produced the paper's tables and figures
+dependencies = [
+    "numpy==2.4.3",
+    "scipy==1.17.1",
+    "matplotlib==3.10.8",
+    "pyyaml==6.0.1",
+    "pybind11==3.0.2",
+]
+
+[tool.uv]
+package = false
+# the build links the Python library of this interpreter (pybind11::embed): use the system one
+python-preference = "only-system"
+# their dependencies, as installed when the figures were made
+constraint-dependencies = [
+    "contourpy==1.3.3",
+    "cycler==0.12.1",
+    "fonttools==4.62.1",
+    "kiwisolver==1.5.0",
+    "packaging==24.0",
+    "pillow==12.1.1",
+    "pyparsing==3.1.1",
+    "python-dateutil==2.8.2",
+    "six==1.16.0",
+]
