@@ -28,6 +28,12 @@ int main(int argc, char **argv) {
 
   std::size_t timeout = std::stoi(argv[3]);
 
+  if (argc >= 5) {
+    // ECC set path relative to the repository root, as for test_qalm and
+    // test_greedy_k_ablation (the harness passes the campaign's `ecc`)
+    eqset_fn = kQuartzRootPath.string() + "/" + std::string(argv[4]);
+  }
+
   ParamInfo param_info;
   Context ctx({GateType::input_qubit, GateType::input_param, GateType::cx,
                GateType::h, GateType::rz, GateType::x, GateType::add},
@@ -43,8 +49,10 @@ int main(int argc, char **argv) {
         kQuartzRootPath.string() + "/eccset/Nam_3_3_", true, false, 3, 2, 3);
     if (!eqs.load_json(&ctx, eqset_fn,
                        /*from_verifier=*/false)) {
-      std::cout << "Failed to load equivalence file." << std::endl;
-      assert(false);
+      // an explicit exit: assert() is compiled out in the Release build (NDEBUG),
+      // and the optimizer would otherwise run without any rewrite rules
+      std::cerr << "Failed to load equivalence file " << eqset_fn << std::endl;
+      return 1;
     }
   }
 
@@ -58,7 +66,8 @@ int main(int argc, char **argv) {
   auto start = std::chrono::steady_clock::now();
   auto graph_preprocessed = graph->greedy_optimize(
       graph->context, eqs, /*print_message=*/true, /*cost_function=*/nullptr,
-      /*store_all_steps_file_prefix=*/"", (double)timeout, start);
+      /*store_all_steps_file_prefix=*/"", (double)timeout, start,
+      /*progress_name=*/circuit_name);
   auto greedy_end = std::chrono::steady_clock::now();
   double greedy_seconds =
       (double)std::chrono::duration_cast<std::chrono::milliseconds>(greedy_end -

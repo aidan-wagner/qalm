@@ -97,7 +97,8 @@ def argv_for(job, campaign):
                 str(p["strictly_reducing"]), str(p["local_only"]), str(p["preprocess"]),
                 str(p["two_way"]), ecc]
     if opt == "quartz":
-        return [bins["quartz"], job["input_path"], c, T]
+        # the ECC set is passed like QALM's (test_original's built-in default is the same file)
+        return [bins["quartz"], job["input_path"], c, T, ecc]
     raise ValueError(f"{opt} is not a native optimizer")
 
 

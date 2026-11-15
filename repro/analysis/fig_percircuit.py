@@ -27,8 +27,9 @@ Outputs (in ``--out``):
   per-column means of both series, win/tie percentages with their n, non-OK
   status counts, missing circuits and dropped scatter points.
 
-All metric definitions come from ``metrics.py``.  Failed runs already count
-as the original circuit (collect.py does that).  A baseline without any rows
+All metric definitions come from ``metrics.py``.  Failed runs (out of memory,
+timeout) already count with the best circuit they reported within the budget,
+or the original circuit if they reported none (collect.py does that).  A baseline without any rows
 is drawn as an empty panel or bar group labelled "no data".
 
 The paper's figure scripts are lost, so their look (axes sizes and gaps,
@@ -544,7 +545,7 @@ def plot_gate_scatter(series, path):
         *pts["original"][:2], color="#7f7f7f", alpha=0.7, label="Original", **style
     )
     for key, label, color in (
-        ("guoq_2q", "GUOQ", BASE_COLOR),
+        ("guoq_2q", "GUOQ (2Q Gate)", BASE_COLOR),
         ("qalm", "QALM", QALM_COLOR),
     ):
         if pts[key] is None:

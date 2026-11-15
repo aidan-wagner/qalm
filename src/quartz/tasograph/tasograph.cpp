@@ -1811,7 +1811,8 @@ Graph::greedy_optimize(Context *ctx, const EquivalenceSet &eqs,
                        const std::string &store_all_steps_file_prefix,
                        double timeout,
                        std::chrono::time_point<std::chrono::steady_clock>
-                           time_start) {
+                           time_start,
+                       const std::string &progress_name) {
   if (cost_function == nullptr) {
     cost_function = [](Graph *graph) { return graph->total_cost(); };
   }
@@ -1891,6 +1892,23 @@ Graph::greedy_optimize(Context *ctx, const EquivalenceSet &eqs,
             optimized_graph->topology_order_ops(all_nodes);
             optimized_this_xfer = true;
             optimized_in_this_iteration = true;
+            if (!progress_name.empty()) {
+              // Same progress line as the QALM greedy passes, so that every
+              // improvement is reported with its time (the harness counts the
+              // last one within the budget).
+              auto now = std::chrono::steady_clock::now();
+              fprintf(stdout,
+                      "[%s] Best cost: %f\tCX: %d\tcandidate number: 1\tafter "
+                      "%.3f seconds.\n",
+                      progress_name.c_str(),
+                      cost_function(optimized_graph.get()),
+                      optimized_graph->specific_gate_count(GateType::cx),
+                      (double)std::chrono::duration_cast<
+                          std::chrono::milliseconds>(now - start)
+                              .count() /
+                          1000.0);
+              fflush(stdout);
+            }
             if (!store_all_steps_file_prefix.empty()) {
               step_count++;
               optimized_graph->to_qasm(store_all_steps_file_prefix +
@@ -3607,6 +3625,9 @@ std::shared_ptr<Graph> Graph::optimize_qalm(
       // circuits
       std::vector<std::shared_ptr<Graph>> found_circuits;
       std::vector<std::vector<Op>> local_nodes;
+      // hash of each branch's pool circuit (recorded in |hashmap| below even
+      // when intermediate circuits are not enqueued)
+      std::vector<size_t> pool_hashes;
 
       int xfer_count = 0;
       while (found_circuits.size() < exploration_pool_size) {
@@ -3657,6 +3678,7 @@ std::shared_ptr<Graph> Graph::optimize_qalm(
         }
 
         found_circuits.push_back(new_graph);
+        pool_hashes.push_back(new_hash);
         if (enqueue_intermediate) {
           candidates.push(new_graph);
           num_pushes++;
@@ -3856,7 +3878,12 @@ std::shared_ptr<Graph> Graph::optimize_qalm(
         if (new_cost > cost_upper_bound)
           continue;
         auto new_hash = curr_graph->hash_exact();
-        if (hashmap.find(new_hash) != hashmap.end()) {
+        // A branch that is still its own pool circuit (k = 1, or no evolution
+        // step found a new circuit) and that ROQC left unchanged is not a
+        // duplicate: without enqueue_intermediate it was never enqueued.
+        const bool keep_pool_circuit =
+            !enqueue_intermediate && new_hash == pool_hashes[circuit_index];
+        if (!keep_pool_circuit && hashmap.find(new_hash) != hashmap.end()) {
           num_dup_rejected++;
           continue;
         }

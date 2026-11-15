@@ -231,7 +231,10 @@ class Graph {
       const std::string &store_all_steps_file_prefix = std::string(),
       double timeout = -1 /*disabled*/,
       std::chrono::time_point<std::chrono::steady_clock> time_start =
-          std::chrono::time_point<std::chrono::steady_clock>::min());
+          std::chrono::time_point<std::chrono::steady_clock>::min(),
+      // Non-empty: print a "[<progress_name>] Best cost: ..." line after every
+      // improvement (the format of the QALM greedy passes, read by the harness).
+      const std::string &progress_name = std::string());
   /**
    * Greedily apply transformations+ROQC towards lower cost.
    * @param ctx The context variable.

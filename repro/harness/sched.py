@@ -406,7 +406,9 @@ class Scheduler:
         d = self.jobdir(jid)
         attempt = 1 + self.past_attempts(jid)
         os.makedirs(d, exist_ok=True)
-        for stale in ("result.json", "done.json"):  # never mix files from another attempt
+        # never mix files from another attempt: out/ (docker) may hold a latest_sol_*.qasm of a
+        # container whose launch counted as failed although it ran
+        for stale in ("result.json", "done.json", "final.qasm", "out"):
             if os.path.exists(os.path.join(d, stale)):
                 os.rename(os.path.join(d, stale), os.path.join(d, f"{stale}.stale{int(time.time())}"))
         spec = dict(job, repo_root=REPO, wall_limit_s=self.wall_limit(job))
@@ -565,11 +567,13 @@ class Scheduler:
                 self.requeue(jid, "infra", info)
             return
         cap = launch.get("cap_gib", self.max_cap)
-        # Escalate if the run reached its cap before its budget ran out, or came close enough
-        # (RSS >= 90% of the cap) that cgroup reclaim may have slowed it: every reported run below
-        # the maximum cap then ran with headroom, i.e. as it would have under the maximum cap.
+        # Escalate if the run reached its cap, or came close enough (RSS >= 90% of the cap)
+        # that cgroup reclaim may have slowed it: every reported run below the maximum cap then
+        # ran with headroom, i.e. as it would have under the maximum cap. This includes runs
+        # that hit the cap only after their budget (OOM_AFTER_T): the peak RSS does not tell
+        # whether they were already near the cap before it.
         near_cap = rss_bytes >= self.mem["escalate_rss_fraction"] * cap * GIB
-        if (status == "OOM_CAP" or (near_cap and status != "OOM_AFTER_T")) and cap < self.max_cap:
+        if (status in ("OOM_CAP", "OOM_AFTER_T") or near_cap) and cap < self.max_cap:
             nxt = next((t for t in self.tiers if t > cap), self.max_cap)
             self.min_cap[jid] = nxt
             write_json(self.esc_path, self.min_cap)

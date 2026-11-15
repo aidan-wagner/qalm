@@ -4,11 +4,13 @@ For circuits with at most --max-qubits qubits, input and output are applied to t
 same random states with a small numpy statevector simulator and compared via
 |<psi_in|psi_out>| (global phase ignored). Verdicts:
   pass            overlap >= 1 - 1e-9 (exact up to floating point)
-  pass_rounding   QALM/Quartz/VOQC only, overlap >= 1 - 1e-6: they print rotation angles with 6
-                  decimals (QALM also round-trips every circuit through that text format when
-                  calling ROQC), so arbitrary-angle circuits carry ~1e-6 rad angle rounding
-                  (VOQC outputs below 1 - 1e-9 had >= 1 - 1.5e-8 in the paper's runs)
-  approx          GUOQ TWO_Q (approximate resynthesis, epsilon 1e-8), overlap >= 1 - 1e-6
+  pass_rounding   QALM/Quartz/VOQC only, overlap >= 1 - --rounding-tol (default 1e-8): they
+                  print rotation angles with 6 decimals (QALM also round-trips every circuit
+                  through that text format when calling ROQC), so arbitrary-angle circuits carry
+                  ~1e-6 rad angle rounding (on <= 12 qubits the worst seen was 1 - 4.4e-9; an
+                  earlier run had VOQC outputs at 1 - 1.5e-8, so a FAIL just above the default
+                  can be rounding: check it, and re-run with a larger --rounding-tol if so)
+  approx          GUOQ TWO_Q (approximate resynthesis, epsilon 1e-8), overlap >= 1 - --rounding-tol
   FAIL            anything else
   trivial         the reported result is the input circuit (nothing to check)
   unverifiable    no output circuit was kept (e.g. a native run killed before it printed one)
@@ -17,7 +19,7 @@ A verdict is prefixed "final_only:" when the checked circuit is the run's final 
 the reported counts come from an earlier point of its log (killed or improved after T).
 Usage (repo root):
   uv run repro/harness/verify.py --plan PLAN [--runs RUNS_DIR] [--results DIR] [--max-qubits 16]
-                                  [--workers 16] [--out CSV]
+                                  [--rounding-tol 1e-8] [--workers 16] [--out CSV]
 """
 import argparse
 import csv
@@ -110,7 +112,7 @@ def simulate(n, ops, state):
 
 
 def check(task):
-    job, out_path = task
+    job, out_path, rounding_tol = task
     try:
         n_in, ops_in = parse(job["input_path"])
         n_out, ops_out = parse(out_path)
@@ -127,7 +129,7 @@ def check(task):
         rounding = job["optimizer"] in ("qalm", "qalm_old", "quartz", "voqc")
         if worst >= 1 - 1e-9 and not approx:
             verdict = "pass"
-        elif worst >= 1 - 1e-6 and (approx or rounding):
+        elif worst >= 1 - rounding_tol and (approx or rounding):
             verdict = "approx" if approx else "pass_rounding"
         else:
             verdict = "FAIL"
@@ -151,6 +153,8 @@ def main():
     p.add_argument("--results", default=os.path.join(jobsmod.REPRO, "results"),
                    help="dir with runs.csv from run.py collect (to know which circuit was reported)")
     p.add_argument("--max-qubits", type=int, default=16)
+    p.add_argument("--rounding-tol", type=float, default=1e-8,
+                   help="max 1 - overlap for pass_rounding / approx (default 1e-8)")
     p.add_argument("--workers", type=int, default=16)
     p.add_argument("--out")
     a = p.parse_args()
@@ -180,7 +184,7 @@ def main():
         else:
             if rep and (rep["final_total"], rep["final_cx"]) != (rep["opt_total"], rep["opt_cx"]):
                 final_only.add(job["job_id"])
-            tasks.append((job, out))
+            tasks.append((job, out, a.rounding_tol))
     with multiprocessing.Pool(a.workers) as pool:
         for r in pool.imap_unordered(check, tasks, chunksize=1):
             if r["job_id"] in final_only:

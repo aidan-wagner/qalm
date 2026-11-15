@@ -27,18 +27,19 @@ Curves: each curve is the exact step function ``metrics.mean_reduction_curve``
 ``metrics.averages`` of the runs.csv rows. Time-to-X% uses
 ``metrics.time_to_reach`` on the same step function.
 
-Timestamp ties: collect.py writes the change-points sorted by (t, total, cx)
-and ``metrics.load_timeseries`` sorts the same way, so an improvement logged
-at the same timestamp as an earlier point (typically t=0.000, the same
-instant as the original-count row) is placed *before* it and would be hidden.
-Within one timestamp the best-so-far value is the smallest one, so this
-script keeps the smallest (total, cx) per timestamp and reports how often
-that happened (``data_issues.same_timestamp``).
+Timestamp ties: run.py collect writes the change-points sorted by time only,
+keeping the log order at equal times, and ``metrics.load_timeseries`` sorts
+the same way. Several points can share a timestamp (typically an improvement
+logged at t=0.000, the same instant as the original-count row). Within one
+timestamp the best-so-far value is the smallest one, so this script keeps the
+smallest (total, cx) per timestamp, independent of their order, and reports
+how often that happened (``data_issues.same_timestamp``).
 
 Greedy phase (greedy_k figure only): per circuit the runs.csv greedy_end_s,
 cross-checked against the first k = greedy_k + 1 event in kevents.csv. A run
-that never left the greedy phase within the budget counts as the budget, and
-so does a value past the budget (collect.py searches the whole log).
+that never left the greedy phase within the budget counts as the budget
+(collect.py already ignores k events after the budget; a value past the
+budget, e.g. from an older collect.py, is capped at the budget as well).
 
 y-range: one range shared by the five figures, chosen from the data. Every
 curve and band is fully visible from ``--zoom-from`` seconds on (default
@@ -351,8 +352,9 @@ class Results:
             return from_events
         value = float(value)
         if value > self.budget:
-            # collect.py takes the first event from the whole log, which can lie
-            # just past the budget; the greedy phase did not end within the budget.
+            # Safety net: collect.py only considers k events within the budget, so
+            # this should not happen (an older collect.py searched the whole log);
+            # such a greedy phase did not end within the budget.
             self.greedy_end_capped += 1
             value = float(self.budget)
         if abs(value - from_events) > 1e-9:

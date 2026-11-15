@@ -19,11 +19,15 @@ _PROGRESS = re.compile(
     r"^\[(?P<name>.+?)\] Best cost: (?P<cost>[0-9.]+)\tCX: (?P<cx>\d+)\t"
     r"candidate number: \d+\tafter (?P<t>[0-9.]+) seconds\.$")
 _KSTART = re.compile(r"^\[(?P<name>.+?)\] \[QALM_K_START\] k=(?P<k>\d+) at (?P<t>[0-9.]+) seconds\.$")
+# A number printed by C++ `std::cout << double`: 6 significant digits, switching to scientific
+# notation for large values (1000000 -> "1e+06", 1234567 -> "1.23457e+06"). The lines below are
+# printed that way; _PROGRESS and _KSTART use printf("%f") / "%.3f", which never do.
+_NUM = r"\d+(?:\.\d+)?(?:[eE][+-]?\d+)?"
 _GREEDY = re.compile(
-    r"^(?P<pass>greedy_optimize_with_\w+)\(\): cost optimized from (?P<a>[0-9.]+) to (?P<b>[0-9.]+) "
-    r"after (?P<t>[0-9.]+) seconds\.$")
-_POST_GREEDY_T = re.compile(r"^Post-greedy time: (?P<t>[0-9.]+) seconds")
-_GREEDY_TIMEOUT = re.compile(r"^greedy_optimize\(\): timeout hit after (?P<t>[0-9.]+)")
+    rf"^(?P<pass>greedy_optimize_with_\w+)\(\): cost optimized from (?P<a>{_NUM}) to (?P<b>{_NUM}) "
+    rf"after (?P<t>{_NUM}) seconds\.$")
+_POST_GREEDY_T = re.compile(rf"^Post-greedy time: (?P<t>{_NUM}) seconds")
+_GREEDY_TIMEOUT = re.compile(rf"^greedy_optimize\(\): timeout hit after (?P<t>{_NUM})")
 
 
 def open_text(path):

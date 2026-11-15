@@ -136,15 +136,17 @@ def summarize(job, jobdir, launch):
     if job["optimizer"] in ("qalm", "qalm_old", "quartz"):
         if within:
             row["opt_total"], row["opt_cx"], row["result_source"] = within[-1][1], within[-1][2], "log_le_budget"
-        elif final is not None and not series:
+        elif final is not None and not series and row["wall_s"] <= T:
+            # no progress line at all: the final circuit counts only if the run
+            # ended within the budget (wall_s includes setup, so this is strict)
             row["opt_total"], row["opt_cx"], row["result_source"] = final["total"], final["cx"], "final_qasm"
         else:
             row["opt_total"], row["opt_cx"], row["result_source"] = job["orig_total"], job["orig_cx"], "original"
     else:
+        # GUOQ / QUESO / VOQC: only a written circuit counts (counted by qasm_count like
+        # every other result); the tool's own log counter is never used for the result
         if final is not None:
             row["opt_total"], row["opt_cx"], row["result_source"] = final["total"], final["cx"], "final_qasm"
-        elif within:
-            row["opt_total"], row["opt_cx"], row["result_source"] = within[-1][1], within[-1][2], "log_le_budget"
         else:
             row["opt_total"], row["opt_cx"], row["result_source"] = job["orig_total"], job["orig_cx"], "original"
     row["greedy_end_s"] = _greedy_end(job, parsed["kevents"])

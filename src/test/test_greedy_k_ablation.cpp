@@ -103,8 +103,10 @@ int main(int argc, char **argv) {
         {GateType::rz, GateType::h, GateType::cx, GateType::x, GateType::add},
         kQuartzRootPath.string() + "/eccset/Nam_5_3_", true, false, 3, 2, 5);
     if (!eqs.load_json(&ctx, eqset_fn, /*from_verifier=*/false)) {
-      std::cout << "Failed to load equivalence file." << std::endl;
-      assert(false);
+      // an explicit exit: assert() is compiled out in the Release build (NDEBUG),
+      // and the optimizer would otherwise run without any rewrite rules
+      std::cerr << "Failed to load equivalence file " << eqset_fn << std::endl;
+      return 1;
     }
   }
 

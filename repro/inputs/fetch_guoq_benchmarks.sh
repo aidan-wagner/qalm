@@ -12,19 +12,23 @@ trap 'rm -rf "$TMP"' EXIT
 curl -fsSL "https://github.com/qqq-wisc/guoq/archive/$COMMIT.tar.gz" -o "$TMP/guoq.tar.gz"
 tar -xzf "$TMP/guoq.tar.gz" -C "$TMP" "guoq-$COMMIT/benchmarks/nam_rz"
 mkdir -p "$DEST"
-python3 - "$REPO" "$TMP/guoq-$COMMIT/benchmarks/nam_rz" "$DEST" <<'EOF'
+python3 -I - "$REPO" "$TMP/guoq-$COMMIT/benchmarks/nam_rz" "$DEST" <<'EOF'
 import csv, hashlib, os, shutil, sys
 repo, src, dest = sys.argv[1:]
 rows = list(csv.DictReader(open(os.path.join(repo, "repro/inputs/S248.csv"))))
 for name in os.listdir(src):
     if name.endswith(".qasm"):
         shutil.copyfile(os.path.join(src, name), os.path.join(dest, name))
-bad = []
+bad, missing = [], []
 for r in rows:
     name = os.path.basename(r["path"])
-    if hashlib.sha256(open(os.path.join(dest, name), "rb").read()).hexdigest() != r["sha256"]:
+    path = os.path.join(dest, name)
+    if not os.path.exists(path):
+        missing.append(name)
+    elif hashlib.sha256(open(path, "rb").read()).hexdigest() != r["sha256"]:
         bad.append(name)
-if bad:
-    sys.exit(f"sha256 mismatch for {len(bad)} circuits: {bad[:5]}")
+if missing or bad:
+    sys.exit(f"{len(missing)} circuits missing {missing[:5]}, "
+             f"sha256 mismatch for {len(bad)} circuits {bad[:5]}")
 print(f"{len(os.listdir(dest))} circuits in {dest}; the {len(rows)} of the suite match repro/inputs/S248.csv")
 EOF

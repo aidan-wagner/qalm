@@ -6,4 +6,6 @@ runs/
 # root .gitignore ignores *.json; we commit small JSON reference/config files
 !*.json
 runs_*/
-repro/env/build_info.txt
+# this machine's build record (env/record_build.sh); the paper's is env/build_info_paper.txt
+env/build_info.txt
+env/build_info.diff
