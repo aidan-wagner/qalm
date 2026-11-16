@@ -10,7 +10,7 @@ that turn them into the paper's tables, figures and numbers.
 | `config/campaign.yaml` | machine and resource policy: job cores, memory caps, binaries, runtime library (`lib`, required: `env/record_build.sh` reads it), ECC set, docker image digest, native build tag |
 | `config/E*.yaml` | the experiments, one file per part of the evaluation (below) |
 | `config/mem_priors.csv` | expected peak memory per circuit and optimizer, used only to schedule jobs |
-| `inputs/S248.csv`, `S26.csv`, `S26PP.csv` | the input circuits with sha256 and gate counts (`make_manifests.py`); paths are relative to the repository root |
+| `inputs/S248.csv`, `S26.csv` | the input circuits with sha256 and gate counts (`make_manifests.py`); paths are relative to the repository root |
 | `inputs/fetch_guoq_benchmarks.sh` | downloads S248 (GUOQ's `benchmarks/nam_rz` at commit 8c4c3a5) and checks it |
 | `harness/` | job expansion (`jobs.py`), scheduler (`sched.py`, `run.py`, `launch_sched.sh`), per-job wrapper (`jobwrap.py`), log parsers, result collection (`collect.py`), gate counter (`qasm_count.py`), equivalence check (`verify.py`) |
 | `baselines/` | entry point of the GUOQ/QUESO/VOQC container (`entry.py`), the single-core resynthesis server for GUOQ, and the authors' original scripts (`upstream/`); the image and how each baseline is run: `baselines/README.md` |
@@ -24,7 +24,7 @@ that turn them into the paper's tables, figures and numbers.
 | Config | Paper | Suite | Runs |
 |---|---|---|---|
 | `E1_main` | Table 1, Figs. 2, 6, 7 | S248 | QALM (a) at 1 h and 60 s, Quartz, GUOQ (TWO_Q, TOTAL), QUESO (TWO_Q, TOTAL), VOQC; QALM (b) at 1 h and 60 s |
-| `E2_quartz26` | Table 2 (Sec. 5.4) | S26 (+ S26PP) | VOQC, QUESO TOTAL, GUOQ TOTAL, Quartz, Quartz with preprocessing, QALM (a), QALM (b) |
+| `E2_quartz26` | Table 2 (Sec. 5.4) | S26 | VOQC, QUESO TOTAL, GUOQ TOTAL, Quartz, QALM (a), QALM (b) |
 | `E3_greedy` | Fig. 8 (Sec. 5.5) | S26 | QALM with greedy k 0..3 |
 | `E4_single_k` | Fig. 9 (Sec. 5.6) | S26 | QALM with greedy k in {0, 2} and fixed k 1..5 |
 | `E5_explore` | Fig. 10 (Sec. 5.7) | S26 | QALM with N_pool 1..5 and N_branch 1..5, seeds 0, 1, 2 |
@@ -35,6 +35,10 @@ that turn them into the paper's tables, figures and numbers.
 - **QALM (b)** is supplementary and not in the paper: `build/test_qalm` with N_pool = 1,
   N_branch = 1, fixed k = 3 and intermediate circuits enqueued. Leave it out with
   `run.py plan --optimizers qalm,quartz,guoq,queso,voqc` (saves about 280 core-hours).
+- Quartz with preprocessing (Quartz on the rotation-merged inputs in `circuit/nam_rm_circs`) is
+  not run: 4 of those files (`mod_mult_55`, `rc_adder_6`, `csum_mux_9`, `qcla_mod_7`) are not
+  equivalent to their `circuit/nam_circs` originals (checked with MQT QCEC), and `verify.py`
+  compares an output only with the circuit the job was given, so it cannot catch that.
 - Runs shared by several experiments run once. A job's id is a hash of optimizer, parameters,
   circuit, input hash, budget, seed and (native jobs) the build tag `native_build`.
 - Two provenance limits for the containers: (1) a docker job's id does not include the image, so
@@ -200,7 +204,7 @@ Notes on the `run.py plan` options:
   output. `--circuits` selects by name in every suite (S248 and S26 share 26 names).
 - `--shard i/n` splits by circuit name, so all jobs of a circuit run on the same machine. The
   shards are not balanced: the S26 circuits carry about 50 jobs each, the others about 10 (with
-  n = 2: about 1,620 and 1,290 core-hours). Results of different machines are only comparable
+  n = 2: about 1,600 and 1,280 core-hours). Results of different machines are only comparable
   if the machines are identical (same CPU, same `campaign.yaml` settings).
 - A plan stores absolute input paths (`input_path`) of the checkout that made it. Make each
   plan, shards included, in the checkout that runs it (or in one at the same path); a plan

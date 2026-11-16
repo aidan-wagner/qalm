@@ -3,7 +3,7 @@
 Inputs
     Result rows in the ``metrics.load_runs`` schema: by default
     ``<results>/runs.csv`` written by ``repro/harness/run.py collect``.
-    The input manifests ``repro/inputs/{S248,S26,S26PP}.csv`` define the
+    The input manifests ``repro/inputs/{S248,S26}.csv`` define the
     circuit set of each suite and its original gate counts.
 
 Outputs (written to ``--out``, default ``repro/analysis/out``)
@@ -30,8 +30,9 @@ Selection rules (see repro/README.md):
       budget, or the original circuit (repro/harness/collect.py).  Each
       caption names, per column, the runs whose status is not OK.
     * The 26-circuit table compares against the S26 (nam_circs) original
-      counts in every column, including Quartz w/ preprocessing, whose inputs
-      (S26PP, rotation-merged) are smaller.
+      counts in every column.  (Quartz with preprocessing, run on the
+      rotation-merged circuit/nam_rm_circs inputs, was removed: 4 of those
+      inputs are not equivalent to their nam_circs originals.)
 
 All metrics come from metrics.py.  Bold marks the best displayed value per
 row (highest for the averages table, lowest gate count incl. ties for the
@@ -348,24 +349,22 @@ E2E_HEAD = r"""\begin{table*}[ht]
 \centering
 \caption{%s \vspace{0.5em}}
 \label{tab:eval_end_to_end}
-\begin{tabular}{l|rrrrrr|r}
+\begin{tabular}{l|rrrrr|r}
 \hline
-\multicolumn{1}{c|}{\multirow{2}{*}{\textbf{Circuit}}} & \multicolumn{1}{c}{\multirow{2}{*}{\textbf{Orig.}}} & \multicolumn{1}{c}{\multirow{2}{*}{\textbf{\voqc}}} & \multicolumn{1}{c}{\multirow{2}{*}{\textbf{\queso}}} & \multicolumn{1}{c}{\multirow{2}{*}{\textbf{\guoq}}} & \multicolumn{1}{c}{\textbf{\quartz}} & \multicolumn{1}{c|}{\textbf{\quartz}} & \multicolumn{1}{c}{\multirow{2}{*}{\textbf{\optName}}} \\
- &  &  &  &  & \multicolumn{1}{c}{\textbf{w/o Preprocess}} & \multicolumn{1}{c|}{\textbf{w/ Preprocess}} &  \\
+\multicolumn{1}{c|}{\textbf{Circuit}} & \multicolumn{1}{c}{\textbf{Orig.}} & \multicolumn{1}{c}{\textbf{\voqc}} & \multicolumn{1}{c}{\textbf{\queso}} & \multicolumn{1}{c}{\textbf{\guoq}} & \multicolumn{1}{c|}{\textbf{\quartz}} & \multicolumn{1}{c}{\textbf{\optName}} \\
 \hline"""
 
 
 def e2e_columns(qalm_config="a"):
-    """The 6 optimizer columns of tab:eval_end_to_end, in table order."""
+    """The 5 optimizer columns of tab:eval_end_to_end, in table order."""
     q_opt, q_params = _qalm(qalm_config)
     return [
         Column("voqc", r"\voqc{}", "voqc", "S26", 3600, {}),
         Column("queso", r"\queso{}", "queso", "S26", 3600, {"opt": "TOTAL"}),
         Column("guoq", r"\guoq{}", "guoq", "S26", 3600, {"opt": "TOTAL"}),
-        Column(
-            "quartz_nopp", r"\quartz{} w/o preprocessing", "quartz", "S26", 3600, {}
-        ),
-        Column("quartz_pp", r"\quartz{} w/ preprocessing", "quartz", "S26PP", 3600, {}),
+        # key kept from when the table also had Quartz with preprocessing
+        # (numbers.tex macro names ...QuartzNoPP)
+        Column("quartz_nopp", r"\quartz{}", "quartz", "S26", 3600, {}),
         Column("qalm", r"\optName{}", q_opt, "S26", 3600, q_params),
     ]
 
@@ -383,7 +382,7 @@ def eval_end_to_end_data(rows, qalm_config="a", allow_partial=False):
     """
     manifest = load_manifest(E2E_SUITE)
     # Every column is joined to the S26 originals by circuit name, so each
-    # column's suite (S26PP too) must hold exactly the table circuits.
+    # column's suite must hold exactly the table circuits.
     for suite in sorted({col.suite for col in e2e_columns(qalm_config)}):
         if sorted(load_manifest(suite)) != sorted(E2E_CIRCUITS):
             raise ValueError(

@@ -10,7 +10,7 @@ Inputs
                     else the jobs in runs.csv), so jobs of other plan versions
                     in the same runs dir are left out.  Without it those macros
                     print "??".
-    repro/inputs/{S248,S26,S26PP}.csv     suites (circuit counts, gate counts)
+    repro/inputs/{S248,S26}.csv           suites (circuit counts, gate counts)
     repro/config/campaign.yaml            memory cap tiers and job cores
 
 Outputs (in --out, default repro/analysis/out)
@@ -135,8 +135,7 @@ ETE_COLS = {
     "voqc": "Voqc",
     "queso": "Queso",
     "guoq": "Guoq",
-    "quartz_nopp": "QuartzNoPP",
-    "quartz_pp": "QuartzPP",
+    "quartz_nopp": "QuartzNoPP",  # Quartz (name from the removed w/ preprocessing column)
     "qalm": "Qalm",
 }
 # metrics.averages key -> (macro stem, decimals, description)
@@ -640,7 +639,7 @@ def ete_numbers(book, rows, qcfg):
         )
     q = cols["qalm"]["geomean_red"]
     deltas = {}
-    for key in ("voqc", "quartz_nopp", "queso", "guoq", "quartz_pp"):
+    for key in ("voqc", "quartz_nopp", "queso", "guoq"):
         b = cols[key]["geomean_red"]
         deltas[key] = q - b if _all_known(q, b) else None
         book.add(
@@ -705,17 +704,6 @@ def ete_numbers(book, rows, qcfg):
             inputs=["ete:qalm", f"ete:{key}"],
             source="tables.eval_end_to_end_data (qalm_vs)",
         )
-    vs_pp = ete["qalm_vs"]["quartz_pp"]
-    both_pp = has_q and cols["quartz_pp"]["n"] > 0
-    book.add(
-        "numETEQalmWorseQuartzPPWord",
-        vs_pp["worse"] if both_pp else None,
-        kind="text",
-        text=word(vs_pp["worse"]) if both_pp else None,
-        formula="numETEQalmWorseQuartzPP as a word",
-        inputs=["ete:qalm", "ete:quartz_pp"],
-        source="tables.eval_end_to_end_data (qalm_vs)",
-    )
     book.add(
         "numQuartzSuiteCircuits",
         n_circ,

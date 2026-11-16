@@ -785,7 +785,7 @@ def order_plan(jobs, cfg, priors):
             return 3
         if is_quick(j):
             return 0
-        return 1 if j["suite"] in ("S26", "S26PP") else 2
+        return 1 if j["suite"] == "S26" else 2
 
     out = []
     for c in range(4):

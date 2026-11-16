@@ -1,4 +1,4 @@
-"""Build the input manifests S248, S26, S26PP (name, path, sha256, n_qubits, total, cx).
+"""Build the input manifests S248 and S26 (name, path, sha256, n_qubits, total, cx).
 
 Run from the repo root after repro/inputs/fetch_guoq_benchmarks.sh:
     python3 -I repro/inputs/make_manifests.py
@@ -45,7 +45,6 @@ def main():
             if os.path.basename(p)[:-5] not in S248_EXCLUDE]
     write("S248.csv", s248)
     write("S26.csv", [row(n, f"circuit/nam_circs/{n}.qasm") for n in S26])
-    write("S26PP.csv", [row(n, f"circuit/nam_rm_circs/{n}.qasm") for n in S26])
 
 
 if __name__ == "__main__":
