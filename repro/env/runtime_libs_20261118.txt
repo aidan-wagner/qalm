@@ -1,0 +1,9 @@
+# System packages providing the shared libraries that build/test_greedy_k_ablation, test_qalm, test_original and libquartz_runtime.so load (ldd + dpkg-query).
+# Recorded 2026-11-18T14:27:24Z on qalm-zen3, after the unattended upgrades of 2026-11-18 06:22-06:40Z (see apt_updates_20261118.txt).
+libc6 2.39-0ubuntu8.12
+libexpat1 2.6.1-2ubuntu0.6
+libgcc-s1 14.2.0-4ubuntu2~24.04.1
+libgomp1 14.2.0-4ubuntu2~24.04.1
+libpython3.12t64 3.12.3-1ubuntu0.17
+libstdc++6 14.2.0-4ubuntu2~24.04.1
+zlib1g 1:1.3.dfsg-3.1ubuntu2.3

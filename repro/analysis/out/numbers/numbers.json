@@ -1,0 +1,3357 @@
+{
+ "macros": {
+  "numBudgetFactor": {
+   "decimals": null,
+   "formula": "one-hour budget / one-minute budget (3600 s / 60 s)",
+   "inputs": [],
+   "kind": "int",
+   "n": null,
+   "printed": "60",
+   "provisional": false,
+   "section": "S248 one-minute QALM",
+   "source": "numbers.py --budget / --short-budget",
+   "value": 60.0
+  },
+  "numCampaignHours": {
+   "decimals": 0,
+   "formula": "wall-clock hours from the first launch to the last event on a host",
+   "inputs": [
+    "events"
+   ],
+   "kind": "number",
+   "n": 7300,
+   "printed": "32",
+   "provisional": false,
+   "section": "setup",
+   "source": "numbers.events_stats",
+   "value": 32.31375
+  },
+  "numCxRedGuoqTotal": {
+   "decimals": 2,
+   "formula": "mean 2-qubit (CX) gate reduction % (circuits with cx>0) over the circuits of column guoq_total (metrics.averages)",
+   "inputs": [
+    "avg:guoq_total"
+   ],
+   "kind": "number",
+   "n": 248,
+   "printed": "19.92",
+   "provisional": false,
+   "section": "S248 averages (tab:avg-comparison)",
+   "source": "tables.averages_table_data",
+   "value": 19.916628356943896
+  },
+  "numCxRedGuoqTwoQ": {
+   "decimals": 2,
+   "formula": "mean 2-qubit (CX) gate reduction % (circuits with cx>0) over the circuits of column guoq_2q (metrics.averages)",
+   "inputs": [
+    "avg:guoq_2q"
+   ],
+   "kind": "number",
+   "n": 248,
+   "printed": "25.36",
+   "provisional": false,
+   "section": "S248 averages (tab:avg-comparison)",
+   "source": "tables.averages_table_data",
+   "value": 25.361116160041362
+  },
+  "numCxRedQalm": {
+   "decimals": 2,
+   "formula": "mean 2-qubit (CX) gate reduction % (circuits with cx>0) over the circuits of column qalm (metrics.averages)",
+   "inputs": [
+    "avg:qalm"
+   ],
+   "kind": "number",
+   "n": 248,
+   "printed": "26.23",
+   "provisional": false,
+   "section": "S248 averages (tab:avg-comparison)",
+   "source": "tables.averages_table_data",
+   "value": 26.231789104757155
+  },
+  "numCxRedQalmOneMin": {
+   "decimals": 2,
+   "formula": "mean 2-qubit (CX) gate reduction % (circuits with cx>0) over the circuits of column qalm_1min (metrics.averages)",
+   "inputs": [
+    "avg:qalm_1min"
+   ],
+   "kind": "number",
+   "n": 248,
+   "printed": "22.19",
+   "provisional": false,
+   "section": "S248 averages (tab:avg-comparison)",
+   "source": "tables.averages_table_data",
+   "value": 22.18536155170149
+  },
+  "numCxRedQuartz": {
+   "decimals": 2,
+   "formula": "mean 2-qubit (CX) gate reduction % (circuits with cx>0) over the circuits of column quartz (metrics.averages)",
+   "inputs": [
+    "avg:quartz"
+   ],
+   "kind": "number",
+   "n": 248,
+   "printed": "11.94",
+   "provisional": false,
+   "section": "S248 averages (tab:avg-comparison)",
+   "source": "tables.averages_table_data",
+   "value": 11.936900342483181
+  },
+  "numCxRedQuesoTotal": {
+   "decimals": 2,
+   "formula": "mean 2-qubit (CX) gate reduction % (circuits with cx>0) over the circuits of column queso_total (metrics.averages)",
+   "inputs": [
+    "avg:queso_total"
+   ],
+   "kind": "number",
+   "n": 248,
+   "printed": "13.05",
+   "provisional": false,
+   "section": "S248 averages (tab:avg-comparison)",
+   "source": "tables.averages_table_data",
+   "value": 13.0516217875268
+  },
+  "numCxRedQuesoTwoQ": {
+   "decimals": 2,
+   "formula": "mean 2-qubit (CX) gate reduction % (circuits with cx>0) over the circuits of column queso_2q (metrics.averages)",
+   "inputs": [
+    "avg:queso_2q"
+   ],
+   "kind": "number",
+   "n": 248,
+   "printed": "12.86",
+   "provisional": false,
+   "section": "S248 averages (tab:avg-comparison)",
+   "source": "tables.averages_table_data",
+   "value": 12.864540176160949
+  },
+  "numCxRedVoqc": {
+   "decimals": 2,
+   "formula": "mean 2-qubit (CX) gate reduction % (circuits with cx>0) over the circuits of column voqc (metrics.averages)",
+   "inputs": [
+    "avg:voqc"
+   ],
+   "kind": "number",
+   "n": 248,
+   "printed": "4.06",
+   "provisional": false,
+   "section": "S248 averages (tab:avg-comparison)",
+   "source": "tables.averages_table_data",
+   "value": 4.062197756084139
+  },
+  "numETEQalmBest": {
+   "decimals": null,
+   "formula": "circuits where QALM has the lowest gate count (ties count)",
+   "inputs": [
+    "ete:voqc",
+    "ete:queso",
+    "ete:guoq",
+    "ete:quartz_nopp",
+    "ete:qalm"
+   ],
+   "kind": "int",
+   "n": 26,
+   "printed": "24",
+   "provisional": false,
+   "section": "S26 table (tab:eval_end_to_end)",
+   "source": "tables.eval_end_to_end_data (n_best)",
+   "value": 24
+  },
+  "numETEQalmGeqGuoq": {
+   "decimals": null,
+   "formula": "circuits where QALM's gate count <= guoq's",
+   "inputs": [
+    "ete:qalm",
+    "ete:guoq"
+   ],
+   "kind": "int",
+   "n": 26,
+   "printed": "24",
+   "provisional": false,
+   "section": "S26 table (tab:eval_end_to_end)",
+   "source": "tables.eval_end_to_end_data (qalm_vs)",
+   "value": 24
+  },
+  "numETEQalmGeqQuartzNoPP": {
+   "decimals": null,
+   "formula": "circuits where QALM's gate count <= quartz_nopp's",
+   "inputs": [
+    "ete:qalm",
+    "ete:quartz_nopp"
+   ],
+   "kind": "int",
+   "n": 26,
+   "printed": "26",
+   "provisional": false,
+   "section": "S26 table (tab:eval_end_to_end)",
+   "source": "tables.eval_end_to_end_data (qalm_vs)",
+   "value": 26
+  },
+  "numETEQalmGeqQueso": {
+   "decimals": null,
+   "formula": "circuits where QALM's gate count <= queso's",
+   "inputs": [
+    "ete:qalm",
+    "ete:queso"
+   ],
+   "kind": "int",
+   "n": 26,
+   "printed": "26",
+   "provisional": false,
+   "section": "S26 table (tab:eval_end_to_end)",
+   "source": "tables.eval_end_to_end_data (qalm_vs)",
+   "value": 26
+  },
+  "numETEQalmGeqVoqc": {
+   "decimals": null,
+   "formula": "circuits where QALM's gate count <= voqc's",
+   "inputs": [
+    "ete:qalm",
+    "ete:voqc"
+   ],
+   "kind": "int",
+   "n": 26,
+   "printed": "26",
+   "provisional": false,
+   "section": "S26 table (tab:eval_end_to_end)",
+   "source": "tables.eval_end_to_end_data (qalm_vs)",
+   "value": 26
+  },
+  "numETEQalmNotBest": {
+   "decimals": null,
+   "formula": "circuits where QALM is not (co-)lowest (26 - numETEQalmBest)",
+   "inputs": [
+    "ete:voqc",
+    "ete:queso",
+    "ete:guoq",
+    "ete:quartz_nopp",
+    "ete:qalm"
+   ],
+   "kind": "int",
+   "n": 26,
+   "printed": "2",
+   "provisional": false,
+   "section": "S26 table (tab:eval_end_to_end)",
+   "source": "tables.eval_end_to_end_data (best)",
+   "value": 2
+  },
+  "numETEQalmNotBestWord": {
+   "decimals": null,
+   "formula": "numETEQalmNotBest as a word",
+   "inputs": [
+    "ete:voqc",
+    "ete:queso",
+    "ete:guoq",
+    "ete:quartz_nopp",
+    "ete:qalm"
+   ],
+   "kind": "text",
+   "n": 26,
+   "printed": "two",
+   "provisional": false,
+   "section": "S26 table (tab:eval_end_to_end)",
+   "source": "tables.eval_end_to_end_data (best)",
+   "value": 2
+  },
+  "numETEQalmWorseGuoq": {
+   "decimals": null,
+   "formula": "circuits where QALM's gate count > guoq's",
+   "inputs": [
+    "ete:qalm",
+    "ete:guoq"
+   ],
+   "kind": "int",
+   "n": 26,
+   "printed": "2",
+   "provisional": false,
+   "section": "S26 table (tab:eval_end_to_end)",
+   "source": "tables.eval_end_to_end_data (qalm_vs)",
+   "value": 2
+  },
+  "numETEQalmWorseQuartzNoPP": {
+   "decimals": null,
+   "formula": "circuits where QALM's gate count > quartz_nopp's",
+   "inputs": [
+    "ete:qalm",
+    "ete:quartz_nopp"
+   ],
+   "kind": "int",
+   "n": 26,
+   "printed": "0",
+   "provisional": false,
+   "section": "S26 table (tab:eval_end_to_end)",
+   "source": "tables.eval_end_to_end_data (qalm_vs)",
+   "value": 0
+  },
+  "numETEQalmWorseQueso": {
+   "decimals": null,
+   "formula": "circuits where QALM's gate count > queso's",
+   "inputs": [
+    "ete:qalm",
+    "ete:queso"
+   ],
+   "kind": "int",
+   "n": 26,
+   "printed": "0",
+   "provisional": false,
+   "section": "S26 table (tab:eval_end_to_end)",
+   "source": "tables.eval_end_to_end_data (qalm_vs)",
+   "value": 0
+  },
+  "numETEQalmWorseVoqc": {
+   "decimals": null,
+   "formula": "circuits where QALM's gate count > voqc's",
+   "inputs": [
+    "ete:qalm",
+    "ete:voqc"
+   ],
+   "kind": "int",
+   "n": 26,
+   "printed": "0",
+   "provisional": false,
+   "section": "S26 table (tab:eval_end_to_end)",
+   "source": "tables.eval_end_to_end_data (qalm_vs)",
+   "value": 0
+  },
+  "numFailETEGuoq": {
+   "decimals": null,
+   "formula": "runs of column guoq whose status is not OK ({})",
+   "inputs": [
+    "ete:guoq"
+   ],
+   "kind": "int",
+   "n": 26,
+   "printed": "0",
+   "provisional": false,
+   "section": "S26 table (tab:eval_end_to_end)",
+   "source": "tables.eval_end_to_end_data (non_ok)",
+   "value": 0
+  },
+  "numFailETEQalm": {
+   "decimals": null,
+   "formula": "runs of column qalm whose status is not OK ({})",
+   "inputs": [
+    "ete:qalm"
+   ],
+   "kind": "int",
+   "n": 26,
+   "printed": "0",
+   "provisional": false,
+   "section": "S26 table (tab:eval_end_to_end)",
+   "source": "tables.eval_end_to_end_data (non_ok)",
+   "value": 0
+  },
+  "numFailETEQuartzNoPP": {
+   "decimals": null,
+   "formula": "runs of column quartz_nopp whose status is not OK ({})",
+   "inputs": [
+    "ete:quartz_nopp"
+   ],
+   "kind": "int",
+   "n": 26,
+   "printed": "0",
+   "provisional": false,
+   "section": "S26 table (tab:eval_end_to_end)",
+   "source": "tables.eval_end_to_end_data (non_ok)",
+   "value": 0
+  },
+  "numFailETEQueso": {
+   "decimals": null,
+   "formula": "runs of column queso whose status is not OK ({})",
+   "inputs": [
+    "ete:queso"
+   ],
+   "kind": "int",
+   "n": 26,
+   "printed": "0",
+   "provisional": false,
+   "section": "S26 table (tab:eval_end_to_end)",
+   "source": "tables.eval_end_to_end_data (non_ok)",
+   "value": 0
+  },
+  "numFailETEVoqc": {
+   "decimals": null,
+   "formula": "runs of column voqc whose status is not OK ({})",
+   "inputs": [
+    "ete:voqc"
+   ],
+   "kind": "int",
+   "n": 26,
+   "printed": "0",
+   "provisional": false,
+   "section": "S26 table (tab:eval_end_to_end)",
+   "source": "tables.eval_end_to_end_data (non_ok)",
+   "value": 0
+  },
+  "numFailGuoqTotal": {
+   "decimals": null,
+   "formula": "runs of column guoq_total whose status is not OK ({'JVM_OOM': 6})",
+   "inputs": [
+    "avg:guoq_total"
+   ],
+   "kind": "int",
+   "n": 248,
+   "printed": "6",
+   "provisional": false,
+   "section": "S248 averages (tab:avg-comparison)",
+   "source": "tables.averages_table_data (non_ok)",
+   "value": 6
+  },
+  "numFailGuoqTwoQ": {
+   "decimals": null,
+   "formula": "runs of column guoq_2q whose status is not OK ({})",
+   "inputs": [
+    "avg:guoq_2q"
+   ],
+   "kind": "int",
+   "n": 248,
+   "printed": "0",
+   "provisional": false,
+   "section": "S248 averages (tab:avg-comparison)",
+   "source": "tables.averages_table_data (non_ok)",
+   "value": 0
+  },
+  "numFailQalm": {
+   "decimals": null,
+   "formula": "runs of column qalm whose status is not OK ({})",
+   "inputs": [
+    "avg:qalm"
+   ],
+   "kind": "int",
+   "n": 248,
+   "printed": "0",
+   "provisional": false,
+   "section": "S248 averages (tab:avg-comparison)",
+   "source": "tables.averages_table_data (non_ok)",
+   "value": 0
+  },
+  "numFailQalmOneMin": {
+   "decimals": null,
+   "formula": "runs of column qalm_1min whose status is not OK ({})",
+   "inputs": [
+    "avg:qalm_1min"
+   ],
+   "kind": "int",
+   "n": 248,
+   "printed": "0",
+   "provisional": false,
+   "section": "S248 averages (tab:avg-comparison)",
+   "source": "tables.averages_table_data (non_ok)",
+   "value": 0
+  },
+  "numFailQuartz": {
+   "decimals": null,
+   "formula": "runs of column quartz whose status is not OK ({'OOM_CAP': 2})",
+   "inputs": [
+    "avg:quartz"
+   ],
+   "kind": "int",
+   "n": 248,
+   "printed": "2",
+   "provisional": false,
+   "section": "S248 averages (tab:avg-comparison)",
+   "source": "tables.averages_table_data (non_ok)",
+   "value": 2
+  },
+  "numFailQuesoTotal": {
+   "decimals": null,
+   "formula": "runs of column queso_total whose status is not OK ({'JVM_OOM': 3})",
+   "inputs": [
+    "avg:queso_total"
+   ],
+   "kind": "int",
+   "n": 248,
+   "printed": "3",
+   "provisional": false,
+   "section": "S248 averages (tab:avg-comparison)",
+   "source": "tables.averages_table_data (non_ok)",
+   "value": 3
+  },
+  "numFailQuesoTwoQ": {
+   "decimals": null,
+   "formula": "runs of column queso_2q whose status is not OK ({'JVM_OOM': 5})",
+   "inputs": [
+    "avg:queso_2q"
+   ],
+   "kind": "int",
+   "n": 248,
+   "printed": "5",
+   "provisional": false,
+   "section": "S248 averages (tab:avg-comparison)",
+   "source": "tables.averages_table_data (non_ok)",
+   "value": 5
+  },
+  "numFailVoqc": {
+   "decimals": null,
+   "formula": "runs of column voqc whose status is not OK ({'TIMEOUT': 7})",
+   "inputs": [
+    "avg:voqc"
+   ],
+   "kind": "int",
+   "n": 248,
+   "printed": "7",
+   "provisional": false,
+   "section": "S248 averages (tab:avg-comparison)",
+   "source": "tables.averages_table_data (non_ok)",
+   "value": 7
+  },
+  "numFidGuoqTotal": {
+   "decimals": 4,
+   "formula": "mean fidelity 0.999^(total-cx)*0.99^cx over the circuits of column guoq_total (metrics.averages)",
+   "inputs": [
+    "avg:guoq_total"
+   ],
+   "kind": "number",
+   "n": 248,
+   "printed": "0.3687",
+   "provisional": false,
+   "section": "S248 averages (tab:avg-comparison)",
+   "source": "tables.averages_table_data",
+   "value": 0.3687071074188394
+  },
+  "numFidGuoqTwoQ": {
+   "decimals": 4,
+   "formula": "mean fidelity 0.999^(total-cx)*0.99^cx over the circuits of column guoq_2q (metrics.averages)",
+   "inputs": [
+    "avg:guoq_2q"
+   ],
+   "kind": "number",
+   "n": 248,
+   "printed": "0.3502",
+   "provisional": false,
+   "section": "S248 averages (tab:avg-comparison)",
+   "source": "tables.averages_table_data",
+   "value": 0.3502085211001878
+  },
+  "numFidQalm": {
+   "decimals": 4,
+   "formula": "mean fidelity 0.999^(total-cx)*0.99^cx over the circuits of column qalm (metrics.averages)",
+   "inputs": [
+    "avg:qalm"
+   ],
+   "kind": "number",
+   "n": 248,
+   "printed": "0.4049",
+   "provisional": false,
+   "section": "S248 averages (tab:avg-comparison)",
+   "source": "tables.averages_table_data",
+   "value": 0.40490995871623814
+  },
+  "numFidQalmOneMin": {
+   "decimals": 4,
+   "formula": "mean fidelity 0.999^(total-cx)*0.99^cx over the circuits of column qalm_1min (metrics.averages)",
+   "inputs": [
+    "avg:qalm_1min"
+   ],
+   "kind": "number",
+   "n": 248,
+   "printed": "0.3915",
+   "provisional": false,
+   "section": "S248 averages (tab:avg-comparison)",
+   "source": "tables.averages_table_data",
+   "value": 0.39149121121187985
+  },
+  "numFidQuartz": {
+   "decimals": 4,
+   "formula": "mean fidelity 0.999^(total-cx)*0.99^cx over the circuits of column quartz (metrics.averages)",
+   "inputs": [
+    "avg:quartz"
+   ],
+   "kind": "number",
+   "n": 248,
+   "printed": "0.3510",
+   "provisional": false,
+   "section": "S248 averages (tab:avg-comparison)",
+   "source": "tables.averages_table_data",
+   "value": 0.3510148371131373
+  },
+  "numFidQuesoTotal": {
+   "decimals": 4,
+   "formula": "mean fidelity 0.999^(total-cx)*0.99^cx over the circuits of column queso_total (metrics.averages)",
+   "inputs": [
+    "avg:queso_total"
+   ],
+   "kind": "number",
+   "n": 248,
+   "printed": "0.3545",
+   "provisional": false,
+   "section": "S248 averages (tab:avg-comparison)",
+   "source": "tables.averages_table_data",
+   "value": 0.3545275220125802
+  },
+  "numFidQuesoTwoQ": {
+   "decimals": 4,
+   "formula": "mean fidelity 0.999^(total-cx)*0.99^cx over the circuits of column queso_2q (metrics.averages)",
+   "inputs": [
+    "avg:queso_2q"
+   ],
+   "kind": "number",
+   "n": 248,
+   "printed": "0.3349",
+   "provisional": false,
+   "section": "S248 averages (tab:avg-comparison)",
+   "source": "tables.averages_table_data",
+   "value": 0.334863356262595
+  },
+  "numFidVoqc": {
+   "decimals": 4,
+   "formula": "mean fidelity 0.999^(total-cx)*0.99^cx over the circuits of column voqc (metrics.averages)",
+   "inputs": [
+    "avg:voqc"
+   ],
+   "kind": "number",
+   "n": 248,
+   "printed": "0.3373",
+   "provisional": false,
+   "section": "S248 averages (tab:avg-comparison)",
+   "source": "tables.averages_table_data",
+   "value": 0.33730602190669196
+  },
+  "numFixedKGkTwoAdvancing": {
+   "decimals": 2,
+   "formula": "final mean total reduction %, greedy_k=2, advancing k (same runs as the greedy_k figure)",
+   "inputs": [
+    "curve:single_k_gk2:advancing_k"
+   ],
+   "kind": "number",
+   "n": 26,
+   "printed": "33.01",
+   "provisional": false,
+   "section": "fixed exploration depth (fig:single_k)",
+   "source": "fig_curves.figure_numbers",
+   "value": 33.009656979351085
+  },
+  "numFixedKGkTwoBest": {
+   "decimals": 2,
+   "formula": "final reduction of the best fixed k, greedy_k=2",
+   "inputs": [
+    "curve:single_k_gk2:k=1",
+    "curve:single_k_gk2:k=2",
+    "curve:single_k_gk2:k=3",
+    "curve:single_k_gk2:k=4",
+    "curve:single_k_gk2:k=5"
+   ],
+   "kind": "number",
+   "n": 26,
+   "printed": "33.17",
+   "provisional": false,
+   "section": "fixed exploration depth (fig:single_k)",
+   "source": "fig_curves.derived_numbers (best_fixed_k_final_pct)",
+   "value": 33.16541007855605
+  },
+  "numFixedKGkTwoBestK": {
+   "decimals": null,
+   "formula": "fixed k with the highest final reduction, greedy_k=2",
+   "inputs": [
+    "curve:single_k_gk2:k=1",
+    "curve:single_k_gk2:k=2",
+    "curve:single_k_gk2:k=3",
+    "curve:single_k_gk2:k=4",
+    "curve:single_k_gk2:k=5"
+   ],
+   "kind": "int",
+   "n": 26,
+   "printed": "1",
+   "provisional": false,
+   "section": "fixed exploration depth (fig:single_k)",
+   "source": "fig_curves.derived_numbers (best_fixed_k)",
+   "value": 1
+  },
+  "numFixedKGkTwoGapToAdvancing": {
+   "decimals": 2,
+   "formula": "advancing-k final - best fixed-k final, greedy_k=2 (points)",
+   "inputs": [
+    "curve:single_k_gk2:k=1",
+    "curve:single_k_gk2:k=2",
+    "curve:single_k_gk2:k=3",
+    "curve:single_k_gk2:k=4",
+    "curve:single_k_gk2:k=5",
+    "curve:single_k_gk2:advancing_k"
+   ],
+   "kind": "number",
+   "n": 26,
+   "printed": "\\ensuremath{-}0.16",
+   "provisional": false,
+   "section": "fixed exploration depth (fig:single_k)",
+   "source": "fig_curves.derived_numbers (advancing_minus_best_fixed_pct)",
+   "value": -0.15575309920496494
+  },
+  "numFixedKGkTwoKFive": {
+   "decimals": 2,
+   "formula": "final mean total reduction %, greedy_k=2, fixed k=5",
+   "inputs": [
+    "curve:single_k_gk2:k=5"
+   ],
+   "kind": "number",
+   "n": 26,
+   "printed": "32.69",
+   "provisional": false,
+   "section": "fixed exploration depth (fig:single_k)",
+   "source": "fig_curves.figure_numbers (final_mean_reduction_pct)",
+   "value": 32.68693044992923
+  },
+  "numFixedKGkTwoKFour": {
+   "decimals": 2,
+   "formula": "final mean total reduction %, greedy_k=2, fixed k=4",
+   "inputs": [
+    "curve:single_k_gk2:k=4"
+   ],
+   "kind": "number",
+   "n": 26,
+   "printed": "32.98",
+   "provisional": false,
+   "section": "fixed exploration depth (fig:single_k)",
+   "source": "fig_curves.figure_numbers (final_mean_reduction_pct)",
+   "value": 32.97778012313184
+  },
+  "numFixedKGkTwoKOne": {
+   "decimals": 2,
+   "formula": "final mean total reduction %, greedy_k=2, fixed k=1",
+   "inputs": [
+    "curve:single_k_gk2:k=1"
+   ],
+   "kind": "number",
+   "n": 26,
+   "printed": "33.17",
+   "provisional": false,
+   "section": "fixed exploration depth (fig:single_k)",
+   "source": "fig_curves.figure_numbers (final_mean_reduction_pct)",
+   "value": 33.16541007855605
+  },
+  "numFixedKGkTwoKThree": {
+   "decimals": 2,
+   "formula": "final mean total reduction %, greedy_k=2, fixed k=3",
+   "inputs": [
+    "curve:single_k_gk2:k=3"
+   ],
+   "kind": "number",
+   "n": 26,
+   "printed": "33.05",
+   "provisional": false,
+   "section": "fixed exploration depth (fig:single_k)",
+   "source": "fig_curves.figure_numbers (final_mean_reduction_pct)",
+   "value": 33.04635883958236
+  },
+  "numFixedKGkTwoKTwo": {
+   "decimals": 2,
+   "formula": "final mean total reduction %, greedy_k=2, fixed k=2",
+   "inputs": [
+    "curve:single_k_gk2:k=2"
+   ],
+   "kind": "number",
+   "n": 26,
+   "printed": "33.07",
+   "provisional": false,
+   "section": "fixed exploration depth (fig:single_k)",
+   "source": "fig_curves.figure_numbers (final_mean_reduction_pct)",
+   "value": 33.06704791671653
+  },
+  "numFixedKGkZeroAdvancing": {
+   "decimals": 2,
+   "formula": "final mean total reduction %, greedy_k=0, advancing k (same runs as the greedy_k figure)",
+   "inputs": [
+    "curve:single_k_gk0:advancing_k"
+   ],
+   "kind": "number",
+   "n": 26,
+   "printed": "33.33",
+   "provisional": false,
+   "section": "fixed exploration depth (fig:single_k)",
+   "source": "fig_curves.figure_numbers",
+   "value": 33.332270449675256
+  },
+  "numFixedKGkZeroBest": {
+   "decimals": 2,
+   "formula": "final reduction of the best fixed k, greedy_k=0",
+   "inputs": [
+    "curve:single_k_gk0:k=1",
+    "curve:single_k_gk0:k=2",
+    "curve:single_k_gk0:k=3",
+    "curve:single_k_gk0:k=4",
+    "curve:single_k_gk0:k=5"
+   ],
+   "kind": "number",
+   "n": 26,
+   "printed": "33.33",
+   "provisional": false,
+   "section": "fixed exploration depth (fig:single_k)",
+   "source": "fig_curves.derived_numbers (best_fixed_k_final_pct)",
+   "value": 33.328757980409364
+  },
+  "numFixedKGkZeroBestK": {
+   "decimals": null,
+   "formula": "fixed k with the highest final reduction, greedy_k=0",
+   "inputs": [
+    "curve:single_k_gk0:k=1",
+    "curve:single_k_gk0:k=2",
+    "curve:single_k_gk0:k=3",
+    "curve:single_k_gk0:k=4",
+    "curve:single_k_gk0:k=5"
+   ],
+   "kind": "int",
+   "n": 26,
+   "printed": "1",
+   "provisional": false,
+   "section": "fixed exploration depth (fig:single_k)",
+   "source": "fig_curves.derived_numbers (best_fixed_k)",
+   "value": 1
+  },
+  "numFixedKGkZeroGapToAdvancing": {
+   "decimals": 2,
+   "formula": "advancing-k final - best fixed-k final, greedy_k=0 (points)",
+   "inputs": [
+    "curve:single_k_gk0:k=1",
+    "curve:single_k_gk0:k=2",
+    "curve:single_k_gk0:k=3",
+    "curve:single_k_gk0:k=4",
+    "curve:single_k_gk0:k=5",
+    "curve:single_k_gk0:advancing_k"
+   ],
+   "kind": "number",
+   "n": 26,
+   "printed": "0.00",
+   "provisional": false,
+   "section": "fixed exploration depth (fig:single_k)",
+   "source": "fig_curves.derived_numbers (advancing_minus_best_fixed_pct)",
+   "value": 0.0035124692658925483
+  },
+  "numFixedKGkZeroKFive": {
+   "decimals": 2,
+   "formula": "final mean total reduction %, greedy_k=0, fixed k=5",
+   "inputs": [
+    "curve:single_k_gk0:k=5"
+   ],
+   "kind": "number",
+   "n": 26,
+   "printed": "31.27",
+   "provisional": false,
+   "section": "fixed exploration depth (fig:single_k)",
+   "source": "fig_curves.figure_numbers (final_mean_reduction_pct)",
+   "value": 31.265460149167232
+  },
+  "numFixedKGkZeroKFour": {
+   "decimals": 2,
+   "formula": "final mean total reduction %, greedy_k=0, fixed k=4",
+   "inputs": [
+    "curve:single_k_gk0:k=4"
+   ],
+   "kind": "number",
+   "n": 26,
+   "printed": "31.50",
+   "provisional": false,
+   "section": "fixed exploration depth (fig:single_k)",
+   "source": "fig_curves.figure_numbers (final_mean_reduction_pct)",
+   "value": 31.501562170895518
+  },
+  "numFixedKGkZeroKOne": {
+   "decimals": 2,
+   "formula": "final mean total reduction %, greedy_k=0, fixed k=1",
+   "inputs": [
+    "curve:single_k_gk0:k=1"
+   ],
+   "kind": "number",
+   "n": 26,
+   "printed": "33.33",
+   "provisional": false,
+   "section": "fixed exploration depth (fig:single_k)",
+   "source": "fig_curves.figure_numbers (final_mean_reduction_pct)",
+   "value": 33.328757980409364
+  },
+  "numFixedKGkZeroKThree": {
+   "decimals": 2,
+   "formula": "final mean total reduction %, greedy_k=0, fixed k=3",
+   "inputs": [
+    "curve:single_k_gk0:k=3"
+   ],
+   "kind": "number",
+   "n": 26,
+   "printed": "32.07",
+   "provisional": false,
+   "section": "fixed exploration depth (fig:single_k)",
+   "source": "fig_curves.figure_numbers (final_mean_reduction_pct)",
+   "value": 32.07304271453037
+  },
+  "numFixedKGkZeroKTwo": {
+   "decimals": 2,
+   "formula": "final mean total reduction %, greedy_k=0, fixed k=2",
+   "inputs": [
+    "curve:single_k_gk0:k=2"
+   ],
+   "kind": "number",
+   "n": 26,
+   "printed": "32.13",
+   "provisional": false,
+   "section": "fixed exploration depth (fig:single_k)",
+   "source": "fig_curves.figure_numbers (final_mean_reduction_pct)",
+   "value": 32.13363185241493
+  },
+  "numGateCountOrders": {
+   "decimals": null,
+   "formula": "floor(log10(max/min original total)) = floor(log10(768096/5)), as a word",
+   "inputs": [
+    "manifest:S248"
+   ],
+   "kind": "text",
+   "n": 248,
+   "printed": "five",
+   "provisional": false,
+   "section": "setup",
+   "source": "tables.load_manifest",
+   "value": 5.186445499113089
+  },
+  "numGeoDeltaGuoq": {
+   "decimals": 1,
+   "formula": "geomean_red(qalm) - geomean_red(guoq), unrounded, then rounded",
+   "inputs": [
+    "ete:qalm",
+    "ete:guoq"
+   ],
+   "kind": "number",
+   "n": 26,
+   "printed": "4.9",
+   "provisional": false,
+   "section": "S26 table (tab:eval_end_to_end)",
+   "source": "tables.eval_end_to_end_data",
+   "value": 4.854864606393548
+  },
+  "numGeoDeltaQuartzNoPP": {
+   "decimals": 1,
+   "formula": "geomean_red(qalm) - geomean_red(quartz_nopp), unrounded, then rounded",
+   "inputs": [
+    "ete:qalm",
+    "ete:quartz_nopp"
+   ],
+   "kind": "number",
+   "n": 26,
+   "printed": "17.2",
+   "provisional": false,
+   "section": "S26 table (tab:eval_end_to_end)",
+   "source": "tables.eval_end_to_end_data",
+   "value": 17.226579944239603
+  },
+  "numGeoDeltaQueso": {
+   "decimals": 1,
+   "formula": "geomean_red(qalm) - geomean_red(queso), unrounded, then rounded",
+   "inputs": [
+    "ete:qalm",
+    "ete:queso"
+   ],
+   "kind": "number",
+   "n": 26,
+   "printed": "9.3",
+   "provisional": false,
+   "section": "S26 table (tab:eval_end_to_end)",
+   "source": "tables.eval_end_to_end_data",
+   "value": 9.273318798412642
+  },
+  "numGeoDeltaVoqc": {
+   "decimals": 1,
+   "formula": "geomean_red(qalm) - geomean_red(voqc), unrounded, then rounded",
+   "inputs": [
+    "ete:qalm",
+    "ete:voqc"
+   ],
+   "kind": "number",
+   "n": 26,
+   "printed": "7.0",
+   "provisional": false,
+   "section": "S26 table (tab:eval_end_to_end)",
+   "source": "tables.eval_end_to_end_data",
+   "value": 6.99434106345177
+  },
+  "numGeoRedGuoq": {
+   "decimals": 1,
+   "formula": "100*(1 - geomean(opt/orig)) over the 26 circuits, column guoq (S26 originals; metrics.geomean_reduction_pct)",
+   "inputs": [
+    "ete:guoq"
+   ],
+   "kind": "number",
+   "n": 26,
+   "printed": "29.1",
+   "provisional": false,
+   "section": "S26 table (tab:eval_end_to_end)",
+   "source": "tables.eval_end_to_end_data",
+   "value": 29.09276838164069
+  },
+  "numGeoRedQalm": {
+   "decimals": 1,
+   "formula": "100*(1 - geomean(opt/orig)) over the 26 circuits, column qalm (S26 originals; metrics.geomean_reduction_pct)",
+   "inputs": [
+    "ete:qalm"
+   ],
+   "kind": "number",
+   "n": 26,
+   "printed": "33.9",
+   "provisional": false,
+   "section": "S26 table (tab:eval_end_to_end)",
+   "source": "tables.eval_end_to_end_data",
+   "value": 33.947632988034236
+  },
+  "numGeoRedQuartzNoPP": {
+   "decimals": 1,
+   "formula": "100*(1 - geomean(opt/orig)) over the 26 circuits, column quartz_nopp (S26 originals; metrics.geomean_reduction_pct)",
+   "inputs": [
+    "ete:quartz_nopp"
+   ],
+   "kind": "number",
+   "n": 26,
+   "printed": "16.7",
+   "provisional": false,
+   "section": "S26 table (tab:eval_end_to_end)",
+   "source": "tables.eval_end_to_end_data",
+   "value": 16.721053043794633
+  },
+  "numGeoRedQueso": {
+   "decimals": 1,
+   "formula": "100*(1 - geomean(opt/orig)) over the 26 circuits, column queso (S26 originals; metrics.geomean_reduction_pct)",
+   "inputs": [
+    "ete:queso"
+   ],
+   "kind": "number",
+   "n": 26,
+   "printed": "24.7",
+   "provisional": false,
+   "section": "S26 table (tab:eval_end_to_end)",
+   "source": "tables.eval_end_to_end_data",
+   "value": 24.674314189621594
+  },
+  "numGeoRedVoqc": {
+   "decimals": 1,
+   "formula": "100*(1 - geomean(opt/orig)) over the 26 circuits, column voqc (S26 originals; metrics.geomean_reduction_pct)",
+   "inputs": [
+    "ete:voqc"
+   ],
+   "kind": "number",
+   "n": 26,
+   "printed": "27.0",
+   "provisional": false,
+   "section": "S26 table (tab:eval_end_to_end)",
+   "source": "tables.eval_end_to_end_data",
+   "value": 26.953291924582466
+  },
+  "numGreedyFinalDiff": {
+   "decimals": 2,
+   "formula": "final(greedy_k=2) - final(greedy_k=0), points (unrounded)",
+   "inputs": [
+    "curve:greedy_k:greedy_k=0",
+    "curve:greedy_k:greedy_k=2"
+   ],
+   "kind": "number",
+   "n": 26,
+   "printed": "\\ensuremath{-}0.32",
+   "provisional": false,
+   "section": "greedy mode (fig:greedy_k)",
+   "source": "fig_curves.figure_numbers",
+   "value": -0.3226134703241712
+  },
+  "numGreedyFinalGkOne": {
+   "decimals": 2,
+   "formula": "final mean total reduction % (t = budget), greedy_k=1, 26 circuits",
+   "inputs": [
+    "curve:greedy_k:greedy_k=1"
+   ],
+   "kind": "number",
+   "n": 26,
+   "printed": "32.94",
+   "provisional": false,
+   "section": "greedy mode (fig:greedy_k)",
+   "source": "fig_curves.figure_numbers (final_mean_reduction_pct)",
+   "value": 32.942212614154315
+  },
+  "numGreedyFinalGkThree": {
+   "decimals": 2,
+   "formula": "final mean total reduction % (t = budget), greedy_k=3, 26 circuits",
+   "inputs": [
+    "curve:greedy_k:greedy_k=3"
+   ],
+   "kind": "number",
+   "n": 26,
+   "printed": "33.03",
+   "provisional": false,
+   "section": "greedy mode (fig:greedy_k)",
+   "source": "fig_curves.figure_numbers (final_mean_reduction_pct)",
+   "value": 33.032866042733225
+  },
+  "numGreedyFinalGkTwo": {
+   "decimals": 2,
+   "formula": "final mean total reduction % (t = budget), greedy_k=2, 26 circuits",
+   "inputs": [
+    "curve:greedy_k:greedy_k=2"
+   ],
+   "kind": "number",
+   "n": 26,
+   "printed": "33.01",
+   "provisional": false,
+   "section": "greedy mode (fig:greedy_k)",
+   "source": "fig_curves.figure_numbers (final_mean_reduction_pct)",
+   "value": 33.009656979351085
+  },
+  "numGreedyFinalGkZero": {
+   "decimals": 2,
+   "formula": "final mean total reduction % (t = budget), greedy_k=0, 26 circuits",
+   "inputs": [
+    "curve:greedy_k:greedy_k=0"
+   ],
+   "kind": "number",
+   "n": 26,
+   "printed": "33.33",
+   "provisional": false,
+   "section": "greedy mode (fig:greedy_k)",
+   "source": "fig_curves.figure_numbers (final_mean_reduction_pct)",
+   "value": 33.332270449675256
+  },
+  "numGreedyNotFinishedGkOne": {
+   "decimals": null,
+   "formula": "circuits whose greedy phase (greedy_k=1) did not end within the budget",
+   "inputs": [
+    "curve:greedy_k:greedy_k=1"
+   ],
+   "kind": "int",
+   "n": 26,
+   "printed": "0",
+   "provisional": false,
+   "section": "greedy mode (fig:greedy_k)",
+   "source": "fig_curves.figure_numbers (greedy_phase.n_not_finished)",
+   "value": 0
+  },
+  "numGreedyNotFinishedGkThree": {
+   "decimals": null,
+   "formula": "circuits whose greedy phase (greedy_k=3) did not end within the budget",
+   "inputs": [
+    "curve:greedy_k:greedy_k=3"
+   ],
+   "kind": "int",
+   "n": 26,
+   "printed": "3",
+   "provisional": false,
+   "section": "greedy mode (fig:greedy_k)",
+   "source": "fig_curves.figure_numbers (greedy_phase.n_not_finished)",
+   "value": 3
+  },
+  "numGreedyNotFinishedGkThreeList": {
+   "decimals": null,
+   "formula": "the circuits counted in numGreedyNotFinishedGkThree",
+   "inputs": [
+    "curve:greedy_k:greedy_k=3"
+   ],
+   "kind": "text",
+   "n": 26,
+   "printed": "\\texttt{gf2\\^{}8\\_mult}, \\texttt{gf2\\^{}9\\_mult}, and \\texttt{gf2\\^{}10\\_mult}",
+   "provisional": false,
+   "section": "greedy mode (fig:greedy_k)",
+   "source": "fig_curves.figure_numbers (greedy_phase.not_finished_circuits)",
+   "value": null
+  },
+  "numGreedyNotFinishedGkThreeWord": {
+   "decimals": null,
+   "formula": "numGreedyNotFinishedGkThree as a word",
+   "inputs": [
+    "curve:greedy_k:greedy_k=3"
+   ],
+   "kind": "text",
+   "n": 26,
+   "printed": "three",
+   "provisional": false,
+   "section": "greedy mode (fig:greedy_k)",
+   "source": "fig_curves.figure_numbers",
+   "value": 3
+  },
+  "numGreedyNotFinishedGkTwo": {
+   "decimals": null,
+   "formula": "circuits whose greedy phase (greedy_k=2) did not end within the budget",
+   "inputs": [
+    "curve:greedy_k:greedy_k=2"
+   ],
+   "kind": "int",
+   "n": 26,
+   "printed": "0",
+   "provisional": false,
+   "section": "greedy mode (fig:greedy_k)",
+   "source": "fig_curves.figure_numbers (greedy_phase.n_not_finished)",
+   "value": 0
+  },
+  "numGreedyPhaseMeanGkOne": {
+   "decimals": 1,
+   "formula": "mean over circuits of the greedy-phase end (first k=2 event; runs that never left it count as the budget), seconds",
+   "inputs": [
+    "curve:greedy_k:greedy_k=1"
+   ],
+   "kind": "time",
+   "n": 26,
+   "printed": "7.5",
+   "provisional": false,
+   "section": "greedy mode (fig:greedy_k)",
+   "source": "fig_curves.figure_numbers (greedy_phase.mean_end_s)",
+   "value": 7.507730769230769
+  },
+  "numGreedyPhaseMeanGkThree": {
+   "decimals": 0,
+   "formula": "mean over circuits of the greedy-phase end (first k=4 event; runs that never left it count as the budget), seconds",
+   "inputs": [
+    "curve:greedy_k:greedy_k=3"
+   ],
+   "kind": "time",
+   "n": 26,
+   "printed": "843",
+   "provisional": false,
+   "section": "greedy mode (fig:greedy_k)",
+   "source": "fig_curves.figure_numbers (greedy_phase.mean_end_s)",
+   "value": 842.7794230769231
+  },
+  "numGreedyPhaseMeanGkTwo": {
+   "decimals": 0,
+   "formula": "mean over circuits of the greedy-phase end (first k=3 event; runs that never left it count as the budget), seconds",
+   "inputs": [
+    "curve:greedy_k:greedy_k=2"
+   ],
+   "kind": "time",
+   "n": 26,
+   "printed": "107",
+   "provisional": false,
+   "section": "greedy mode (fig:greedy_k)",
+   "source": "fig_curves.figure_numbers (greedy_phase.mean_end_s)",
+   "value": 107.19411538461539
+  },
+  "numGreedySpeedupGkOne": {
+   "decimals": 1,
+   "formula": "time_to_threshold(greedy_k=0) / time_to_threshold(greedy_k=1)",
+   "inputs": [
+    "curve:greedy_k:greedy_k=0",
+    "curve:greedy_k:greedy_k=1"
+   ],
+   "kind": "time",
+   "n": 26,
+   "printed": "0.9",
+   "provisional": false,
+   "section": "greedy mode (fig:greedy_k)",
+   "source": "fig_curves.derived_numbers",
+   "value": 0.9156069405632662
+  },
+  "numGreedySpeedupGkThree": {
+   "decimals": 1,
+   "formula": "time_to_threshold(greedy_k=0) / time_to_threshold(greedy_k=3)",
+   "inputs": [
+    "curve:greedy_k:greedy_k=0",
+    "curve:greedy_k:greedy_k=3"
+   ],
+   "kind": "time",
+   "n": 26,
+   "printed": "1.6",
+   "provisional": false,
+   "section": "greedy mode (fig:greedy_k)",
+   "source": "fig_curves.derived_numbers",
+   "value": 1.5999862092310395
+  },
+  "numGreedySpeedupGkTwo": {
+   "decimals": 1,
+   "formula": "time_to_threshold(greedy_k=0) / time_to_threshold(greedy_k=2)",
+   "inputs": [
+    "curve:greedy_k:greedy_k=0",
+    "curve:greedy_k:greedy_k=2"
+   ],
+   "kind": "time",
+   "n": 26,
+   "printed": "2.6",
+   "provisional": false,
+   "section": "greedy mode (fig:greedy_k)",
+   "source": "fig_curves.derived_numbers",
+   "value": 2.596102403450065
+  },
+  "numGreedyThreshold": {
+   "decimals": null,
+   "formula": "--threshold (mean total reduction %, for time-to-X)",
+   "inputs": [],
+   "kind": "text",
+   "n": null,
+   "printed": "32",
+   "provisional": false,
+   "section": "greedy mode (fig:greedy_k)",
+   "source": "numbers.py --threshold",
+   "value": 32.0
+  },
+  "numGreedyTimeToThresholdGkOne": {
+   "decimals": 0,
+   "formula": "first t where the mean reduction step function >= 32% (metrics.time_to_reach), greedy_k=1; seconds",
+   "inputs": [
+    "curve:greedy_k:greedy_k=1"
+   ],
+   "kind": "time",
+   "n": 26,
+   "printed": "279",
+   "provisional": false,
+   "section": "greedy mode (fig:greedy_k)",
+   "source": "fig_curves.figure_numbers (time_to_threshold_s)",
+   "value": 278.767
+  },
+  "numGreedyTimeToThresholdGkThree": {
+   "decimals": 0,
+   "formula": "first t where the mean reduction step function >= 32% (metrics.time_to_reach), greedy_k=3; seconds",
+   "inputs": [
+    "curve:greedy_k:greedy_k=3"
+   ],
+   "kind": "time",
+   "n": 26,
+   "printed": "160",
+   "provisional": false,
+   "section": "greedy mode (fig:greedy_k)",
+   "source": "fig_curves.figure_numbers (time_to_threshold_s)",
+   "value": 159.527
+  },
+  "numGreedyTimeToThresholdGkTwo": {
+   "decimals": 0,
+   "formula": "first t where the mean reduction step function >= 32% (metrics.time_to_reach), greedy_k=2; seconds",
+   "inputs": [
+    "curve:greedy_k:greedy_k=2"
+   ],
+   "kind": "time",
+   "n": 26,
+   "printed": "98",
+   "provisional": false,
+   "section": "greedy mode (fig:greedy_k)",
+   "source": "fig_curves.figure_numbers (time_to_threshold_s)",
+   "value": 98.317
+  },
+  "numGreedyTimeToThresholdGkZero": {
+   "decimals": 0,
+   "formula": "first t where the mean reduction step function >= 32% (metrics.time_to_reach), greedy_k=0; seconds",
+   "inputs": [
+    "curve:greedy_k:greedy_k=0"
+   ],
+   "kind": "time",
+   "n": 26,
+   "printed": "255",
+   "provisional": false,
+   "section": "greedy mode (fig:greedy_k)",
+   "source": "fig_curves.figure_numbers (time_to_threshold_s)",
+   "value": 255.241
+  },
+  "numHosts": {
+   "decimals": null,
+   "formula": "distinct hosts in runs.csv (['qalm-zen3'])",
+   "inputs": [
+    "runs:all"
+   ],
+   "kind": "int",
+   "n": 3650,
+   "printed": "1",
+   "provisional": false,
+   "section": "setup",
+   "source": "metrics.load_runs",
+   "value": 1
+  },
+  "numInfraReruns": {
+   "decimals": null,
+   "formula": "re-runs after infrastructure failures (reason infra)",
+   "inputs": [
+    "events"
+   ],
+   "kind": "int",
+   "n": 7300,
+   "printed": "0",
+   "provisional": false,
+   "section": "setup",
+   "source": "numbers.events_stats",
+   "value": 0
+  },
+  "numJobCores": {
+   "decimals": null,
+   "formula": "job cores 2-63,66-127 (one job per physical core)",
+   "inputs": [
+    "config:campaign"
+   ],
+   "kind": "int",
+   "n": 1,
+   "printed": "124",
+   "provisional": false,
+   "section": "setup",
+   "source": "repro/config/campaign.yaml cores.jobs",
+   "value": 124
+  },
+  "numJobs": {
+   "decimals": null,
+   "formula": "runs.csv rows with a result (unique job ids)",
+   "inputs": [
+    "runs:all"
+   ],
+   "kind": "int",
+   "n": 3650,
+   "printed": "3650",
+   "provisional": false,
+   "section": "setup",
+   "source": "metrics.load_runs",
+   "value": 3650
+  },
+  "numJobsRerun": {
+   "decimals": null,
+   "formula": "runs whose reported attempt is not the first (memory-cap escalation, preemption or infrastructure failure)",
+   "inputs": [
+    "runs:all"
+   ],
+   "kind": "int",
+   "n": 3650,
+   "printed": "0",
+   "provisional": false,
+   "section": "setup",
+   "source": "runs.csv attempt",
+   "value": 0
+  },
+  "numMaxConcurrent": {
+   "decimals": null,
+   "formula": "max jobs running at once on one host",
+   "inputs": [
+    "events"
+   ],
+   "kind": "int",
+   "n": 7300,
+   "printed": "124",
+   "provisional": false,
+   "section": "setup",
+   "source": "numbers.events_stats",
+   "value": 124
+  },
+  "numMeanConcurrent": {
+   "decimals": null,
+   "formula": "time-weighted mean of jobs running on one host while jobs were still being launched (first to last launch), averaged over hosts; rounded",
+   "inputs": [
+    "events"
+   ],
+   "kind": "int",
+   "n": 7300,
+   "printed": "92",
+   "provisional": false,
+   "section": "setup",
+   "source": "numbers.events_stats",
+   "value": 91.83804350632504
+  },
+  "numMemCapGiB": {
+   "decimals": null,
+   "formula": "largest memory cap tier (GiB): every reported run ran with headroom below it (smaller tiers escalate)",
+   "inputs": [
+    "config:campaign"
+   ],
+   "kind": "int",
+   "n": 1,
+   "printed": "32",
+   "provisional": false,
+   "section": "setup",
+   "source": "repro/config/campaign.yaml mem.cap_tiers_gib",
+   "value": 32
+  },
+  "numMemEscalations": {
+   "decimals": null,
+   "formula": "re-runs with the next memory-cap tier (requeue reason esc)",
+   "inputs": [
+    "events"
+   ],
+   "kind": "int",
+   "n": 7300,
+   "printed": "0",
+   "provisional": false,
+   "section": "setup",
+   "source": "numbers.events_stats",
+   "value": 0
+  },
+  "numNbranchFive": {
+   "decimals": 2,
+   "formula": "final mean total reduction %, N_branch=5, mean over seeds [0, 1, 2]",
+   "inputs": [
+    "curve:N_branch:N_branch=5"
+   ],
+   "kind": "number",
+   "n": 78,
+   "printed": "33.27",
+   "provisional": false,
+   "section": "exploration strategy (fig:exploration_ablation)",
+   "source": "fig_curves.figure_numbers (final_mean_reduction_pct)",
+   "value": 33.26849606048964
+  },
+  "numNbranchFour": {
+   "decimals": 2,
+   "formula": "final mean total reduction %, N_branch=4, mean over seeds [0, 1, 2]",
+   "inputs": [
+    "curve:N_branch:N_branch=4"
+   ],
+   "kind": "number",
+   "n": 78,
+   "printed": "33.11",
+   "provisional": false,
+   "section": "exploration strategy (fig:exploration_ablation)",
+   "source": "fig_curves.figure_numbers (final_mean_reduction_pct)",
+   "value": 33.10755585093886
+  },
+  "numNbranchOne": {
+   "decimals": 2,
+   "formula": "final mean total reduction %, N_branch=1, mean over seeds [0, 1, 2]",
+   "inputs": [
+    "curve:N_branch:N_branch=1"
+   ],
+   "kind": "number",
+   "n": 78,
+   "printed": "31.55",
+   "provisional": false,
+   "section": "exploration strategy (fig:exploration_ablation)",
+   "source": "fig_curves.figure_numbers (final_mean_reduction_pct)",
+   "value": 31.554020395387443
+  },
+  "numNbranchSpread": {
+   "decimals": 2,
+   "formula": "max - min over N_branch in 1..5 (seed-averaged finals)",
+   "inputs": [
+    "curve:N_branch:N_branch=1",
+    "curve:N_branch:N_branch=2",
+    "curve:N_branch:N_branch=3",
+    "curve:N_branch:N_branch=4",
+    "curve:N_branch:N_branch=5"
+   ],
+   "kind": "number",
+   "n": 78,
+   "printed": "1.71",
+   "provisional": false,
+   "section": "exploration strategy (fig:exploration_ablation)",
+   "source": "fig_curves.derived_numbers",
+   "value": 1.7144756651021957
+  },
+  "numNbranchThree": {
+   "decimals": 2,
+   "formula": "final mean total reduction %, N_branch=3, mean over seeds [0, 1, 2]",
+   "inputs": [
+    "curve:N_branch:N_branch=3"
+   ],
+   "kind": "number",
+   "n": 78,
+   "printed": "32.90",
+   "provisional": false,
+   "section": "exploration strategy (fig:exploration_ablation)",
+   "source": "fig_curves.figure_numbers (final_mean_reduction_pct)",
+   "value": 32.89982828229077
+  },
+  "numNbranchTwo": {
+   "decimals": 2,
+   "formula": "final mean total reduction %, N_branch=2, mean over seeds [0, 1, 2]",
+   "inputs": [
+    "curve:N_branch:N_branch=2"
+   ],
+   "kind": "number",
+   "n": 78,
+   "printed": "32.57",
+   "provisional": false,
+   "section": "exploration strategy (fig:exploration_ablation)",
+   "source": "fig_curves.figure_numbers (final_mean_reduction_pct)",
+   "value": 32.57099208663581
+  },
+  "numNegTotalGuoqTwoQ": {
+   "decimals": null,
+   "formula": "circuits where GUOQ (2Q Gate) output has more gates than the input",
+   "inputs": [
+    "avg:guoq_2q"
+   ],
+   "kind": "int",
+   "n": 248,
+   "printed": "115",
+   "provisional": false,
+   "section": "S248 per-circuit win rates (fig:win_rate)",
+   "source": "tables.select_column",
+   "value": 115
+  },
+  "numNegTotalPctGuoqTwoQ": {
+   "decimals": 1,
+   "formula": "100 * numNegTotalGuoqTwoQ / n",
+   "inputs": [
+    "avg:guoq_2q"
+   ],
+   "kind": "number",
+   "n": 248,
+   "printed": "46.4",
+   "provisional": false,
+   "section": "S248 per-circuit win rates (fig:win_rate)",
+   "source": "tables.select_column",
+   "value": 46.37096774193548
+  },
+  "numNegTotalQalm": {
+   "decimals": null,
+   "formula": "circuits where the QALM output has more gates than the input",
+   "inputs": [
+    "avg:qalm"
+   ],
+   "kind": "int",
+   "n": 248,
+   "printed": "0",
+   "provisional": false,
+   "section": "S248 per-circuit win rates (fig:win_rate)",
+   "source": "tables.select_column",
+   "value": 0
+  },
+  "numNpoolFive": {
+   "decimals": 2,
+   "formula": "final mean total reduction %, N_pool=5, mean over seeds [0, 1, 2]",
+   "inputs": [
+    "curve:N_pool:N_pool=5"
+   ],
+   "kind": "number",
+   "n": 78,
+   "printed": "33.00",
+   "provisional": false,
+   "section": "exploration strategy (fig:exploration_ablation)",
+   "source": "fig_curves.figure_numbers (final_mean_reduction_pct)",
+   "value": 33.00368961789461
+  },
+  "numNpoolFour": {
+   "decimals": 2,
+   "formula": "final mean total reduction %, N_pool=4, mean over seeds [0, 1, 2]",
+   "inputs": [
+    "curve:N_pool:N_pool=4"
+   ],
+   "kind": "number",
+   "n": 78,
+   "printed": "32.94",
+   "provisional": false,
+   "section": "exploration strategy (fig:exploration_ablation)",
+   "source": "fig_curves.figure_numbers (final_mean_reduction_pct)",
+   "value": 32.93996066204272
+  },
+  "numNpoolMax": {
+   "decimals": 2,
+   "formula": "mean_final_max_pct over N_pool in 1..5 (seed-averaged finals)",
+   "inputs": [
+    "curve:N_pool:N_pool=1",
+    "curve:N_pool:N_pool=2",
+    "curve:N_pool:N_pool=3",
+    "curve:N_pool:N_pool=4",
+    "curve:N_pool:N_pool=5"
+   ],
+   "kind": "number",
+   "n": 78,
+   "printed": "33.01",
+   "provisional": false,
+   "section": "exploration strategy (fig:exploration_ablation)",
+   "source": "fig_curves.derived_numbers",
+   "value": 33.0149434972349
+  },
+  "numNpoolMin": {
+   "decimals": 2,
+   "formula": "mean_final_min_pct over N_pool in 1..5 (seed-averaged finals)",
+   "inputs": [
+    "curve:N_pool:N_pool=1",
+    "curve:N_pool:N_pool=2",
+    "curve:N_pool:N_pool=3",
+    "curve:N_pool:N_pool=4",
+    "curve:N_pool:N_pool=5"
+   ],
+   "kind": "number",
+   "n": 78,
+   "printed": "32.90",
+   "provisional": false,
+   "section": "exploration strategy (fig:exploration_ablation)",
+   "source": "fig_curves.derived_numbers",
+   "value": 32.89982828229077
+  },
+  "numNpoolOne": {
+   "decimals": 2,
+   "formula": "final mean total reduction %, N_pool=1, mean over seeds [0, 1, 2]",
+   "inputs": [
+    "curve:N_pool:N_pool=1"
+   ],
+   "kind": "number",
+   "n": 78,
+   "printed": "32.90",
+   "provisional": false,
+   "section": "exploration strategy (fig:exploration_ablation)",
+   "source": "fig_curves.figure_numbers (final_mean_reduction_pct)",
+   "value": 32.89982828229077
+  },
+  "numNpoolSpread": {
+   "decimals": 2,
+   "formula": "mean_final_spread_pct over N_pool in 1..5 (seed-averaged finals)",
+   "inputs": [
+    "curve:N_pool:N_pool=1",
+    "curve:N_pool:N_pool=2",
+    "curve:N_pool:N_pool=3",
+    "curve:N_pool:N_pool=4",
+    "curve:N_pool:N_pool=5"
+   ],
+   "kind": "number",
+   "n": 78,
+   "printed": "0.12",
+   "provisional": false,
+   "section": "exploration strategy (fig:exploration_ablation)",
+   "source": "fig_curves.derived_numbers",
+   "value": 0.11511521494413302
+  },
+  "numNpoolThree": {
+   "decimals": 2,
+   "formula": "final mean total reduction %, N_pool=3, mean over seeds [0, 1, 2]",
+   "inputs": [
+    "curve:N_pool:N_pool=3"
+   ],
+   "kind": "number",
+   "n": 78,
+   "printed": "33.01",
+   "provisional": false,
+   "section": "exploration strategy (fig:exploration_ablation)",
+   "source": "fig_curves.figure_numbers (final_mean_reduction_pct)",
+   "value": 33.0149434972349
+  },
+  "numNpoolTwo": {
+   "decimals": 2,
+   "formula": "final mean total reduction %, N_pool=2, mean over seeds [0, 1, 2]",
+   "inputs": [
+    "curve:N_pool:N_pool=2"
+   ],
+   "kind": "number",
+   "n": 78,
+   "printed": "32.98",
+   "provisional": false,
+   "section": "exploration strategy (fig:exploration_ablation)",
+   "source": "fig_curves.figure_numbers (final_mean_reduction_pct)",
+   "value": 32.97819104684139
+  },
+  "numOneMinCxRedDrop": {
+   "decimals": 2,
+   "formula": "cx_red(1 h) - cx_red(1 min), points (QALM, unrounded table means)",
+   "inputs": [
+    "avg:qalm",
+    "avg:qalm_1min"
+   ],
+   "kind": "number",
+   "n": 248,
+   "printed": "4.05",
+   "provisional": false,
+   "section": "S248 one-minute QALM",
+   "source": "tables.averages_table_data",
+   "value": 4.046427553055665
+  },
+  "numOneMinFidDropAbs": {
+   "decimals": 4,
+   "formula": "F(1 h) - F(1 min) (QALM, unrounded table means)",
+   "inputs": [
+    "avg:qalm",
+    "avg:qalm_1min"
+   ],
+   "kind": "number",
+   "n": 248,
+   "printed": "0.0134",
+   "provisional": false,
+   "section": "S248 one-minute QALM",
+   "source": "tables.averages_table_data",
+   "value": 0.013418747504358286
+  },
+  "numOneMinFidDropRel": {
+   "decimals": 1,
+   "formula": "100*(F(1 h) - F(1 min)) / F(1 h) (QALM, unrounded table means)",
+   "inputs": [
+    "avg:qalm",
+    "avg:qalm_1min"
+   ],
+   "kind": "number",
+   "n": 248,
+   "printed": "3.3",
+   "provisional": false,
+   "section": "S248 one-minute QALM",
+   "source": "tables.averages_table_data",
+   "value": 3.314007772716249
+  },
+  "numOneMinTotalRedDrop": {
+   "decimals": 2,
+   "formula": "total_red(1 h) - total_red(1 min), points (QALM, unrounded table means)",
+   "inputs": [
+    "avg:qalm",
+    "avg:qalm_1min"
+   ],
+   "kind": "number",
+   "n": 248,
+   "printed": "1.45",
+   "provisional": false,
+   "section": "S248 one-minute QALM",
+   "source": "tables.averages_table_data",
+   "value": 1.445684376227291
+  },
+  "numPeakCgroupGiB": {
+   "decimals": 1,
+   "formula": "max over runs of the cgroup memory.peak (GiB; includes page cache)",
+   "inputs": [
+    "runs:all"
+   ],
+   "kind": "number",
+   "n": 3650,
+   "printed": "32.0",
+   "provisional": false,
+   "section": "setup",
+   "source": "runs.csv cgroup_peak_bytes",
+   "value": 32.0
+  },
+  "numPeakRssGiB": {
+   "decimals": 1,
+   "formula": "max over runs of the peak resident set size (GiB)",
+   "inputs": [
+    "runs:all"
+   ],
+   "kind": "number",
+   "n": 3650,
+   "printed": "31.9",
+   "provisional": false,
+   "section": "setup",
+   "source": "runs.csv peak_rss_kb",
+   "value": 31.936717987060547
+  },
+  "numPreemptions": {
+   "decimals": null,
+   "formula": "jobs preempted by the memory watchdog and re-run (reason pre)",
+   "inputs": [
+    "events"
+   ],
+   "kind": "int",
+   "n": 7300,
+   "printed": "0",
+   "provisional": false,
+   "section": "setup",
+   "source": "numbers.events_stats",
+   "value": 0
+  },
+  "numQuartzSuiteCircuits": {
+   "decimals": null,
+   "formula": "circuits in repro/inputs/S26.csv",
+   "inputs": [
+    "manifest:S26"
+   ],
+   "kind": "int",
+   "n": 26,
+   "printed": "26",
+   "provisional": false,
+   "section": "S26 table (tab:eval_end_to_end)",
+   "source": "tables.eval_end_to_end_data",
+   "value": 26
+  },
+  "numSeedHsd": {
+   "decimals": 2,
+   "formula": "Tukey HSD (95%) for 5 means of len(seeds) runs: q(0.95; 5, df) * SD_pooled / sqrt(seeds)",
+   "inputs": [
+    "curve:N_pool:N_pool=1",
+    "curve:N_pool:N_pool=2",
+    "curve:N_pool:N_pool=3",
+    "curve:N_pool:N_pool=4",
+    "curve:N_pool:N_pool=5",
+    "curve:N_branch:N_branch=1",
+    "curve:N_branch:N_branch=2",
+    "curve:N_branch:N_branch=3",
+    "curve:N_branch:N_branch=4",
+    "curve:N_branch:N_branch=5"
+   ],
+   "kind": "number",
+   "n": 78,
+   "printed": "0.23",
+   "provisional": false,
+   "section": "exploration strategy (fig:exploration_ablation)",
+   "source": "numbers.hsd",
+   "value": 0.22950932288763579
+  },
+  "numSeedRangeDefault": {
+   "decimals": 2,
+   "formula": "max - min over seeds of the final mean reduction, default config",
+   "inputs": [
+    "curve:N_branch:N_branch=3"
+   ],
+   "kind": "number",
+   "n": 78,
+   "printed": "0.24",
+   "provisional": false,
+   "section": "exploration strategy (fig:exploration_ablation)",
+   "source": "fig_curves.derived_numbers (E5_default_config)",
+   "value": 0.23977026999500595
+  },
+  "numSeedSdDefault": {
+   "decimals": 2,
+   "formula": "sample SD over seeds of the final mean reduction, default config (N_pool=1, N_branch=3)",
+   "inputs": [
+    "curve:N_branch:N_branch=3"
+   ],
+   "kind": "number",
+   "n": 78,
+   "printed": "0.12",
+   "provisional": false,
+   "section": "exploration strategy (fig:exploration_ablation)",
+   "source": "fig_curves.derived_numbers (E5_default_config)",
+   "value": 0.12114388728005644
+  },
+  "numSeedSdPooled": {
+   "decimals": 2,
+   "formula": "sqrt(pooled within-config variance over seeds) of the final mean reduction, over the distinct E5 configurations",
+   "inputs": [
+    "curve:N_pool:N_pool=1",
+    "curve:N_pool:N_pool=2",
+    "curve:N_pool:N_pool=3",
+    "curve:N_pool:N_pool=4",
+    "curve:N_pool:N_pool=5",
+    "curve:N_branch:N_branch=1",
+    "curve:N_branch:N_branch=2",
+    "curve:N_branch:N_branch=3",
+    "curve:N_branch:N_branch=4",
+    "curve:N_branch:N_branch=5"
+   ],
+   "kind": "number",
+   "n": 9,
+   "printed": "0.09",
+   "provisional": false,
+   "section": "exploration strategy (fig:exploration_ablation)",
+   "source": "numbers.e5_noise (from fig_curves.figure_numbers per_seed)",
+   "value": 0.09295944112209664
+  },
+  "numSeeds": {
+   "decimals": null,
+   "formula": "seeds per E5 configuration (fig_curves.E5_SEEDS)",
+   "inputs": [],
+   "kind": "int",
+   "n": null,
+   "printed": "3",
+   "provisional": false,
+   "section": "exploration strategy (fig:exploration_ablation)",
+   "source": "fig_curves.E5_SEEDS",
+   "value": 3
+  },
+  "numStrictWinCxGuoqTotal": {
+   "decimals": 1,
+   "formula": "% of circuits where QALM > guoq_total on cx (metrics.win_rate win)",
+   "inputs": [
+    "avg:qalm",
+    "avg:guoq_total"
+   ],
+   "kind": "number",
+   "n": 248,
+   "printed": "62.1",
+   "provisional": false,
+   "section": "S248 per-circuit win rates (fig:win_rate)",
+   "source": "fig_percircuit.gather",
+   "value": 62.096774193548384
+  },
+  "numStrictWinCxGuoqTwoQ": {
+   "decimals": 1,
+   "formula": "% of circuits where QALM > guoq_2q on cx (metrics.win_rate win)",
+   "inputs": [
+    "avg:qalm",
+    "avg:guoq_2q"
+   ],
+   "kind": "number",
+   "n": 248,
+   "printed": "48.8",
+   "provisional": false,
+   "section": "S248 per-circuit win rates (fig:win_rate)",
+   "source": "fig_percircuit.gather",
+   "value": 48.79032258064516
+  },
+  "numStrictWinCxQuartz": {
+   "decimals": 1,
+   "formula": "% of circuits where QALM > quartz on cx (metrics.win_rate win)",
+   "inputs": [
+    "avg:qalm",
+    "avg:quartz"
+   ],
+   "kind": "number",
+   "n": 248,
+   "printed": "80.6",
+   "provisional": false,
+   "section": "S248 per-circuit win rates (fig:win_rate)",
+   "source": "fig_percircuit.gather",
+   "value": 80.64516129032258
+  },
+  "numStrictWinCxQuesoTotal": {
+   "decimals": 1,
+   "formula": "% of circuits where QALM > queso_total on cx (metrics.win_rate win)",
+   "inputs": [
+    "avg:qalm",
+    "avg:queso_total"
+   ],
+   "kind": "number",
+   "n": 248,
+   "printed": "82.3",
+   "provisional": false,
+   "section": "S248 per-circuit win rates (fig:win_rate)",
+   "source": "fig_percircuit.gather",
+   "value": 82.25806451612904
+  },
+  "numStrictWinCxQuesoTwoQ": {
+   "decimals": 1,
+   "formula": "% of circuits where QALM > queso_2q on cx (metrics.win_rate win)",
+   "inputs": [
+    "avg:qalm",
+    "avg:queso_2q"
+   ],
+   "kind": "number",
+   "n": 248,
+   "printed": "82.7",
+   "provisional": false,
+   "section": "S248 per-circuit win rates (fig:win_rate)",
+   "source": "fig_percircuit.gather",
+   "value": 82.66129032258064
+  },
+  "numStrictWinCxVoqc": {
+   "decimals": 1,
+   "formula": "% of circuits where QALM > voqc on cx (metrics.win_rate win)",
+   "inputs": [
+    "avg:qalm",
+    "avg:voqc"
+   ],
+   "kind": "number",
+   "n": 248,
+   "printed": "86.7",
+   "provisional": false,
+   "section": "S248 per-circuit win rates (fig:win_rate)",
+   "source": "fig_percircuit.gather",
+   "value": 86.69354838709677
+  },
+  "numStrictWinFidGuoqTotal": {
+   "decimals": 1,
+   "formula": "% of circuits where QALM > guoq_total on fidelity (metrics.win_rate win)",
+   "inputs": [
+    "avg:qalm",
+    "avg:guoq_total"
+   ],
+   "kind": "number",
+   "n": 248,
+   "printed": "81.9",
+   "provisional": false,
+   "section": "S248 per-circuit win rates (fig:win_rate)",
+   "source": "fig_percircuit.gather",
+   "value": 81.85483870967742
+  },
+  "numStrictWinFidGuoqTwoQ": {
+   "decimals": 1,
+   "formula": "% of circuits where QALM > guoq_2q on fidelity (metrics.win_rate win)",
+   "inputs": [
+    "avg:qalm",
+    "avg:guoq_2q"
+   ],
+   "kind": "number",
+   "n": 248,
+   "printed": "88.7",
+   "provisional": false,
+   "section": "S248 per-circuit win rates (fig:win_rate)",
+   "source": "fig_percircuit.gather",
+   "value": 88.70967741935483
+  },
+  "numStrictWinFidMin": {
+   "decimals": 1,
+   "formula": "lowest strict fidelity win % over the six baselines",
+   "inputs": [
+    "avg:qalm",
+    "avg:guoq_2q",
+    "avg:guoq_total",
+    "avg:queso_2q",
+    "avg:queso_total",
+    "avg:voqc",
+    "avg:quartz"
+   ],
+   "kind": "number",
+   "n": 248,
+   "printed": "81.9",
+   "provisional": false,
+   "section": "S248 per-circuit win rates (fig:win_rate)",
+   "source": "fig_percircuit.gather",
+   "value": 81.85483870967742
+  },
+  "numStrictWinFidQuartz": {
+   "decimals": 1,
+   "formula": "% of circuits where QALM > quartz on fidelity (metrics.win_rate win)",
+   "inputs": [
+    "avg:qalm",
+    "avg:quartz"
+   ],
+   "kind": "number",
+   "n": 248,
+   "printed": "91.9",
+   "provisional": false,
+   "section": "S248 per-circuit win rates (fig:win_rate)",
+   "source": "fig_percircuit.gather",
+   "value": 91.93548387096774
+  },
+  "numStrictWinFidQuesoTotal": {
+   "decimals": 1,
+   "formula": "% of circuits where QALM > queso_total on fidelity (metrics.win_rate win)",
+   "inputs": [
+    "avg:qalm",
+    "avg:queso_total"
+   ],
+   "kind": "number",
+   "n": 248,
+   "printed": "92.7",
+   "provisional": false,
+   "section": "S248 per-circuit win rates (fig:win_rate)",
+   "source": "fig_percircuit.gather",
+   "value": 92.74193548387096
+  },
+  "numStrictWinFidQuesoTwoQ": {
+   "decimals": 1,
+   "formula": "% of circuits where QALM > queso_2q on fidelity (metrics.win_rate win)",
+   "inputs": [
+    "avg:qalm",
+    "avg:queso_2q"
+   ],
+   "kind": "number",
+   "n": 248,
+   "printed": "94.4",
+   "provisional": false,
+   "section": "S248 per-circuit win rates (fig:win_rate)",
+   "source": "fig_percircuit.gather",
+   "value": 94.35483870967742
+  },
+  "numStrictWinFidVoqc": {
+   "decimals": 1,
+   "formula": "% of circuits where QALM > voqc on fidelity (metrics.win_rate win)",
+   "inputs": [
+    "avg:qalm",
+    "avg:voqc"
+   ],
+   "kind": "number",
+   "n": 248,
+   "printed": "95.6",
+   "provisional": false,
+   "section": "S248 per-circuit win rates (fig:win_rate)",
+   "source": "fig_percircuit.gather",
+   "value": 95.56451612903226
+  },
+  "numStrictWinTotalGuoqTotal": {
+   "decimals": 1,
+   "formula": "% of circuits where QALM > guoq_total on total (metrics.win_rate win)",
+   "inputs": [
+    "avg:qalm",
+    "avg:guoq_total"
+   ],
+   "kind": "number",
+   "n": 248,
+   "printed": "86.3",
+   "provisional": false,
+   "section": "S248 per-circuit win rates (fig:win_rate)",
+   "source": "fig_percircuit.gather",
+   "value": 86.29032258064517
+  },
+  "numStrictWinTotalGuoqTwoQ": {
+   "decimals": 1,
+   "formula": "% of circuits where QALM > guoq_2q on total (metrics.win_rate win)",
+   "inputs": [
+    "avg:qalm",
+    "avg:guoq_2q"
+   ],
+   "kind": "number",
+   "n": 248,
+   "printed": "92.3",
+   "provisional": false,
+   "section": "S248 per-circuit win rates (fig:win_rate)",
+   "source": "fig_percircuit.gather",
+   "value": 92.33870967741936
+  },
+  "numStrictWinTotalQuartz": {
+   "decimals": 1,
+   "formula": "% of circuits where QALM > quartz on total (metrics.win_rate win)",
+   "inputs": [
+    "avg:qalm",
+    "avg:quartz"
+   ],
+   "kind": "number",
+   "n": 248,
+   "printed": "92.3",
+   "provisional": false,
+   "section": "S248 per-circuit win rates (fig:win_rate)",
+   "source": "fig_percircuit.gather",
+   "value": 92.33870967741936
+  },
+  "numStrictWinTotalQuesoTotal": {
+   "decimals": 1,
+   "formula": "% of circuits where QALM > queso_total on total (metrics.win_rate win)",
+   "inputs": [
+    "avg:qalm",
+    "avg:queso_total"
+   ],
+   "kind": "number",
+   "n": 248,
+   "printed": "93.1",
+   "provisional": false,
+   "section": "S248 per-circuit win rates (fig:win_rate)",
+   "source": "fig_percircuit.gather",
+   "value": 93.14516129032258
+  },
+  "numStrictWinTotalQuesoTwoQ": {
+   "decimals": 1,
+   "formula": "% of circuits where QALM > queso_2q on total (metrics.win_rate win)",
+   "inputs": [
+    "avg:qalm",
+    "avg:queso_2q"
+   ],
+   "kind": "number",
+   "n": 248,
+   "printed": "94.8",
+   "provisional": false,
+   "section": "S248 per-circuit win rates (fig:win_rate)",
+   "source": "fig_percircuit.gather",
+   "value": 94.75806451612904
+  },
+  "numStrictWinTotalVoqc": {
+   "decimals": 1,
+   "formula": "% of circuits where QALM > voqc on total (metrics.win_rate win)",
+   "inputs": [
+    "avg:qalm",
+    "avg:voqc"
+   ],
+   "kind": "number",
+   "n": 248,
+   "printed": "96.0",
+   "provisional": false,
+   "section": "S248 per-circuit win rates (fig:win_rate)",
+   "source": "fig_percircuit.gather",
+   "value": 95.96774193548387
+  },
+  "numStrongestFidBaseline": {
+   "decimals": null,
+   "formula": "baseline against which QALM has the lowest fidelity win-or-tie rate",
+   "inputs": [
+    "avg:qalm",
+    "avg:guoq_2q",
+    "avg:guoq_total",
+    "avg:queso_2q",
+    "avg:queso_total",
+    "avg:voqc",
+    "avg:quartz"
+   ],
+   "kind": "text",
+   "n": 248,
+   "printed": "\\guoq{} (2Q Gate)",
+   "provisional": false,
+   "section": "S248 per-circuit win rates (fig:win_rate)",
+   "source": "fig_percircuit.gather",
+   "value": null
+  },
+  "numStrongestTotalRedBaseline": {
+   "decimals": null,
+   "formula": "baseline column with the highest mean total gate reduction",
+   "inputs": [
+    "avg:guoq_2q",
+    "avg:guoq_total",
+    "avg:queso_2q",
+    "avg:queso_total",
+    "avg:voqc",
+    "avg:quartz"
+   ],
+   "kind": "text",
+   "n": 248,
+   "printed": "\\voqc{}",
+   "provisional": false,
+   "section": "S248 averages (tab:avg-comparison)",
+   "source": "tables.averages_table_data",
+   "value": null
+  },
+  "numSuiteCircuits": {
+   "decimals": null,
+   "formula": "circuits in repro/inputs/S248.csv (every S248 column must have them all)",
+   "inputs": [
+    "manifest:S248"
+   ],
+   "kind": "int",
+   "n": 248,
+   "printed": "248",
+   "provisional": false,
+   "section": "setup",
+   "source": "tables.load_manifest",
+   "value": 248
+  },
+  "numSuiteRemovedCircuits": {
+   "decimals": null,
+   "formula": "source circuits not in S248 (['qft_10', 'qft_16'])",
+   "inputs": [
+    "inputs:S248_source",
+    "manifest:S248"
+   ],
+   "kind": "int",
+   "n": [
+    250,
+    248
+   ],
+   "printed": "2",
+   "provisional": false,
+   "section": "setup",
+   "source": "numbers.setup_numbers",
+   "value": 2
+  },
+  "numSuiteSourceCircuits": {
+   "decimals": null,
+   "formula": "*.qasm files in the GUOQ benchmark directory S248 is taken from",
+   "inputs": [
+    "inputs:S248_source"
+   ],
+   "kind": "int",
+   "n": 250,
+   "printed": "250",
+   "provisional": false,
+   "section": "setup",
+   "source": "numbers.setup_numbers",
+   "value": 250
+  },
+  "numTotalRedGuoqTotal": {
+   "decimals": 2,
+   "formula": "mean total gate reduction % over the circuits of column guoq_total (metrics.averages)",
+   "inputs": [
+    "avg:guoq_total"
+   ],
+   "kind": "number",
+   "n": 248,
+   "printed": "44.42",
+   "provisional": false,
+   "section": "S248 averages (tab:avg-comparison)",
+   "source": "tables.averages_table_data",
+   "value": 44.42389823204819
+  },
+  "numTotalRedGuoqTwoQ": {
+   "decimals": 2,
+   "formula": "mean total gate reduction % over the circuits of column guoq_2q (metrics.averages)",
+   "inputs": [
+    "avg:guoq_2q"
+   ],
+   "kind": "number",
+   "n": 248,
+   "printed": "\\ensuremath{-}0.84",
+   "provisional": false,
+   "section": "S248 averages (tab:avg-comparison)",
+   "source": "tables.averages_table_data",
+   "value": -0.8445162246277008
+  },
+  "numTotalRedMarginOneHour": {
+   "decimals": 2,
+   "formula": "total_red(qalm) - max over the six 1-h baselines of total_red (unrounded; the baseline is \\numStrongestTotalRedBaseline)",
+   "inputs": [
+    "avg:qalm",
+    "avg:guoq_2q",
+    "avg:guoq_total",
+    "avg:queso_2q",
+    "avg:queso_total",
+    "avg:voqc",
+    "avg:quartz"
+   ],
+   "kind": "number",
+   "n": 248,
+   "printed": "11.41",
+   "provisional": false,
+   "section": "S248 averages (tab:avg-comparison)",
+   "source": "tables.averages_table_data",
+   "value": 11.406609295405929
+  },
+  "numTotalRedMarginOneMin": {
+   "decimals": 2,
+   "formula": "total_red(qalm_1min) - max over the six 1-h baselines of total_red (unrounded; the baseline is \\numStrongestTotalRedBaseline)",
+   "inputs": [
+    "avg:qalm_1min",
+    "avg:guoq_2q",
+    "avg:guoq_total",
+    "avg:queso_2q",
+    "avg:queso_total",
+    "avg:voqc",
+    "avg:quartz"
+   ],
+   "kind": "number",
+   "n": 248,
+   "printed": "9.96",
+   "provisional": false,
+   "section": "S248 averages (tab:avg-comparison)",
+   "source": "tables.averages_table_data",
+   "value": 9.960924919178638
+  },
+  "numTotalRedQalm": {
+   "decimals": 2,
+   "formula": "mean total gate reduction % over the circuits of column qalm (metrics.averages)",
+   "inputs": [
+    "avg:qalm"
+   ],
+   "kind": "number",
+   "n": 248,
+   "printed": "56.45",
+   "provisional": false,
+   "section": "S248 averages (tab:avg-comparison)",
+   "source": "tables.averages_table_data",
+   "value": 56.45179588277745
+  },
+  "numTotalRedQalmOneMin": {
+   "decimals": 2,
+   "formula": "mean total gate reduction % over the circuits of column qalm_1min (metrics.averages)",
+   "inputs": [
+    "avg:qalm_1min"
+   ],
+   "kind": "number",
+   "n": 248,
+   "printed": "55.01",
+   "provisional": false,
+   "section": "S248 averages (tab:avg-comparison)",
+   "source": "tables.averages_table_data",
+   "value": 55.00611150655016
+  },
+  "numTotalRedQuartz": {
+   "decimals": 2,
+   "formula": "mean total gate reduction % over the circuits of column quartz (metrics.averages)",
+   "inputs": [
+    "avg:quartz"
+   ],
+   "kind": "number",
+   "n": 248,
+   "printed": "40.22",
+   "provisional": false,
+   "section": "S248 averages (tab:avg-comparison)",
+   "source": "tables.averages_table_data",
+   "value": 40.22325035536178
+  },
+  "numTotalRedQuesoTotal": {
+   "decimals": 2,
+   "formula": "mean total gate reduction % over the circuits of column queso_total (metrics.averages)",
+   "inputs": [
+    "avg:queso_total"
+   ],
+   "kind": "number",
+   "n": 248,
+   "printed": "39.05",
+   "provisional": false,
+   "section": "S248 averages (tab:avg-comparison)",
+   "source": "tables.averages_table_data",
+   "value": 39.05113459884943
+  },
+  "numTotalRedQuesoTwoQ": {
+   "decimals": 2,
+   "formula": "mean total gate reduction % over the circuits of column queso_2q (metrics.averages)",
+   "inputs": [
+    "avg:queso_2q"
+   ],
+   "kind": "number",
+   "n": 248,
+   "printed": "27.21",
+   "provisional": false,
+   "section": "S248 averages (tab:avg-comparison)",
+   "source": "tables.averages_table_data",
+   "value": 27.212222341288417
+  },
+  "numTotalRedVoqc": {
+   "decimals": 2,
+   "formula": "mean total gate reduction % over the circuits of column voqc (metrics.averages)",
+   "inputs": [
+    "avg:voqc"
+   ],
+   "kind": "number",
+   "n": 248,
+   "printed": "45.05",
+   "provisional": false,
+   "section": "S248 averages (tab:avg-comparison)",
+   "source": "tables.averages_table_data",
+   "value": 45.045186587371525
+  },
+  "numWinCxGuoqTotal": {
+   "decimals": 1,
+   "formula": "% of circuits where QALM >= guoq_total on cx (metrics.win_rate win_or_tie; fidelity ties |d ln F| <= 1e-12)",
+   "inputs": [
+    "avg:qalm",
+    "avg:guoq_total"
+   ],
+   "kind": "number",
+   "n": 248,
+   "printed": "87.5",
+   "provisional": false,
+   "section": "S248 per-circuit win rates (fig:win_rate)",
+   "source": "fig_percircuit.gather",
+   "value": 87.5
+  },
+  "numWinCxGuoqTwoQ": {
+   "decimals": 1,
+   "formula": "% of circuits where QALM >= guoq_2q on cx (metrics.win_rate win_or_tie; fidelity ties |d ln F| <= 1e-12)",
+   "inputs": [
+    "avg:qalm",
+    "avg:guoq_2q"
+   ],
+   "kind": "number",
+   "n": 248,
+   "printed": "58.5",
+   "provisional": false,
+   "section": "S248 per-circuit win rates (fig:win_rate)",
+   "source": "fig_percircuit.gather",
+   "value": 58.46774193548387
+  },
+  "numWinCxQuartz": {
+   "decimals": 1,
+   "formula": "% of circuits where QALM >= quartz on cx (metrics.win_rate win_or_tie; fidelity ties |d ln F| <= 1e-12)",
+   "inputs": [
+    "avg:qalm",
+    "avg:quartz"
+   ],
+   "kind": "number",
+   "n": 248,
+   "printed": "96.8",
+   "provisional": false,
+   "section": "S248 per-circuit win rates (fig:win_rate)",
+   "source": "fig_percircuit.gather",
+   "value": 96.7741935483871
+  },
+  "numWinCxQuesoTotal": {
+   "decimals": 1,
+   "formula": "% of circuits where QALM >= queso_total on cx (metrics.win_rate win_or_tie; fidelity ties |d ln F| <= 1e-12)",
+   "inputs": [
+    "avg:qalm",
+    "avg:queso_total"
+   ],
+   "kind": "number",
+   "n": 248,
+   "printed": "96.4",
+   "provisional": false,
+   "section": "S248 per-circuit win rates (fig:win_rate)",
+   "source": "fig_percircuit.gather",
+   "value": 96.37096774193549
+  },
+  "numWinCxQuesoTwoQ": {
+   "decimals": 1,
+   "formula": "% of circuits where QALM >= queso_2q on cx (metrics.win_rate win_or_tie; fidelity ties |d ln F| <= 1e-12)",
+   "inputs": [
+    "avg:qalm",
+    "avg:queso_2q"
+   ],
+   "kind": "number",
+   "n": 248,
+   "printed": "96.8",
+   "provisional": false,
+   "section": "S248 per-circuit win rates (fig:win_rate)",
+   "source": "fig_percircuit.gather",
+   "value": 96.7741935483871
+  },
+  "numWinCxVoqc": {
+   "decimals": 1,
+   "formula": "% of circuits where QALM >= voqc on cx (metrics.win_rate win_or_tie; fidelity ties |d ln F| <= 1e-12)",
+   "inputs": [
+    "avg:qalm",
+    "avg:voqc"
+   ],
+   "kind": "number",
+   "n": 248,
+   "printed": "97.6",
+   "provisional": false,
+   "section": "S248 per-circuit win rates (fig:win_rate)",
+   "source": "fig_percircuit.gather",
+   "value": 97.58064516129032
+  },
+  "numWinFidGuoqTotal": {
+   "decimals": 1,
+   "formula": "% of circuits where QALM >= guoq_total on fidelity (metrics.win_rate win_or_tie; fidelity ties |d ln F| <= 1e-12)",
+   "inputs": [
+    "avg:qalm",
+    "avg:guoq_total"
+   ],
+   "kind": "number",
+   "n": 248,
+   "printed": "92.7",
+   "provisional": false,
+   "section": "S248 per-circuit win rates (fig:win_rate)",
+   "source": "fig_percircuit.gather",
+   "value": 92.74193548387096
+  },
+  "numWinFidGuoqTwoQ": {
+   "decimals": 1,
+   "formula": "% of circuits where QALM >= guoq_2q on fidelity (metrics.win_rate win_or_tie; fidelity ties |d ln F| <= 1e-12)",
+   "inputs": [
+    "avg:qalm",
+    "avg:guoq_2q"
+   ],
+   "kind": "number",
+   "n": 248,
+   "printed": "91.9",
+   "provisional": false,
+   "section": "S248 per-circuit win rates (fig:win_rate)",
+   "source": "fig_percircuit.gather",
+   "value": 91.93548387096774
+  },
+  "numWinFidQuartz": {
+   "decimals": 1,
+   "formula": "% of circuits where QALM >= quartz on fidelity (metrics.win_rate win_or_tie; fidelity ties |d ln F| <= 1e-12)",
+   "inputs": [
+    "avg:qalm",
+    "avg:quartz"
+   ],
+   "kind": "number",
+   "n": 248,
+   "printed": "99.2",
+   "provisional": false,
+   "section": "S248 per-circuit win rates (fig:win_rate)",
+   "source": "fig_percircuit.gather",
+   "value": 99.19354838709677
+  },
+  "numWinFidQuesoTotal": {
+   "decimals": 1,
+   "formula": "% of circuits where QALM >= queso_total on fidelity (metrics.win_rate win_or_tie; fidelity ties |d ln F| <= 1e-12)",
+   "inputs": [
+    "avg:qalm",
+    "avg:queso_total"
+   ],
+   "kind": "number",
+   "n": 248,
+   "printed": "99.2",
+   "provisional": false,
+   "section": "S248 per-circuit win rates (fig:win_rate)",
+   "source": "fig_percircuit.gather",
+   "value": 99.19354838709677
+  },
+  "numWinFidQuesoTwoQ": {
+   "decimals": 1,
+   "formula": "% of circuits where QALM >= queso_2q on fidelity (metrics.win_rate win_or_tie; fidelity ties |d ln F| <= 1e-12)",
+   "inputs": [
+    "avg:qalm",
+    "avg:queso_2q"
+   ],
+   "kind": "number",
+   "n": 248,
+   "printed": "99.2",
+   "provisional": false,
+   "section": "S248 per-circuit win rates (fig:win_rate)",
+   "source": "fig_percircuit.gather",
+   "value": 99.19354838709677
+  },
+  "numWinFidStrongest": {
+   "decimals": 1,
+   "formula": "lowest fidelity win-or-tie % over the six baselines (the baseline is \\numStrongestFidBaseline)",
+   "inputs": [
+    "avg:qalm",
+    "avg:guoq_2q",
+    "avg:guoq_total",
+    "avg:queso_2q",
+    "avg:queso_total",
+    "avg:voqc",
+    "avg:quartz"
+   ],
+   "kind": "number",
+   "n": 248,
+   "printed": "91.9",
+   "provisional": false,
+   "section": "S248 per-circuit win rates (fig:win_rate)",
+   "source": "fig_percircuit.gather",
+   "value": 91.93548387096774
+  },
+  "numWinFidVoqc": {
+   "decimals": 1,
+   "formula": "% of circuits where QALM >= voqc on fidelity (metrics.win_rate win_or_tie; fidelity ties |d ln F| <= 1e-12)",
+   "inputs": [
+    "avg:qalm",
+    "avg:voqc"
+   ],
+   "kind": "number",
+   "n": 248,
+   "printed": "99.6",
+   "provisional": false,
+   "section": "S248 per-circuit win rates (fig:win_rate)",
+   "source": "fig_percircuit.gather",
+   "value": 99.59677419354838
+  },
+  "numWinMinOthers": {
+   "decimals": 1,
+   "formula": "lowest win-or-tie % over QUESO (both), VOQC, Quartz, GUOQ (Total) x {fidelity, cx, total}",
+   "inputs": [
+    "avg:qalm",
+    "avg:queso_2q",
+    "avg:queso_total",
+    "avg:voqc",
+    "avg:quartz",
+    "avg:guoq_total"
+   ],
+   "kind": "number",
+   "n": 248,
+   "printed": "87.5",
+   "provisional": false,
+   "section": "S248 per-circuit win rates (fig:win_rate)",
+   "source": "fig_percircuit.gather",
+   "value": 87.5
+  },
+  "numWinTotalGuoqTotal": {
+   "decimals": 1,
+   "formula": "% of circuits where QALM >= guoq_total on total (metrics.win_rate win_or_tie; fidelity ties |d ln F| <= 1e-12)",
+   "inputs": [
+    "avg:qalm",
+    "avg:guoq_total"
+   ],
+   "kind": "number",
+   "n": 248,
+   "printed": "97.6",
+   "provisional": false,
+   "section": "S248 per-circuit win rates (fig:win_rate)",
+   "source": "fig_percircuit.gather",
+   "value": 97.58064516129032
+  },
+  "numWinTotalGuoqTwoQ": {
+   "decimals": 1,
+   "formula": "% of circuits where QALM >= guoq_2q on total (metrics.win_rate win_or_tie; fidelity ties |d ln F| <= 1e-12)",
+   "inputs": [
+    "avg:qalm",
+    "avg:guoq_2q"
+   ],
+   "kind": "number",
+   "n": 248,
+   "printed": "95.6",
+   "provisional": false,
+   "section": "S248 per-circuit win rates (fig:win_rate)",
+   "source": "fig_percircuit.gather",
+   "value": 95.56451612903226
+  },
+  "numWinTotalQuartz": {
+   "decimals": 1,
+   "formula": "% of circuits where QALM >= quartz on total (metrics.win_rate win_or_tie; fidelity ties |d ln F| <= 1e-12)",
+   "inputs": [
+    "avg:qalm",
+    "avg:quartz"
+   ],
+   "kind": "number",
+   "n": 248,
+   "printed": "99.6",
+   "provisional": false,
+   "section": "S248 per-circuit win rates (fig:win_rate)",
+   "source": "fig_percircuit.gather",
+   "value": 99.59677419354838
+  },
+  "numWinTotalQuesoTotal": {
+   "decimals": 1,
+   "formula": "% of circuits where QALM >= queso_total on total (metrics.win_rate win_or_tie; fidelity ties |d ln F| <= 1e-12)",
+   "inputs": [
+    "avg:qalm",
+    "avg:queso_total"
+   ],
+   "kind": "number",
+   "n": 248,
+   "printed": "99.6",
+   "provisional": false,
+   "section": "S248 per-circuit win rates (fig:win_rate)",
+   "source": "fig_percircuit.gather",
+   "value": 99.59677419354838
+  },
+  "numWinTotalQuesoTwoQ": {
+   "decimals": 1,
+   "formula": "% of circuits where QALM >= queso_2q on total (metrics.win_rate win_or_tie; fidelity ties |d ln F| <= 1e-12)",
+   "inputs": [
+    "avg:qalm",
+    "avg:queso_2q"
+   ],
+   "kind": "number",
+   "n": 248,
+   "printed": "99.6",
+   "provisional": false,
+   "section": "S248 per-circuit win rates (fig:win_rate)",
+   "source": "fig_percircuit.gather",
+   "value": 99.59677419354838
+  },
+  "numWinTotalVoqc": {
+   "decimals": 1,
+   "formula": "% of circuits where QALM >= voqc on total (metrics.win_rate win_or_tie; fidelity ties |d ln F| <= 1e-12)",
+   "inputs": [
+    "avg:qalm",
+    "avg:voqc"
+   ],
+   "kind": "number",
+   "n": 248,
+   "printed": "100.0",
+   "provisional": false,
+   "section": "S248 per-circuit win rates (fig:win_rate)",
+   "source": "fig_percircuit.gather",
+   "value": 100.0
+  }
+ },
+ "meta": {
+  "allow_partial": false,
+  "budget_s": 3600,
+  "complete": true,
+  "conventions": [
+   "values are unrounded; differences are taken before rounding",
+   "printed: fixed decimals as in the paper; times and speedups with 1 decimal below 10, else 0; a trailing '?' marks a provisional value"
+  ],
+  "curve_data_issues": {
+   "duplicate_runs_rows": 0,
+   "greedy_end_s_after_budget_capped": 0,
+   "problems": [],
+   "same_timestamp": {
+    "jobs": 33,
+    "timestamps": 38
+   }
+  },
+  "events": "repro/results/events.csv",
+  "events_plan": null,
+  "events_sha256": "52dacd8b09e67a81a77a940330f5d6475d8e3e5ca6b2b0b8900c5a3c7f1361ec",
+  "inputs_sha256": {
+   "kevents.csv": "b1721b0f21f6fe0a3a98e73416c1c956583a57e4af94a536d2aef3040693e00a",
+   "runs.csv": "89f3bda63783d1f12e2dd3d6276b0d8d666b7110f619f878f407ff3bbbb921c9",
+   "timeseries.csv.gz": "04c4975fecc1e5bfe35e463a00c7cb9c2d46994b7f578fbcc47318dd7b90ed86"
+  },
+  "n_macros": 184,
+  "n_missing": 0,
+  "n_provisional": 0,
+  "noise_e5": {
+   "df": 18,
+   "finals_by_config": {
+    "{\"enqueue\": 0, \"fixed_k\": 0, \"greedy_k\": 2, \"n_branch\": 1, \"n_pool\": 1}": [
+     31.585793518491833,
+     31.602388550566744,
+     31.473879117103746
+    ],
+    "{\"enqueue\": 0, \"fixed_k\": 0, \"greedy_k\": 2, \"n_branch\": 2, \"n_pool\": 1}": [
+     32.59168331215141,
+     32.66791502232303,
+     32.45337792543299
+    ],
+    "{\"enqueue\": 0, \"fixed_k\": 0, \"greedy_k\": 2, \"n_branch\": 3, \"n_pool\": 1}": [
+     33.009656979351085,
+     32.76988670935608,
+     32.919941158165145
+    ],
+    "{\"enqueue\": 0, \"fixed_k\": 0, \"greedy_k\": 2, \"n_branch\": 3, \"n_pool\": 2}": [
+     32.90634061906878,
+     33.131029245079795,
+     32.89720327637559
+    ],
+    "{\"enqueue\": 0, \"fixed_k\": 0, \"greedy_k\": 2, \"n_branch\": 3, \"n_pool\": 3}": [
+     33.10515059614583,
+     32.97610400954848,
+     32.9635758860104
+    ],
+    "{\"enqueue\": 0, \"fixed_k\": 0, \"greedy_k\": 2, \"n_branch\": 3, \"n_pool\": 4}": [
+     33.00388422199136,
+     32.8788704313394,
+     32.93712733279741
+    ],
+    "{\"enqueue\": 0, \"fixed_k\": 0, \"greedy_k\": 2, \"n_branch\": 3, \"n_pool\": 5}": [
+     33.12198714496002,
+     32.8660631997998,
+     33.02301850892401
+    ],
+    "{\"enqueue\": 0, \"fixed_k\": 0, \"greedy_k\": 2, \"n_branch\": 4, \"n_pool\": 1}": [
+     33.11882588711063,
+     33.07684687251248,
+     33.12699479319346
+    ],
+    "{\"enqueue\": 0, \"fixed_k\": 0, \"greedy_k\": 2, \"n_branch\": 5, \"n_pool\": 1}": [
+     33.22542753113277,
+     33.294313436350336,
+     33.2857472139858
+    ]
+   },
+   "n_configs": 9,
+   "sd_pooled": 0.09295944112209664
+  },
+  "qalm_config": "a",
+  "qalm_selection": {
+   "optimizer": "qalm",
+   "params": {
+    "enqueue": 0,
+    "fixed_k": 0,
+    "greedy_k": 2,
+    "n_branch": 3,
+    "n_pool": 1
+   }
+  },
+  "results": "repro/results",
+  "script": "repro/analysis/numbers.py",
+  "short_budget_s": 60,
+  "threshold_pct": 32.0
+ },
+ "problems": [],
+ "selections": {
+  "avg:guoq_2q": {
+   "complete": true,
+   "description": "guoq(opt=TWO_Q) S248 3600s seed 0",
+   "expected": 248,
+   "job_ids_sha256": "6b196e75a66968cf",
+   "missing": [],
+   "n": 248,
+   "status_counts": {}
+  },
+  "avg:guoq_total": {
+   "complete": true,
+   "description": "guoq(opt=TOTAL) S248 3600s seed 0",
+   "expected": 248,
+   "job_ids_sha256": "854274d0e9be1201",
+   "missing": [],
+   "n": 248,
+   "status_counts": {
+    "JVM_OOM": 6
+   }
+  },
+  "avg:qalm": {
+   "complete": true,
+   "description": "qalm(enqueue=0,fixed_k=0,greedy_k=2,n_branch=3,n_pool=1) S248 3600s seed 0",
+   "expected": 248,
+   "job_ids_sha256": "94c826588e9c3254",
+   "missing": [],
+   "n": 248,
+   "status_counts": {}
+  },
+  "avg:qalm_1min": {
+   "complete": true,
+   "description": "qalm(enqueue=0,fixed_k=0,greedy_k=2,n_branch=3,n_pool=1) S248 60s seed 0",
+   "expected": 248,
+   "job_ids_sha256": "b682bd86052540dc",
+   "missing": [],
+   "n": 248,
+   "status_counts": {}
+  },
+  "avg:quartz": {
+   "complete": true,
+   "description": "quartz S248 3600s seed 0",
+   "expected": 248,
+   "job_ids_sha256": "0869a4b2ba87a9a0",
+   "missing": [],
+   "n": 248,
+   "status_counts": {
+    "OOM_CAP": 2
+   }
+  },
+  "avg:queso_2q": {
+   "complete": true,
+   "description": "queso(opt=TWO_Q) S248 3600s seed 0",
+   "expected": 248,
+   "job_ids_sha256": "ae17f63cc65a0421",
+   "missing": [],
+   "n": 248,
+   "status_counts": {
+    "JVM_OOM": 5
+   }
+  },
+  "avg:queso_total": {
+   "complete": true,
+   "description": "queso(opt=TOTAL) S248 3600s seed 0",
+   "expected": 248,
+   "job_ids_sha256": "9ba8ea5272c01651",
+   "missing": [],
+   "n": 248,
+   "status_counts": {
+    "JVM_OOM": 3
+   }
+  },
+  "avg:voqc": {
+   "complete": true,
+   "description": "voqc S248 3600s seed 0",
+   "expected": 248,
+   "job_ids_sha256": "1110844b4f8d0f1d",
+   "missing": [],
+   "n": 248,
+   "status_counts": {
+    "TIMEOUT": 7
+   }
+  },
+  "config:campaign": {
+   "complete": true,
+   "description": "repro/config/campaign.yaml",
+   "expected": 1,
+   "job_ids_sha256": null,
+   "missing": [],
+   "n": 1
+  },
+  "curve:N_branch:N_branch=1": {
+   "complete": true,
+   "description": "qalm(greedy_k=2,fixed_k=0,enqueue=0,n_branch=1,n_pool=1) S26 3600s seeds [0, 1, 2] [N_branch_arith_mean_3600s_plain.pdf]",
+   "expected": 78,
+   "job_ids_sha256": "88b3ce63eb505a38",
+   "missing": [],
+   "n": 78,
+   "problems": [],
+   "seeds_present": [
+    0,
+    1,
+    2
+   ]
+  },
+  "curve:N_branch:N_branch=2": {
+   "complete": true,
+   "description": "qalm(greedy_k=2,fixed_k=0,enqueue=0,n_branch=2,n_pool=1) S26 3600s seeds [0, 1, 2] [N_branch_arith_mean_3600s_plain.pdf]",
+   "expected": 78,
+   "job_ids_sha256": "abc16241a6b7e637",
+   "missing": [],
+   "n": 78,
+   "problems": [],
+   "seeds_present": [
+    0,
+    1,
+    2
+   ]
+  },
+  "curve:N_branch:N_branch=3": {
+   "complete": true,
+   "description": "qalm(greedy_k=2,fixed_k=0,enqueue=0,n_branch=3,n_pool=1) S26 3600s seeds [0, 1, 2] [N_branch_arith_mean_3600s_plain.pdf]",
+   "expected": 78,
+   "job_ids_sha256": "f58386e4a224093e",
+   "missing": [],
+   "n": 78,
+   "problems": [],
+   "seeds_present": [
+    0,
+    1,
+    2
+   ]
+  },
+  "curve:N_branch:N_branch=4": {
+   "complete": true,
+   "description": "qalm(greedy_k=2,fixed_k=0,enqueue=0,n_branch=4,n_pool=1) S26 3600s seeds [0, 1, 2] [N_branch_arith_mean_3600s_plain.pdf]",
+   "expected": 78,
+   "job_ids_sha256": "55086851685f867c",
+   "missing": [],
+   "n": 78,
+   "problems": [],
+   "seeds_present": [
+    0,
+    1,
+    2
+   ]
+  },
+  "curve:N_branch:N_branch=5": {
+   "complete": true,
+   "description": "qalm(greedy_k=2,fixed_k=0,enqueue=0,n_branch=5,n_pool=1) S26 3600s seeds [0, 1, 2] [N_branch_arith_mean_3600s_plain.pdf]",
+   "expected": 78,
+   "job_ids_sha256": "c5d16f18c52df7d2",
+   "missing": [],
+   "n": 78,
+   "problems": [],
+   "seeds_present": [
+    0,
+    1,
+    2
+   ]
+  },
+  "curve:N_pool:N_pool=1": {
+   "complete": true,
+   "description": "qalm(greedy_k=2,fixed_k=0,enqueue=0,n_pool=1,n_branch=3) S26 3600s seeds [0, 1, 2] [N_pool_arith_mean_3600s_plain.pdf]",
+   "expected": 78,
+   "job_ids_sha256": "f58386e4a224093e",
+   "missing": [],
+   "n": 78,
+   "problems": [],
+   "seeds_present": [
+    0,
+    1,
+    2
+   ]
+  },
+  "curve:N_pool:N_pool=2": {
+   "complete": true,
+   "description": "qalm(greedy_k=2,fixed_k=0,enqueue=0,n_pool=2,n_branch=3) S26 3600s seeds [0, 1, 2] [N_pool_arith_mean_3600s_plain.pdf]",
+   "expected": 78,
+   "job_ids_sha256": "3652dee9262c1a0d",
+   "missing": [],
+   "n": 78,
+   "problems": [],
+   "seeds_present": [
+    0,
+    1,
+    2
+   ]
+  },
+  "curve:N_pool:N_pool=3": {
+   "complete": true,
+   "description": "qalm(greedy_k=2,fixed_k=0,enqueue=0,n_pool=3,n_branch=3) S26 3600s seeds [0, 1, 2] [N_pool_arith_mean_3600s_plain.pdf]",
+   "expected": 78,
+   "job_ids_sha256": "880bc35d794ae812",
+   "missing": [],
+   "n": 78,
+   "problems": [],
+   "seeds_present": [
+    0,
+    1,
+    2
+   ]
+  },
+  "curve:N_pool:N_pool=4": {
+   "complete": true,
+   "description": "qalm(greedy_k=2,fixed_k=0,enqueue=0,n_pool=4,n_branch=3) S26 3600s seeds [0, 1, 2] [N_pool_arith_mean_3600s_plain.pdf]",
+   "expected": 78,
+   "job_ids_sha256": "7a4c9e45f5d58773",
+   "missing": [],
+   "n": 78,
+   "problems": [],
+   "seeds_present": [
+    0,
+    1,
+    2
+   ]
+  },
+  "curve:N_pool:N_pool=5": {
+   "complete": true,
+   "description": "qalm(greedy_k=2,fixed_k=0,enqueue=0,n_pool=5,n_branch=3) S26 3600s seeds [0, 1, 2] [N_pool_arith_mean_3600s_plain.pdf]",
+   "expected": 78,
+   "job_ids_sha256": "15e25e69ac94dc8a",
+   "missing": [],
+   "n": 78,
+   "problems": [],
+   "seeds_present": [
+    0,
+    1,
+    2
+   ]
+  },
+  "curve:greedy_k:greedy_k=0": {
+   "complete": true,
+   "description": "qalm(greedy_k=0,n_pool=1,n_branch=3,fixed_k=0,enqueue=0) S26 3600s seeds [0] [greedy_k_reduction.pdf]",
+   "expected": 26,
+   "job_ids_sha256": "c2fc22f7ca972505",
+   "missing": [],
+   "n": 26,
+   "problems": [],
+   "seeds_present": [
+    0
+   ]
+  },
+  "curve:greedy_k:greedy_k=1": {
+   "complete": true,
+   "description": "qalm(greedy_k=1,n_pool=1,n_branch=3,fixed_k=0,enqueue=0) S26 3600s seeds [0] [greedy_k_reduction.pdf]",
+   "expected": 26,
+   "job_ids_sha256": "37892dff62e0a97b",
+   "missing": [],
+   "n": 26,
+   "problems": [],
+   "seeds_present": [
+    0
+   ]
+  },
+  "curve:greedy_k:greedy_k=2": {
+   "complete": true,
+   "description": "qalm(greedy_k=2,n_pool=1,n_branch=3,fixed_k=0,enqueue=0) S26 3600s seeds [0] [greedy_k_reduction.pdf]",
+   "expected": 26,
+   "job_ids_sha256": "2e5c522e47a17703",
+   "missing": [],
+   "n": 26,
+   "problems": [],
+   "seeds_present": [
+    0
+   ]
+  },
+  "curve:greedy_k:greedy_k=3": {
+   "complete": true,
+   "description": "qalm(greedy_k=3,n_pool=1,n_branch=3,fixed_k=0,enqueue=0) S26 3600s seeds [0] [greedy_k_reduction.pdf]",
+   "expected": 26,
+   "job_ids_sha256": "e7e40a638f89d990",
+   "missing": [],
+   "n": 26,
+   "problems": [],
+   "seeds_present": [
+    0
+   ]
+  },
+  "curve:single_k_gk0:advancing_k": {
+   "complete": true,
+   "description": "qalm(greedy_k=0,n_pool=1,n_branch=3,fixed_k=0,enqueue=0) S26 3600s seeds [0] [single_k_gk0.pdf]",
+   "expected": 26,
+   "job_ids_sha256": "c2fc22f7ca972505",
+   "missing": [],
+   "n": 26,
+   "problems": [],
+   "seeds_present": [
+    0
+   ]
+  },
+  "curve:single_k_gk0:k=1": {
+   "complete": true,
+   "description": "qalm(greedy_k=0,n_pool=1,n_branch=3,fixed_k=1,enqueue=0) S26 3600s seeds [0] [single_k_gk0.pdf]",
+   "expected": 26,
+   "job_ids_sha256": "e6b6600a1c15b2b0",
+   "missing": [],
+   "n": 26,
+   "problems": [],
+   "seeds_present": [
+    0
+   ]
+  },
+  "curve:single_k_gk0:k=2": {
+   "complete": true,
+   "description": "qalm(greedy_k=0,n_pool=1,n_branch=3,fixed_k=2,enqueue=0) S26 3600s seeds [0] [single_k_gk0.pdf]",
+   "expected": 26,
+   "job_ids_sha256": "3b6592bf00eaf408",
+   "missing": [],
+   "n": 26,
+   "problems": [],
+   "seeds_present": [
+    0
+   ]
+  },
+  "curve:single_k_gk0:k=3": {
+   "complete": true,
+   "description": "qalm(greedy_k=0,n_pool=1,n_branch=3,fixed_k=3,enqueue=0) S26 3600s seeds [0] [single_k_gk0.pdf]",
+   "expected": 26,
+   "job_ids_sha256": "601f4e1a613426e1",
+   "missing": [],
+   "n": 26,
+   "problems": [],
+   "seeds_present": [
+    0
+   ]
+  },
+  "curve:single_k_gk0:k=4": {
+   "complete": true,
+   "description": "qalm(greedy_k=0,n_pool=1,n_branch=3,fixed_k=4,enqueue=0) S26 3600s seeds [0] [single_k_gk0.pdf]",
+   "expected": 26,
+   "job_ids_sha256": "58871a3b1b967f43",
+   "missing": [],
+   "n": 26,
+   "problems": [],
+   "seeds_present": [
+    0
+   ]
+  },
+  "curve:single_k_gk0:k=5": {
+   "complete": true,
+   "description": "qalm(greedy_k=0,n_pool=1,n_branch=3,fixed_k=5,enqueue=0) S26 3600s seeds [0] [single_k_gk0.pdf]",
+   "expected": 26,
+   "job_ids_sha256": "7cb182ec7b18219f",
+   "missing": [],
+   "n": 26,
+   "problems": [],
+   "seeds_present": [
+    0
+   ]
+  },
+  "curve:single_k_gk2:advancing_k": {
+   "complete": true,
+   "description": "qalm(greedy_k=2,n_pool=1,n_branch=3,fixed_k=0,enqueue=0) S26 3600s seeds [0] [single_k_gk2.pdf]",
+   "expected": 26,
+   "job_ids_sha256": "2e5c522e47a17703",
+   "missing": [],
+   "n": 26,
+   "problems": [],
+   "seeds_present": [
+    0
+   ]
+  },
+  "curve:single_k_gk2:k=1": {
+   "complete": true,
+   "description": "qalm(greedy_k=2,n_pool=1,n_branch=3,fixed_k=1,enqueue=0) S26 3600s seeds [0] [single_k_gk2.pdf]",
+   "expected": 26,
+   "job_ids_sha256": "933f1d0d1b32609d",
+   "missing": [],
+   "n": 26,
+   "problems": [],
+   "seeds_present": [
+    0
+   ]
+  },
+  "curve:single_k_gk2:k=2": {
+   "complete": true,
+   "description": "qalm(greedy_k=2,n_pool=1,n_branch=3,fixed_k=2,enqueue=0) S26 3600s seeds [0] [single_k_gk2.pdf]",
+   "expected": 26,
+   "job_ids_sha256": "7e1d78ff744642e4",
+   "missing": [],
+   "n": 26,
+   "problems": [],
+   "seeds_present": [
+    0
+   ]
+  },
+  "curve:single_k_gk2:k=3": {
+   "complete": true,
+   "description": "qalm(greedy_k=2,n_pool=1,n_branch=3,fixed_k=3,enqueue=0) S26 3600s seeds [0] [single_k_gk2.pdf]",
+   "expected": 26,
+   "job_ids_sha256": "e566dc3bb443f359",
+   "missing": [],
+   "n": 26,
+   "problems": [],
+   "seeds_present": [
+    0
+   ]
+  },
+  "curve:single_k_gk2:k=4": {
+   "complete": true,
+   "description": "qalm(greedy_k=2,n_pool=1,n_branch=3,fixed_k=4,enqueue=0) S26 3600s seeds [0] [single_k_gk2.pdf]",
+   "expected": 26,
+   "job_ids_sha256": "a5ad10f2bdaab1be",
+   "missing": [],
+   "n": 26,
+   "problems": [],
+   "seeds_present": [
+    0
+   ]
+  },
+  "curve:single_k_gk2:k=5": {
+   "complete": true,
+   "description": "qalm(greedy_k=2,n_pool=1,n_branch=3,fixed_k=5,enqueue=0) S26 3600s seeds [0] [single_k_gk2.pdf]",
+   "expected": 26,
+   "job_ids_sha256": "2d46540c98df62cf",
+   "missing": [],
+   "n": 26,
+   "problems": [],
+   "seeds_present": [
+    0
+   ]
+  },
+  "ete:guoq": {
+   "complete": true,
+   "description": "guoq(opt=TOTAL) S26 3600s seed 0",
+   "expected": 26,
+   "job_ids_sha256": "c32572e84cd7888e",
+   "missing": [],
+   "n": 26,
+   "status_counts": {}
+  },
+  "ete:qalm": {
+   "complete": true,
+   "description": "qalm(enqueue=0,fixed_k=0,greedy_k=2,n_branch=3,n_pool=1) S26 3600s seed 0",
+   "expected": 26,
+   "job_ids_sha256": "2e5c522e47a17703",
+   "missing": [],
+   "n": 26,
+   "status_counts": {}
+  },
+  "ete:quartz_nopp": {
+   "complete": true,
+   "description": "quartz S26 3600s seed 0",
+   "expected": 26,
+   "job_ids_sha256": "5752f9cb423a0583",
+   "missing": [],
+   "n": 26,
+   "status_counts": {}
+  },
+  "ete:queso": {
+   "complete": true,
+   "description": "queso(opt=TOTAL) S26 3600s seed 0",
+   "expected": 26,
+   "job_ids_sha256": "4176b14d32bb2fa7",
+   "missing": [],
+   "n": 26,
+   "status_counts": {}
+  },
+  "ete:voqc": {
+   "complete": true,
+   "description": "voqc S26 3600s seed 0",
+   "expected": 26,
+   "job_ids_sha256": "a54cdee420ecfb23",
+   "missing": [],
+   "n": 26,
+   "status_counts": {}
+  },
+  "events": {
+   "complete": true,
+   "description": "scheduler events repro/results/events.csv",
+   "expected": 7300,
+   "job_ids_sha256": null,
+   "missing": [],
+   "n": 7300
+  },
+  "inputs:S248_source": {
+   "complete": true,
+   "description": "*.qasm in ['benchmarks/guoq_nam_rz']",
+   "expected": 250,
+   "job_ids_sha256": null,
+   "missing": [],
+   "n": 250,
+   "removed": [
+    "qft_10",
+    "qft_16"
+   ]
+  },
+  "manifest:S248": {
+   "complete": true,
+   "description": "repro/inputs/S248.csv",
+   "expected": 248,
+   "job_ids_sha256": null,
+   "missing": [],
+   "n": 248
+  },
+  "manifest:S26": {
+   "complete": true,
+   "description": "repro/inputs/S26.csv",
+   "expected": 26,
+   "job_ids_sha256": null,
+   "missing": [],
+   "n": 26
+  },
+  "runs:all": {
+   "complete": true,
+   "description": "every row of runs.csv with a result",
+   "expected": 3650,
+   "job_ids_sha256": "2c2cd9dd936f225c",
+   "missing": [],
+   "n": 3650
+  }
+ },
+ "warnings": []
+}
